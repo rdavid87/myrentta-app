@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 
 const Login = () => {
-  const [email, setEmail] = useState("")
+  const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -19,7 +19,7 @@ const Login = () => {
     setLoading(true)
 
     try {
-      await login(email, password)
+      await login(identifier, password)
       navigate("/dashboard")
     } catch (err) {
       setError(err.response?.data?.error || "Error al iniciar sesión")
@@ -68,25 +68,25 @@ const Login = () => {
               </div>
             )}
 
-            {/* Email */}
+            {/* Correo o Cédula */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Correo Electrónico
+                Correo o Cédula
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 sm:py-4 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white
                            placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 
                            transition-all duration-300"
-                  placeholder="correo@ejemplo.com"
+                  placeholder="correo@ejemplo.com o número de cédula"
                   required
                 />
               </div>
