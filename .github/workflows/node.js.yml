@@ -34,10 +34,34 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    # Solo ejecutaremos el despliegue si estamos haciendo push a la rama main
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - name: Deploy to VPS via SSH
+      - uses: actions/checkout@v4
+      
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          
+      - name: Install dependencies and Build
+        run: |
+          npm ci
+          echo "VITE_API_URL=${{ vars.VITE_API_URL }}" > .env
+          npm run build
+          
+      - name: Copy build files via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ vars.VPS_PORT }}
+          source: "dist/*"
+          target: "/var/www/clients/client11/web16/web/myrentta-app"
+          strip_components: 1
+
+      - name: Final setup via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ vars.VPS_HOST }}
@@ -45,68 +69,6 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ vars.VPS_PORT }}
           script: |
-            # 1. Configurar variables de entorno y cargar NVM/Node
-            export NVM_DIR="$HOME/.nvm"
-            if [ -s "$NVM_DIR/nvm.sh" ]; then
-              source "$NVM_DIR/nvm.sh"
-              nvm use default || nvm use node || true
-            fi
-            
-            # Asegurar rutas comunes
-            export PATH="$PATH:/usr/local/bin:/usr/bin:/bin:$HOME/.nvm/versions/node/$(nvm current 2>/dev/null)/bin"
-            
-            echo "Node version: $(node -v)"
-            echo "NPM version: $(npm -v)"
-            
-            # 2. Navegar al proyecto o crearlo
             PROJECT_DIR="/var/www/clients/client11/web16/web/myrentta-app"
-            mkdir -p "$PROJECT_DIR"
             cd "$PROJECT_DIR"
-            
-            # 3. Configurar SSH para GitHub
-            mkdir -p ~/.ssh
-            chmod 700 ~/.ssh
-            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts 2>/dev/null
-            
-            # 4. Configurar Git y SSH Command
-            if [ ! -d ".git" ]; then
-              echo "Inicializando repositorio git..."
-              git init
-              git remote add origin git@github.com:rdavid87/myrentta-app.git
-            fi
-            
-            git config core.sshCommand "ssh -i ~/.ssh/github_deploy_key -o IdentitiesOnly=yes"
-            
-            # 5. Sincronizar con GitHub
-            echo "Sincronizando con GitHub..."
-            if ! git fetch origin main; then
-              echo "ERROR: No se pudo hacer fetch de GitHub. Verifica la llave SSH."
-              exit 1
-            fi
-            git reset --hard origin/main
-            git clean -fd # Limpiar archivos no rastreados
-            
-            # 6. Instalar dependencias
-            echo "Instalando dependencias..."
-            # Usamos npm install para ser más resilientes en entornos de servidor
-            npm install --no-audit --no-fund || {
-              echo "Reintentando instalación limpia..."
-              rm -rf node_modules
-              npm install --no-audit --no-fund
-            }
-            
-            # 7. Configurar variables y compilar
-            echo "Compilando aplicación..."
-            echo "VITE_API_URL=${{ vars.VITE_API_URL }}" > .env
-            
-            # Aumentar memoria para Node (Vite/Rollup) para evitar crashes en VPS pequeños
-            export NODE_OPTIONS="--max-old-space-size=1024"
-            
-            if npm run build; then
-              echo "¡Despliegue completado con éxito!"
-            else
-              echo "ERROR: Falló 'npm run build'. Esto suele deberse a falta de memoria en el VPS o errores de sintaxis."
-              echo "Memoria actual:"
-              free -m || echo "Comando 'free' no disponible"
-              exit 1
-            fi
+            echo "¡Despliegue vía SCP completado con éxito!"
