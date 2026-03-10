@@ -46,29 +46,33 @@ jobs:
           port: ${{ vars.VPS_PORT }} # Por lo general es 22
           # Este script se ejecutará directamente en tu VPS remoto
           script: |
-            # 1. Navega a la carpeta de tu proyecto
+            # 1. Forzar carga de Node/NPM (importante para SSH)
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # Carga nvm si existe
+            export PATH=$PATH:/usr/local/bin:/usr/bin # Rutas estándar
+            
+            # 2. Navega a la carpeta de tu proyecto
             cd /var/www/clients/client11/web16/web/myrentta-app
             
-            # 2. Si no es un repositorio git, inicialízalo
+            # 3. Asegurar que confiamos en github.com
+            mkdir -p ~/.ssh
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts 2>/dev/null
+            
+            # 4. Si no es un repositorio git, inicialízalo
             if [ ! -d ".git" ]; then
               echo "Inicializando repositorio git..."
               git init
               git remote add origin git@github.com:rdavid87/myrentta-app.git
-              git fetch
-              git checkout -f main
             fi
             
-            # 3. Descarga los últimos cambios
-            git pull origin main
+            # 5. Sincronizar con GitHub
+            git fetch origin main
+            git reset --hard origin/main
             
-            # 4. Instala/actualiza las dependencias
-            npm ci
+            # 6. Instalar dependencias
+            # Usamos 'npm' directamente; si falla usa la ruta de 'which npm'
+            npm ci || npm install
             
-            # 5. Configura las variables de entorno
+            # 7. Configurar variables y compilar
             echo "VITE_API_URL=${{ vars.VITE_API_URL }}" > .env
-            
-            # 6. Construye el proyecto
             npm run build --if-present
-            
-            # 7. (Opcional) Reiniciar proceso si fuera necesario
-            # pm2 restart myrentta-app
