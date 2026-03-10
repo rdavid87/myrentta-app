@@ -46,20 +46,29 @@ jobs:
           port: ${{ vars.VPS_PORT }} # Por lo general es 22
           # Este script se ejecutará directamente en tu VPS remoto
           script: |
-            # 1. Navega a la carpeta de tu proyecto (CÁMBIALO A LA RUTA REAL)
+            # 1. Navega a la carpeta de tu proyecto
             cd /var/www/clients/client11/web16/web/myrentta-app
             
-            # 2. Descarga los últimos cambios del repositorio
+            # 2. Si no es un repositorio git, inicialízalo
+            if [ ! -d ".git" ]; then
+              echo "Inicializando repositorio git..."
+              git init
+              git remote add origin git@github.com:rdavid87/myrentta-app.git
+              git fetch
+              git checkout -f main
+            fi
+            
+            # 3. Descarga los últimos cambios
             git pull origin main
             
-            # 3. Instala/actualiza las dependencias
+            # 4. Instala/actualiza las dependencias
             npm ci
             
-            # 4. Configura las variables de entorno para la compilación
+            # 5. Configura las variables de entorno
             echo "VITE_API_URL=${{ vars.VITE_API_URL }}" > .env
             
-            # 5. Construye el proyecto (si tienes un build script)
+            # 6. Construye el proyecto
             npm run build --if-present
             
-            # 6. Reinicia el proceso (ejemplo si usaras pm2, asegúrate de cambiar el nombre)
+            # 7. (Opcional) Reiniciar proceso si fuera necesario
             # pm2 restart myrentta-app
