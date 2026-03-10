@@ -55,6 +55,9 @@ jobs:
             # Asegurar rutas comunes
             export PATH="$PATH:/usr/local/bin:/usr/bin:/bin:$HOME/.nvm/versions/node/$(nvm current 2>/dev/null)/bin"
             
+            echo "Node version: $(node -v)"
+            echo "NPM version: $(npm -v)"
+            
             # 2. Navegar al proyecto o crearlo
             PROJECT_DIR="/var/www/clients/client11/web16/web/myrentta-app"
             mkdir -p "$PROJECT_DIR"
@@ -66,7 +69,6 @@ jobs:
             ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts 2>/dev/null
             
             # 4. Configurar Git y SSH Command
-            # Aseguramos que git use siempre la llave de despliegue específica
             if [ ! -d ".git" ]; then
               echo "Inicializando repositorio git..."
               git init
@@ -76,24 +78,35 @@ jobs:
             git config core.sshCommand "ssh -i ~/.ssh/github_deploy_key -o IdentitiesOnly=yes"
             
             # 5. Sincronizar con GitHub
-            # IMPORTANTE: ~/.ssh/github_deploy_key debe existir en el VPS y estar en las Deploy Keys del repo en GitHub
             echo "Sincronizando con GitHub..."
             if ! git fetch origin main; then
-              echo "ERROR: No se pudo hacer fetch de GitHub. Verifica que ~/.ssh/github_deploy_key existe y tiene permisos."
+              echo "ERROR: No se pudo hacer fetch de GitHub. Verifica la llave SSH."
               exit 1
             fi
             git reset --hard origin/main
+            git clean -fd # Limpiar archivos no rastreados
             
             # 6. Instalar dependencias
             echo "Instalando dependencias..."
-            if command -v npm &> /dev/null; then
-              npm ci || npm install
-            else
-              echo "ERROR: npm no encontrado. Verifica la instalación de Node.js en el VPS."
-              exit 1
-            fi
+            # Usamos npm install para ser más resilientes en entornos de servidor
+            npm install --no-audit --no-fund || {
+              echo "Reintentando instalación limpia..."
+              rm -rf node_modules
+              npm install --no-audit --no-fund
+            }
             
             # 7. Configurar variables y compilar
             echo "Compilando aplicación..."
             echo "VITE_API_URL=${{ vars.VITE_API_URL }}" > .env
-            npm run build --if-present
+            
+            # Aumentar memoria para Node (Vite/Rollup) para evitar crashes en VPS pequeños
+            export NODE_OPTIONS="--max-old-space-size=1024"
+            
+            if npm run build; then
+              echo "¡Despliegue completado con éxito!"
+            else
+              echo "ERROR: Falló 'npm run build'. Esto suele deberse a falta de memoria en el VPS o errores de sintaxis."
+              echo "Memoria actual:"
+              free -m || echo "Comando 'free' no disponible"
+              exit 1
+            fi
