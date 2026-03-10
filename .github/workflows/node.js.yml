@@ -62,10 +62,11 @@ jobs:
             if [ ! -d ".git" ]; then
               echo "Inicializando repositorio git..."
               git init
+              git config core.sshCommand "ssh -i ~/.ssh/github_deploy_key -o IdentitiesOnly=yes"
               git remote add origin git@github.com:rdavid87/myrentta-app.git
             fi
             
-            # 5. Sincronizar con GitHub
+            # 5. Sincronizar con GitHub usando la llave específica
             git fetch origin main
             git reset --hard origin/main
             
