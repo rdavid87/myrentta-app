@@ -47,7 +47,7 @@ jobs:
           # Este script se ejecutará directamente en tu VPS remoto
           script: |
             # 1. Navega a la carpeta de tu proyecto (CÁMBIALO A LA RUTA REAL)
-            cd /ruta/a/tu/proyecto
+            cd /var/www/clients/client11/web16/web/myrentta-app
             
             # 2. Descarga los últimos cambios del repositorio
             git pull origin main
