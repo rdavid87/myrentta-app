@@ -43,37 +43,57 @@ jobs:
           host: ${{ vars.VPS_HOST }}
           username: ${{ vars.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ vars.VPS_PORT }} # Por lo general es 22
-          # Este script se ejecutará directamente en tu VPS remoto
+          port: ${{ vars.VPS_PORT }}
           script: |
-            # 1. Forzar carga de Node/NPM (importante para SSH)
+            # 1. Configurar variables de entorno y cargar NVM/Node
             export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # Carga nvm si existe
-            export PATH=$PATH:/usr/local/bin:/usr/bin # Rutas estándar
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              source "$NVM_DIR/nvm.sh"
+              nvm use default || nvm use node || true
+            fi
             
-            # 2. Navega a la carpeta de tu proyecto
-            cd /var/www/clients/client11/web16/web/myrentta-app
+            # Asegurar rutas comunes
+            export PATH="$PATH:/usr/local/bin:/usr/bin:/bin:$HOME/.nvm/versions/node/$(nvm current 2>/dev/null)/bin"
             
-            # 3. Asegurar que confiamos en github.com
+            # 2. Navegar al proyecto o crearlo
+            PROJECT_DIR="/var/www/clients/client11/web16/web/myrentta-app"
+            mkdir -p "$PROJECT_DIR"
+            cd "$PROJECT_DIR"
+            
+            # 3. Configurar SSH para GitHub
             mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
             ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts 2>/dev/null
             
-            # 4. Si no es un repositorio git, inicialízalo
+            # 4. Configurar Git y SSH Command
+            # Aseguramos que git use siempre la llave de despliegue específica
             if [ ! -d ".git" ]; then
               echo "Inicializando repositorio git..."
               git init
-              git config core.sshCommand "ssh -i ~/.ssh/github_deploy_key -o IdentitiesOnly=yes"
               git remote add origin git@github.com:rdavid87/myrentta-app.git
             fi
             
-            # 5. Sincronizar con GitHub usando la llave específica
-            git fetch origin main
+            git config core.sshCommand "ssh -i ~/.ssh/github_deploy_key -o IdentitiesOnly=yes"
+            
+            # 5. Sincronizar con GitHub
+            # IMPORTANTE: ~/.ssh/github_deploy_key debe existir en el VPS y estar en las Deploy Keys del repo en GitHub
+            echo "Sincronizando con GitHub..."
+            if ! git fetch origin main; then
+              echo "ERROR: No se pudo hacer fetch de GitHub. Verifica que ~/.ssh/github_deploy_key existe y tiene permisos."
+              exit 1
+            fi
             git reset --hard origin/main
             
             # 6. Instalar dependencias
-            # Usamos 'npm' directamente; si falla usa la ruta de 'which npm'
-            npm ci || npm install
+            echo "Instalando dependencias..."
+            if command -v npm &> /dev/null; then
+              npm ci || npm install
+            else
+              echo "ERROR: npm no encontrado. Verifica la instalación de Node.js en el VPS."
+              exit 1
+            fi
             
             # 7. Configurar variables y compilar
+            echo "Compilando aplicación..."
             echo "VITE_API_URL=${{ vars.VITE_API_URL }}" > .env
             npm run build --if-present
