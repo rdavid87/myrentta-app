@@ -1,7 +1,7 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
-name: Node.js CI
+name: Node.js CI & Deploy
 
 on:
   push:
@@ -17,7 +17,6 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v4
@@ -28,4 +27,39 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run build --if-present
+      env:
+        VITE_API_URL: ${{ vars.VITE_API_URL }}
     - run: npm test
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Solo ejecutaremos el despliegue si estamos haciendo push a la rama main
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ vars.VPS_PORT }} # Por lo general es 22
+          # Este script se ejecutará directamente en tu VPS remoto
+          script: |
+            # 1. Navega a la carpeta de tu proyecto (CÁMBIALO A LA RUTA REAL)
+            cd /ruta/a/tu/proyecto
+            
+            # 2. Descarga los últimos cambios del repositorio
+            git pull origin main
+            
+            # 3. Instala/actualiza las dependencias
+            npm ci
+            
+            # 4. Configura las variables de entorno para la compilación
+            echo "VITE_API_URL=${{ vars.VITE_API_URL }}" > .env
+            
+            # 5. Construye el proyecto (si tienes un build script)
+            npm run build --if-present
+            
+            # 6. Reinicia el proceso (ejemplo si usaras pm2, asegúrate de cambiar el nombre)
+            # pm2 restart myrentta-app
