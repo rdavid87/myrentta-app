@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }) => {
     setUser(data.usuario)
     localStorage.setItem("token", data.token)
     api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`
+    return data.usuario
   }
 
   const logout = () => {
