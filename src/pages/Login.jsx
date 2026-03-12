@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 
 const Login = () => {
@@ -164,12 +164,19 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-gray-700/50">
-            <p className="text-center text-gray-500 text-xs sm:text-sm">
-              Sistema de Administración de Apartamentos
+          {/* Register link */}
+          <div className="mt-6 pt-6 border-t border-gray-700/50 text-center">
+            <p className="text-gray-400 text-sm">
+              ¿No tienes cuenta?{" "}
+              <Link to="/register" className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
+                Regístrate aquí
+              </Link>
             </p>
-            <p className="text-center text-gray-600 text-xs mt-1">
+          </div>
+
+          {/* Footer */}
+          <div className="mt-4">
+            <p className="text-center text-gray-600 text-xs">
               © 2026 Todos los derechos reservados
             </p>
           </div>
