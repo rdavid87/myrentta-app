@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext"
 import Login from "./pages/Login"
+import Register from "./pages/Register"
 import Dashboard from "./pages/Dashboard"
 import Apartamentos from "./pages/Apartamentos"
 import Arrendatarios from "./pages/Arrendatarios"
@@ -15,8 +16,11 @@ function App() {
     <AuthProvider>
       <Router basename="/myrentta-app">
         <Routes>
+          {/* Public */}
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
+          {/* Protected routes */}
           <Route
             element={
               <PrivateRoute>
