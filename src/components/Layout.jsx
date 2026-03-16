@@ -44,7 +44,7 @@ const Layout = () => {
     ),
   }
 
-  const navItems = [
+  const userNavItems = [
     { path: "/dashboard", label: "Dashboard", icon: icons.dashboard, color: "from-cyan-500 to-blue-500" },
     { path: "/apartamentos", label: "Apartamentos", icon: icons.apartamentos, color: "from-blue-500 to-blue-600" },
     { path: "/arrendatarios", label: "Arrendatarios", icon: icons.arrendatarios, color: "from-violet-500 to-purple-500" },
@@ -52,6 +52,8 @@ const Layout = () => {
     { path: "/pagos", label: "Pagos", icon: icons.pagos, color: "from-emerald-500 to-teal-500" },
     { path: "/configuraciones", label: "Configuración", icon: icons.configuracion, color: "from-slate-500 to-zinc-500" },
   ]
+
+  const navItems = userNavItems
 
   const currentNav = navItems.find(item => item.path === location.pathname)
 
@@ -77,9 +79,9 @@ const Layout = () => {
             <div className="hidden sm:flex items-center gap-4">
               <div className="flex items-center gap-3 px-4 py-2 bg-gray-800/50 rounded-xl border border-gray-700/50">
                 <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center text-sm">
-                  {user?.nombre_completo?.charAt(0) || "A"}
+                  {user?.full_name?.charAt(0) || "U"}
                 </div>
-                <span className="text-sm text-gray-300 font-medium">{user?.nombre_completo || "Administrador"}</span>
+                <span className="text-sm text-gray-300 font-medium">{user?.full_name || "Usuario"}</span>
               </div>
               <button
                 onClick={logout}
@@ -190,11 +192,11 @@ const Layout = () => {
             <div className="p-4 border-t border-gray-700/50 space-y-3">
               <div className="flex items-center gap-3 p-4 bg-gray-800/50 rounded-2xl">
                 <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center text-xl">
-                  {user?.nombre_completo?.charAt(0) || "A"}
+                  {user?.full_name?.charAt(0) || "U"}
                 </div>
                 <div>
-                  <p className="text-white font-medium">{user?.nombre_completo || "Administrador"}</p>
-                  <p className="text-gray-400 text-sm">Administrador</p>
+                  <p className="text-white font-medium">{user?.full_name || "Usuario"}</p>
+                  <p className="text-gray-400 text-sm">Arrendador</p>
                 </div>
               </div>
               <button
