@@ -27,37 +27,56 @@ jobs:
     - run: npm run build --if-present
       env:
         VITE_API_URL: ${{ vars.VITE_API_URL }}
-    - run: npm test
+    - run: npm test --if-present
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    # Solo ejecutaremos el despliegue si estamos haciendo push a la rama main
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - uses: actions/checkout@v4
+      
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          
+      - name: Install dependencies and Build
+        run: |
+          npm ci
+          echo "VITE_API_URL=${{ vars.VITE_API_URL }}" > .env
+          npm run build
+          
+      - name: Copy build files via SCP
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ vars.VPS_HOST }}
           username: ${{ vars.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ vars.VPS_PORT }} # Por lo general es 22
-          # Este script se ejecutará directamente en tu VPS remoto
-          script: |
-            # 1. Navega a la carpeta de tu proyecto (CÁMBIALO A LA RUTA REAL)
-            cd /ruta/a/tu/proyecto
-            
-            # 2. Descarga los últimos cambios del repositorio
-            git pull origin main
-            
-            # 3. Instala/actualiza las dependencias
-            npm ci
-            
-            # 4. Configura las variables de entorno para la compilación
-            echo "VITE_API_URL=${{ vars.VITE_API_URL }}" > .env
-            
-            # 5. Construye el proyecto (si tienes un build script)
-            npm run build --if-present
-            
-            # 6. Reinicia el proceso (ejemplo si usaras pm2, asegúrate de cambiar el nombre)
-            # pm2 restart myrentta-app
+          port: ${{ vars.VPS_PORT }}
+          source: "dist/*"
+          target: "/var/www/clients/client11/web16/web/myrentta-app"
+          strip_components: 1
+
+      - name: Notify Slack on Success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: 'good'
+          SLACK_TITLE: '🚀 Despliegue Exitoso - MyRentta App'
+          SLACK_MESSAGE: 'La aplicación ha sido desplegada correctamente en https://myrentta.com/myrentta-app/'
+          SLACK_ICON: https://github.com/rtCamp.png?size=48
+          SLACK_USERNAME: 'GitHub Actions'
+
+      - name: Notify Slack on Failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: 'danger'
+          SLACK_TITLE: '❌ Error en el Despliegue - MyRentta App'
+          SLACK_MESSAGE: 'Hubo un error durante el despliegue de la aplicación. Revisa los logs en GitHub.'
+          SLACK_ICON: https://github.com/rtCamp.png?size=48
+          SLACK_USERNAME: 'GitHub Actions'

@@ -14,7 +14,7 @@ import Layout from "./components/Layout"
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/myrentta-app">
         <Routes>
           {/* Public */}
           <Route path="/login" element={<Login />} />
