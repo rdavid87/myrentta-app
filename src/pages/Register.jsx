@@ -14,6 +14,7 @@ const Register = () => {
   })
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [userLogin, setUserLogin] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -32,13 +33,15 @@ const Register = () => {
 
     setLoading(true)
     try {
-      await api.post("/auth/register", {
+      const response = await api.post("/auth/register", {
         full_name: form.full_name,
         user_id: form.user_id,
         email: form.email || undefined,
         phone: form.phone,
         password: form.password,
       })
+      
+      setUserLogin(form.user_id)
       setSuccess(true)
     } catch (err) {
       setError(err.response?.data?.error || "Error al registrarse")
@@ -60,16 +63,16 @@ const Register = () => {
             </div>
             <h2 className="text-2xl font-bold text-white mb-3">¡Registro exitoso!</h2>
             <p className="text-gray-400 mb-6">
-              Tu cuenta está pendiente de activación. El administrador revisará tu solicitud y te notificará cuando esté lista.
+              Se ha enviado un código de verificación a tu número de teléfono. Por favor, ingrésalo para activar tu cuenta.
             </p>
             <Link
-              to="/login"
+              to={userLogin ? `/validate-otp?user_login=${encodeURIComponent(userLogin)}` : "/login?registered=true"}
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-semibold hover:shadow-cyan-500/30 hover:shadow-lg transition-all duration-300 hover:scale-105"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              Volver al login
+              Verificar cuenta
             </Link>
           </div>
         </div>

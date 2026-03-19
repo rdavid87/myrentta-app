@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { AuthProvider } from "./context/AuthContext"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
+import ValidateOTP from "./pages/ValidateOTP"
 import Dashboard from "./pages/Dashboard"
 import Apartamentos from "./pages/Apartamentos"
 import Arrendatarios from "./pages/Arrendatarios"
@@ -19,6 +20,7 @@ function App() {
           {/* Public */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/validate-otp" element={<ValidateOTP />} />
 
           {/* Protected routes */}
           <Route

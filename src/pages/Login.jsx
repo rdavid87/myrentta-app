@@ -1,17 +1,28 @@
 "use client"
 
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import React, { useState } from "react"
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Check for success message from OTP validation
+  React.useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message)
+      // Replace state to prevent showing message again on browser back navigation
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  }, [location.state])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -58,6 +69,16 @@ const Login = () => {
 
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Success message */}
+            {successMessage && (
+              <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm">
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{successMessage}</span>
+              </div>
+            )}
+
             {/* Error message */}
             {error && (
               <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">
