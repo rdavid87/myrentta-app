@@ -92,7 +92,7 @@ const Login = () => {
             {/* Correo o Cédula */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-300">
-                Correo o Cédula
+                Correo o Número de identificación
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

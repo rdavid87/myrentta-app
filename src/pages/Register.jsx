@@ -6,7 +6,7 @@ const Register = () => {
   const navigate = useNavigate()
   const [form, setForm] = useState({
     full_name: "",
-    user_id: "",
+    user_login: "",
     email: "",
     phone: "",
     password: "",
@@ -22,6 +22,11 @@ const Register = () => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
+  const handleChangeMobile = (e) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 10)
+    setForm((prev) => ({ ...prev, phone: value }))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
@@ -35,13 +40,13 @@ const Register = () => {
     try {
       const response = await api.post("/auth/register", {
         full_name: form.full_name,
-        user_id: form.user_id,
+        user_login: form.user_login,
         email: form.email || undefined,
-        phone: form.phone,
+        phone: "+57"+form.phone,
         password: form.password,
       })
       
-      setUserLogin(form.user_id)
+      setUserLogin(form.user_login)
       setSuccess(true)
     } catch (err) {
       setError(err.response?.data?.error || "Error al registrarse")
@@ -128,10 +133,10 @@ const Register = () => {
 
             {/* ID number */}
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-300">Número de cédula <span className="text-rose-400">*</span></label>
+              <label className="block text-sm font-medium text-gray-300">Número de identificación o usuario <span className="text-rose-400">*</span></label>
               <input
-                name="user_id"
-                value={form.user_id}
+                name="user_login"
+                value={form.user_login}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
@@ -146,7 +151,7 @@ const Register = () => {
                 name="phone"
                 type="tel"
                 value={form.phone}
-                onChange={handleChange}
+                onChange={handleChangeMobile}
                 required
                 className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                 placeholder="3001234567"
