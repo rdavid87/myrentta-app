@@ -33,7 +33,8 @@ const Login = () => {
       await login(identifier, password)
       navigate("/dashboard")
     } catch (err) {
-      setError(err.response?.data?.error || "Error al iniciar sesión")
+      console.error("[Login] Error al iniciar sesión:", err.response?.status, err.response?.data || err.message)
+      setError(err.response?.data?.error || "Credenciales inválidas")
     } finally {
       setLoading(false)
     }
