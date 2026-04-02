@@ -289,7 +289,7 @@ const Apartamentos = () => {
                   {/* Contenido */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-white font-semibold text-lg truncate">{apt.numero}</h3>
+                      <h3 className="text-white font-semibold text-sm leading-snug break-words">{apt.numero}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border flex-shrink-0 ${getEstadoBadge(apt.estado)}`}>
                         {apt.estado === "disponible" ? "Disponible" : "Arrendado"}
                       </span>
