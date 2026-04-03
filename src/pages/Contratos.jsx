@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { createPortal } from "react-dom"
 import api from "../services/api"
 
@@ -193,9 +193,29 @@ const Contratos = () => {
     setEditFormData({ fecha_inicio: "", fecha_fin: "", canon_mensual: "", dia_pago: "" })
   }
 
+  const isEditContractUnchanged = useMemo(() => {
+    if (!contratoToEdit || !showEditModal) return true
+    const canonParsed = parseFloat(
+      String(editFormData.canon_mensual || "").replace(/\./g, "").replace(",", ".")
+    )
+    if (Number.isNaN(canonParsed)) return false
+    const dia = parseInt(String(editFormData.dia_pago || ""), 10)
+    if (Number.isNaN(dia)) return false
+    return (
+      editFormData.fecha_inicio === toDateInputValue(contratoToEdit.fecha_inicio) &&
+      editFormData.fecha_fin === toDateInputValue(contratoToEdit.fecha_fin) &&
+      canonParsed === Number(contratoToEdit.canon_mensual) &&
+      dia === Number(contratoToEdit.dia_pago)
+    )
+  }, [contratoToEdit, editFormData, showEditModal])
+
   const handleEditSubmit = async (e) => {
     e.preventDefault()
     if (!contratoToEdit) return
+    if (isEditContractUnchanged) {
+      alert("No has modificado ningún dato. No hay cambios que guardar.")
+      return
+    }
     const canon = parseFloat(editFormData.canon_mensual.toString().replace(/\./g, "").replace(",", "."))
     const dia = parseInt(editFormData.dia_pago, 10)
     if (Number.isNaN(canon) || canon <= 0) {
@@ -1319,8 +1339,15 @@ const Contratos = () => {
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="submit"
+                  disabled={isEditContractUnchanged}
+                  title={
+                    isEditContractUnchanged
+                      ? "Modifica al menos un campo para poder guardar"
+                      : undefined
+                  }
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold
-                           shadow-lg hover:shadow-emerald-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                           shadow-lg hover:shadow-emerald-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]
+                           disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   Guardar cambios
                 </button>
