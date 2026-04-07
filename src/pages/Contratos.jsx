@@ -17,6 +17,7 @@ const Contratos = () => {
     fecha_fin: "",
     canon_mensual: "",
     dia_pago: "",
+    modo_cobro: "anticipado",
   })
   const [contratoToRenew, setContratoToRenew] = useState(null)
   const [nuevaFechaFin, setNuevaFechaFin] = useState("")
@@ -66,6 +67,7 @@ const Contratos = () => {
     fecha_fin: "",
     canon_mensual: "",
     dia_pago: "",
+    modo_cobro: "anticipado",
   })
 
   useEffect(() => {
@@ -116,10 +118,22 @@ const Contratos = () => {
         apartamento_id: parseInt(formData.apartamento_id),
         canon_mensual: parseFloat(formData.canon_mensual.toString().replace(/\./g, "").replace(",", ".")),
         dia_pago: parseInt(formData.dia_pago),
+        modo_cobro: formData.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
       }
 
-      // Si es renovación, finalizar el contrato anterior primero
-      if (contratoToRenew) {
+      if (
+        contratoToRenew?.estado === "finalizado" &&
+        tieneContratoActivoMismoAptoMismoArrendatario(contratoToRenew)
+      ) {
+        alert(
+          "Ya existe un contrato activo para este apartamento. El API no permitirá duplicar; revisa el contrato vigente."
+        )
+        return
+      }
+
+      // Renovación desde contrato activo: cerrar el vigente antes de crear el nuevo.
+      // Si ya está finalizado, el apartamento ya quedó disponible y no se puede volver a finalizar.
+      if (contratoToRenew && contratoToRenew.estado === "activo") {
         await api.put(`/contratos/${contratoToRenew.id}/finalizar`)
       }
 
@@ -183,6 +197,7 @@ const Contratos = () => {
       fecha_fin: toDateInputValue(contrato.fecha_fin),
       canon_mensual: Number(contrato.canon_mensual).toLocaleString("es-CO"),
       dia_pago: contrato.dia_pago.toString(),
+      modo_cobro: contrato.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
     })
     setShowEditModal(true)
   }
@@ -190,7 +205,7 @@ const Contratos = () => {
   const closeEditModal = () => {
     setShowEditModal(false)
     setContratoToEdit(null)
-    setEditFormData({ fecha_inicio: "", fecha_fin: "", canon_mensual: "", dia_pago: "" })
+    setEditFormData({ fecha_inicio: "", fecha_fin: "", canon_mensual: "", dia_pago: "", modo_cobro: "anticipado" })
   }
 
   const isEditContractUnchanged = useMemo(() => {
@@ -201,11 +216,14 @@ const Contratos = () => {
     if (Number.isNaN(canonParsed)) return false
     const dia = parseInt(String(editFormData.dia_pago || ""), 10)
     if (Number.isNaN(dia)) return false
+    const modoActual = editFormData.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado"
+    const modoContrato = contratoToEdit.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado"
     return (
       editFormData.fecha_inicio === toDateInputValue(contratoToEdit.fecha_inicio) &&
       editFormData.fecha_fin === toDateInputValue(contratoToEdit.fecha_fin) &&
       canonParsed === Number(contratoToEdit.canon_mensual) &&
-      dia === Number(contratoToEdit.dia_pago)
+      dia === Number(contratoToEdit.dia_pago) &&
+      modoActual === modoContrato
     )
   }, [contratoToEdit, editFormData, showEditModal])
 
@@ -232,6 +250,7 @@ const Contratos = () => {
         fecha_fin: editFormData.fecha_fin,
         canon_mensual: canon,
         dia_pago: dia,
+        modo_cobro: editFormData.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
       })
       closeEditModal()
       fetchContratos()
@@ -348,6 +367,7 @@ const Contratos = () => {
       fecha_fin: "",
       canon_mensual: "",
       dia_pago: "",
+      modo_cobro: "anticipado",
     })
   }
 
@@ -366,11 +386,21 @@ const Contratos = () => {
       fecha_fin: "",
       canon_mensual: "",
       dia_pago: "",
+      modo_cobro: "anticipado",
     })
     setShowModal(true)
   }
 
   const openRenovarModal = (contrato) => {
+    if (
+      contrato.estado === "finalizado" &&
+      tieneContratoActivoMismoAptoMismoArrendatario(contrato)
+    ) {
+      alert(
+        "Ya existe un contrato activo para este apartamento con ese arrendatario. Gestiona el contrato vigente desde la fila Activo; no hace falta renovar el contrato finalizado."
+      )
+      return
+    }
     setContratoToRenew(contrato)
     // Pre-llenar con los datos del contrato actual
     setFormData({
@@ -380,6 +410,7 @@ const Contratos = () => {
       fecha_fin: "",
       canon_mensual: contrato.canon_mensual.toLocaleString("es-CO"),
       dia_pago: contrato.dia_pago.toString(),
+      modo_cobro: contrato.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
     })
     setShowModal(true)
   }
@@ -407,15 +438,44 @@ const Contratos = () => {
     }).format(amount)
   }
 
-  // Filtrar contratos
-  const filteredContratos = contratos.filter(contrato => {
-    const matchesSearch = 
+  /** Mismo arrendatario + mismo apartamento ya tienen un contrato activo (evita “renovar” el histórico duplicado). */
+  const tieneContratoActivoMismoAptoMismoArrendatario = useCallback(
+    (contrato) =>
+      contratos.some(
+        (a) =>
+          a.estado === "activo" &&
+          a.apartamento_id === contrato.apartamento_id &&
+          a.arrendatario_id === contrato.arrendatario_id
+      ),
+    [contratos]
+  )
+
+  /**
+   * Oculta contratos finalizados sustituidos por uno activo (mismo inquilino, misma unidad).
+   * Si el inquilino del finalizado fuera otro, la fila se mantiene como historial.
+   */
+  const contratosVista = useMemo(() => {
+    return contratos.filter((c) => {
+      if (c.estado !== "finalizado") return true
+      const hayActivoMismaLlave = contratos.some(
+        (a) =>
+          a.estado === "activo" &&
+          a.apartamento_id === c.apartamento_id &&
+          a.arrendatario_id === c.arrendatario_id
+      )
+      return !hayActivoMismaLlave
+    })
+  }, [contratos])
+
+  // Filtrar contratos (lista ya sin “histórico duplicado” del mismo arrendatario/unidad)
+  const filteredContratos = contratosVista.filter((contrato) => {
+    const matchesSearch =
       contrato.arrendatario_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contrato.apartamento_numero?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contrato.apartamento_direccion?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     const matchesEstado = filterEstado === "todos" || contrato.estado === filterEstado
-    
+
     return matchesSearch && matchesEstado
   })
 
@@ -584,45 +644,45 @@ const Contratos = () => {
                 </h1>
                 <p className="text-sm sm:text-base text-gray-400">Gestiona los contratos de renta de apartamentos</p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <button
-                  onClick={handleVerificarRecordatorios}
-                  disabled={verificandoMora}
-                  className="group relative w-full sm:w-auto px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl
-                           font-semibold shadow-lg hover:shadow-purple-500/50 transition-all duration-300
-                           hover:scale-105 active:scale-95 overflow-hidden text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Verificar contratos en mora y enviar recordatorios"
-                >
-                  <span className="relative flex items-center justify-center gap-2">
-                    {verificandoMora ? (
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:justify-end">
+                  <button
+                    onClick={handleVerificarRecordatorios}
+                    disabled={verificandoMora}
+                    className="group relative w-full sm:w-auto px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl
+                             font-semibold shadow-lg hover:shadow-purple-500/50 transition-all duration-300
+                             hover:scale-105 active:scale-95 overflow-hidden text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Solo contratos activos: revisa canon vencido según día de pago y registros de pagos."
+                  >
+                    <span className="relative flex items-center justify-center gap-2">
+                      {verificandoMora ? (
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                      )}
+                      {verificandoMora ? "Verificando..." : "Verificar Mora"}
+                    </span>
+                  </button>
+                  <button
+                    onClick={openNewModal}
+                    className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-amber-600 to-yellow-600 text-white rounded-xl
+                             font-semibold shadow-lg hover:shadow-amber-500/50 transition-all duration-300
+                             hover:scale-105 active:scale-95 overflow-hidden text-sm sm:text-base"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-600 to-amber-600 opacity-0 
+                                  group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span className="relative flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
                       </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                      </svg>
-                    )}
-                    {verificandoMora ? "Verificando..." : "Verificar Mora"}
-                  </span>
-                </button>
-                <button
-                  onClick={openNewModal}
-                  className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-amber-600 to-yellow-600 text-white rounded-xl
-                           font-semibold shadow-lg hover:shadow-amber-500/50 transition-all duration-300
-                           hover:scale-105 active:scale-95 overflow-hidden text-sm sm:text-base"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-600 to-amber-600 opacity-0 
-                                group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="relative flex items-center justify-center gap-2">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Nuevo Contrato
-                  </span>
-                </button>
+                      Nuevo Contrato
+                    </span>
+                  </button>
               </div>
             </div>
 
@@ -710,7 +770,7 @@ const Contratos = () => {
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Fecha Inicio</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Fecha Fin</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Canon</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Día</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Límite</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Estado</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -732,9 +792,16 @@ const Contratos = () => {
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm">{formatDate(contrato.fecha_fin)}</td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-yellow-300 font-semibold text-sm">{formatCurrency(contrato.canon_mensual)}</td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-center">
-                      <span className="px-2 py-1 bg-amber-600/20 text-amber-300 rounded-lg text-xs">
-                        {contrato.dia_pago}
-                      </span>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className="px-2 py-1 bg-amber-600/20 text-amber-300 rounded-lg text-xs tabular-nums">
+                          Día {contrato.dia_pago}
+                        </span>
+                        <span className="text-[10px] text-gray-500 leading-tight text-center max-w-[9rem]">
+                          {(contrato.modo_cobro || "anticipado") === "fin_mes"
+                            ? "Cobro a Mes Vencido (Fin de Mes)"
+                            : "Cobro Anticipado (Mes Adelantado)"}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold inline-block ${
@@ -791,18 +858,20 @@ const Contratos = () => {
                         )}
                         {contrato.estado === "finalizado" && (
                           <>
-                            <button
-                              type="button"
-                              onClick={() => openRenovarModal(contrato)}
-                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white
-                                       bg-gradient-to-r from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25
-                                       hover:brightness-110 active:scale-[0.98] transition-all duration-200"
-                            >
-                              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                              Renovar
-                            </button>
+                            {!tieneContratoActivoMismoAptoMismoArrendatario(contrato) && (
+                              <button
+                                type="button"
+                                onClick={() => openRenovarModal(contrato)}
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white
+                                         bg-gradient-to-r from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25
+                                         hover:brightness-110 active:scale-[0.98] transition-all duration-200"
+                              >
+                                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Renovar
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={(e) => openMoreMenu(e, contrato)}
@@ -894,14 +963,23 @@ const Contratos = () => {
                       </p>
                     </div>
                     <div className="min-w-0 col-span-2 sm:col-span-1">
-                      <p className="text-gray-500 text-xs mb-0.5">Día de pago</p>
-                      <p className="text-amber-300 font-medium leading-tight">Día {contrato.dia_pago}</p>
+                      <p className="text-gray-500 text-xs mb-0.5">Día límite / cobro</p>
+                      <p className="text-amber-300 font-medium leading-tight tabular-nums">Día {contrato.dia_pago}</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
+                        {(contrato.modo_cobro || "anticipado") === "fin_mes"
+                          ? "Cobro a Mes Vencido (Fin de Mes)"
+                          : "Cobro Anticipado (Mes Adelantado)"}
+                      </p>
                     </div>
                   </div>
 
                   <div
                     className={`grid gap-2 pt-1 border-t border-white/5 ${
-                      contrato.estado === "activo" ? "grid-cols-3" : "grid-cols-2"
+                      contrato.estado === "activo"
+                        ? "grid-cols-3"
+                        : tieneContratoActivoMismoAptoMismoArrendatario(contrato)
+                          ? "grid-cols-1"
+                          : "grid-cols-2"
                     }`}
                   >
                     {contrato.estado === "activo" && (
@@ -939,15 +1017,17 @@ const Contratos = () => {
                     )}
                     {contrato.estado === "finalizado" && (
                       <>
-                        <button
-                          type="button"
-                          onClick={() => openRenovarModal(contrato)}
-                          className="min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-white text-center
-                                   bg-gradient-to-r from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20
-                                   hover:brightness-110 active:scale-[0.98] transition-all"
-                        >
-                          Renovar
-                        </button>
+                        {!tieneContratoActivoMismoAptoMismoArrendatario(contrato) && (
+                          <button
+                            type="button"
+                            onClick={() => openRenovarModal(contrato)}
+                            className="min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-white text-center
+                                     bg-gradient-to-r from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20
+                                     hover:brightness-110 active:scale-[0.98] transition-all"
+                          >
+                            Renovar
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={(e) => openMoreMenu(e, contrato)}
@@ -1107,7 +1187,7 @@ const Contratos = () => {
                 </div>
               </div>
 
-              {/* Canon y Día de Pago */}
+              {/* Canon, modo de cobro y día límite */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
@@ -1146,14 +1226,43 @@ const Contratos = () => {
                     required
                   />
                   {formData.dia_pago ? (
-                    <p className="text-xs text-amber-400/80 mt-1">
-                      📅 El inquilino tiene hasta el día <span className="font-semibold text-amber-300">{formData.dia_pago}</span> de cada mes para pagar sin caer en mora.
-                    </p>
+                    formData.modo_cobro === "fin_mes" ? (
+                      <p className="text-xs text-amber-400/80 mt-1">
+                        📅 El canon de cada mes (periodo facturado) vence el día{" "}
+                        <span className="font-semibold text-amber-300">{formData.dia_pago}</span> de ese mismo mes.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-amber-400/80 mt-1">
+                        📅 Pago anticipado: el canon del mes del periodo vence el día{" "}
+                        <span className="font-semibold text-amber-300">{formData.dia_pago}</span> del mes calendario anterior a ese periodo.
+                      </p>
+                    )
                   ) : (
                     <p className="text-xs text-gray-500 mt-1">
-                      Día del mes hasta el cual se acepta el pago sin mora.
+                      Día del mes hasta el cual se acepta el pago sin mora (según el modo de cobro).
                     </p>
                   )}
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                    🧾 Modo de cobro del canon
+                  </label>
+                  <select
+                    value={formData.modo_cobro}
+                    onChange={(e) => setFormData({ ...formData, modo_cobro: e.target.value })}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
+                             focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-all duration-300"
+                  >
+                    <option value="anticipado" className="bg-gray-800">
+                      Cobro Anticipado (Mes Adelantado)
+                    </option>
+                    <option value="fin_mes" className="bg-gray-800">
+                      Cobro a Mes Vencido (Fin de Mes)
+                    </option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    Moras, recordatorios y generación automática de pagos usan esta misma regla.
+                  </p>
                 </div>
               </div>
 
@@ -1280,7 +1389,7 @@ const Contratos = () => {
 
             <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4">
               <p className="text-xs text-gray-500 bg-gray-800/40 rounded-lg px-3 py-2 border border-gray-600/40">
-                Solo puedes corregir fechas, canon mensual y día límite de pago. Para cambiar arrendatario o apartamento, elimina este contrato y crea uno nuevo.
+                Puedes corregir fechas, canon, día límite y modo de cobro (anticipado o fin de mes). Para cambiar arrendatario o apartamento, elimina este contrato y crea uno nuevo.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1334,6 +1443,23 @@ const Contratos = () => {
                            focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">🧾 Modo de cobro</label>
+                <select
+                  value={editFormData.modo_cobro}
+                  onChange={(e) => setEditFormData({ ...editFormData, modo_cobro: e.target.value })}
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
+                           focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                >
+                  <option value="anticipado" className="bg-gray-800">
+                    Cobro Anticipado (Mes Adelantado)
+                  </option>
+                  <option value="fin_mes" className="bg-gray-800">
+                    Cobro a Mes Vencido (Fin de Mes)
+                  </option>
+                </select>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -1531,10 +1657,10 @@ const Contratos = () => {
                 <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
                   <div className="text-2xl mb-2">🎉</div>
                   <p className="text-emerald-300 font-medium text-sm sm:text-base">
-                    ¡Excelente! No hay contratos con pagos vencidos
+                    No hay contratos activos con pagos vencidos
                   </p>
                   <p className="text-emerald-400/60 text-xs sm:text-sm mt-1">
-                    Todos los arrendatarios están al día
+                    Entre los contratos en curso, los arrendatarios están al día según esta verificación.
                   </p>
                 </div>
               )}
@@ -1551,11 +1677,14 @@ const Contratos = () => {
                   </h3>
                   <div className="space-y-3 max-h-40 overflow-y-auto">
                     {resultadoMora.contratos.map((contrato, index) => (
-                      <div key={index} className="bg-gray-900/50 rounded-xl p-3 border border-gray-700/30">
+                      <div key={contrato.contrato_id ?? index} className="bg-gray-900/50 rounded-xl p-3 border border-gray-700/30">
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="text-white font-medium text-sm">{contrato.arrendatario_nombre}</p>
                             <p className="text-gray-400 text-xs">{contrato.apartamento_nombre}</p>
+                            {contrato.mes_pago && (
+                              <p className="text-amber-200/70 text-[11px] mt-1">Periodo: {contrato.mes_pago}</p>
+                            )}
                             <p className="text-gray-500 text-xs mt-1">{contrato.arrendatario_email}</p>
                           </div>
                           <div className="text-right">

@@ -83,8 +83,68 @@ const Configuraciones = () => {
               ⚙️ Configuraciones
             </h1>
             <p className="text-sm sm:text-base text-gray-400">
-              Configura los datos del arrendador y opciones de notificación
+              Configura los datos del arrendador y opciones de notificación. Más abajo, ayuda sobre contratos, pagos y mora.
             </p>
+          </div>
+        </div>
+
+        <div className="mb-6 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-500/15 to-violet-500/15 border-b border-gray-700/50 p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+              <span className="text-2xl" aria-hidden>❓</span>
+              Ayuda
+            </h2>
+            <p className="text-sm text-gray-400 mt-1">
+              Contratos, pagos automáticos y verificación de mora
+            </p>
+          </div>
+          <div className="p-4 sm:p-6 space-y-6 text-sm text-gray-300 leading-relaxed">
+            <section>
+              <h3 className="text-white font-semibold mb-2">Pagos y cuotas automáticas</h3>
+              <p>
+                Al <strong className="text-gray-200 font-medium">crear un contrato activo</strong>, el sistema intenta crear en{" "}
+                <strong className="text-teal-300/90 font-medium">Gestión de pagos</strong> una fila pendiente según el modo de cobro:
+              </p>
+              <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-400">
+                <li>
+                  <strong className="text-gray-200 font-medium">Cobro anticipado (mes adelantado):</strong> cuota del{" "}
+                  <strong className="text-gray-200 font-medium">mes calendario siguiente</strong> a la fecha en que creas el contrato,
+                  si las fechas del contrato cubren al menos un día de ese mes. El método por defecto es{" "}
+                  <strong className="text-gray-200 font-medium">efectivo</strong> (puedes cambiarlo editando el pago).
+                </li>
+                <li>
+                  <strong className="text-gray-200 font-medium">Cobro a mes vencido (fin de mes):</strong> cuota del{" "}
+                  <strong className="text-gray-200 font-medium">mes calendario actual</strong>, si el contrato cubre ese mes.
+                </li>
+              </ul>
+              <p className="mt-2">
+                Si no aparece ningún pago, revisa que el contrato abarque el mes correspondiente o registra el pago manualmente con{" "}
+                <strong className="text-gray-200 font-medium">Registrar pago</strong>.
+              </p>
+              <p className="mt-2">
+                La columna <strong className="text-gray-200 font-medium">fecha de pago</strong> solo se llena cuando marcas el cobro con{" "}
+                <strong className="text-gray-200 font-medium">Confirmar</strong>; mientras tanto verás guion. El estado{" "}
+                <strong className="text-gray-200 font-medium">en mora</strong> aplica cuando ya pasó la fecha límite del canon según el contrato;
+                el mismo día en que se crea la fila de pago no se marca mora para que puedas revisarla tranquilo.
+              </p>
+            </section>
+            <section>
+              <h3 className="text-white font-semibold mb-2">Lista y contratos finalizados</h3>
+              <p>
+                Si el mismo arrendatario tiene un contrato <strong className="text-emerald-400/90 font-medium">activo</strong> en un apartamento,
+                los contratos <strong className="text-gray-400 font-medium">finalizados</strong> anteriores en esa misma unidad no se listan en la tabla,
+                para no duplicar filas. Si el finalizado era de <strong className="text-gray-200 font-medium">otro</strong> inquilino, ese historial sí sigue visible.
+              </p>
+            </section>
+            <section>
+              <h3 className="text-white font-semibold mb-2">Verificar mora</h3>
+              <p>
+                Esa acción solo incluye contratos en estado <strong className="text-emerald-400/90 font-medium">activo</strong> (día de pago y pagos registrados).
+                Los <strong className="text-gray-400 font-medium">finalizados</strong> no entran en el informe, aunque hubiera deudas pasadas.
+                Cada contrato activo aparece <strong className="text-gray-200 font-medium">una sola vez</strong>. Los días de mora se calculan con tus <strong className="text-gray-200 font-medium">pagos</strong> (canon anticipado: vence en el día de pago del mes anterior al periodo). Si hay varios meses impagos, se muestra el atraso desde el vencimiento más antiguo y el texto del periodo indica varios meses.
+                Cuando el resultado indica cero mora, no hay canon vencido entre los activos según esa verificación.
+              </p>
+            </section>
           </div>
         </div>
 
