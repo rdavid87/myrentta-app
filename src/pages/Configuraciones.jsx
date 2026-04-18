@@ -6,12 +6,6 @@ const Configuraciones = () => {
   const [saving, setSaving] = useState(false)
   const [testingEmail, setTestingEmail] = useState(false)
   const [formData, setFormData] = useState({
-    arrendador_nombre: "",
-    arrendador_documento: "",
-    arrendador_direccion: "",
-    arrendador_ciudad: "",
-    arrendador_telefono: "",
-    arrendador_email: "",
     email_modo: "plataforma",
     resend_api_key: "",
     smtp_host: "smtp.gmail.com",
@@ -32,6 +26,7 @@ const Configuraciones = () => {
       // Convertir array de configuraciones a objeto
       const configObj = {}
       data?.forEach(cfg => {
+        if (String(cfg.clave).startsWith("arrendador_")) return
         configObj[cfg.clave] = cfg.valor
       })
       setFormData(prev => ({ ...prev, ...configObj }))
@@ -46,9 +41,10 @@ const Configuraciones = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      await api.put("/configuraciones", {
-        configuraciones: formData
-      })
+      const configuraciones = Object.fromEntries(
+        Object.entries(formData).filter(([k]) => !k.startsWith("arrendador_"))
+      )
+      await api.put("/configuraciones", { configuraciones })
       alert("✅ Configuraciones guardadas exitosamente")
     } catch (error) {
       console.error("Error saving configuraciones:", error)
@@ -83,7 +79,7 @@ const Configuraciones = () => {
               ⚙️ Configuraciones
             </h1>
             <p className="text-sm sm:text-base text-gray-400">
-              Configura los datos del arrendador y opciones de notificación. Más abajo, ayuda sobre contratos, pagos y mora.
+              Opciones de notificación y preferencias. Más abajo, ayuda sobre contratos, pagos y mora. Los recibos usan el nombre y datos de tu perfil de usuario.
             </p>
           </div>
         </div>
@@ -149,116 +145,6 @@ const Configuraciones = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Datos del Arrendador */}
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-slate-500/20 to-zinc-500/20 border-b border-gray-700/50 p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                <span className="text-2xl">👤</span>
-                Datos del Arrendador
-              </h2>
-              <p className="text-sm text-gray-400 mt-1">
-                Estos datos aparecerán en los recibos de arriendo
-              </p>
-            </div>
-
-            <div className="p-4 sm:p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    Nombre Completo *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.arrendador_nombre || ""}
-                    onChange={(e) => handleChange("arrendador_nombre", e.target.value)}
-                    placeholder="Juan Pérez García"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-500/50 focus:border-slate-500/50 
-                             transition-all duration-300"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    C.C. / NIT *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.arrendador_documento || ""}
-                    onChange={(e) => handleChange("arrendador_documento", e.target.value)}
-                    placeholder="1234567890"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-500/50 focus:border-slate-500/50 
-                             transition-all duration-300"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                  Dirección *
-                </label>
-                <input
-                  type="text"
-                  value={formData.arrendador_direccion || ""}
-                  onChange={(e) => handleChange("arrendador_direccion", e.target.value)}
-                  placeholder="Calle 123 # 45-67, Barrio Centro"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-500/50 focus:border-slate-500/50 
-                           transition-all duration-300"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    Ciudad *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.arrendador_ciudad || ""}
-                    onChange={(e) => handleChange("arrendador_ciudad", e.target.value)}
-                    placeholder="Bogotá"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-500/50 focus:border-slate-500/50 
-                             transition-all duration-300"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    Teléfono / WhatsApp
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.arrendador_telefono || ""}
-                    onChange={(e) => handleChange("arrendador_telefono", e.target.value)}
-                    placeholder="3001234567"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-500/50 focus:border-slate-500/50 
-                             transition-all duration-300"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.arrendador_email || ""}
-                    onChange={(e) => handleChange("arrendador_email", e.target.value)}
-                    placeholder="correo@ejemplo.com"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-500/50 focus:border-slate-500/50 
-                             transition-all duration-300"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Modo de Envío de Email - oculto, se maneja desde otro proyecto */}
           {false && <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-r from-zinc-500/20 to-slate-500/20 border-b border-gray-700/50 p-4 sm:p-6">

@@ -9,7 +9,6 @@ const Pagos = () => {
   const [showModal, setShowModal] = useState(false)
   const [showConfirmarModal, setShowConfirmarModal] = useState(false)
   const [pagoToConfirm, setPagoToConfirm] = useState(null)
-  const [enviandoEmail, setEnviandoEmail] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState("todos")
 
@@ -171,8 +170,8 @@ const Pagos = () => {
   // Estado para descarga PDF
   const [descargandoPDF, setDescargandoPDF] = useState(null)
 
-  // Descargar recibo como PDF usando iframe aislado
-  const handleDescargarRecibo = async (pagoId) => {
+  // Descargar recibo en PDF (html2pdf en iframe aislado)
+  const handleReciboPdf = async (pagoId) => {
     setDescargandoPDF(pagoId)
     try {
       const { data: htmlContent } = await api.get(`/recibos/${pagoId}/html`, { responseType: "text" })
@@ -244,33 +243,6 @@ const Pagos = () => {
       alert("Error al descargar recibo: " + (error.response?.data?.error || error.message))
     } finally {
       setDescargandoPDF(null)
-    }
-  }
-
-  // Ver recibo en nueva ventana (para imprimir)
-  const handleVerRecibo = async (pagoId) => {
-    try {
-      const { data } = await api.get(`/recibos/${pagoId}/html`, { responseType: "text" })
-      const ventana = window.open("", "_blank")
-      ventana.document.write(data)
-      ventana.document.close()
-    } catch (error) {
-      console.error("Error mostrando recibo:", error)
-      alert("Error al mostrar recibo: " + (error.response?.data?.error || error.message))
-    }
-  }
-
-  // Enviar recibo por email
-  const handleEnviarEmail = async (pagoId) => {
-    setEnviandoEmail(pagoId)
-    try {
-      const { data } = await api.post(`/recibos/${pagoId}/enviar`)
-      alert(`✅ ${data.message}`)
-    } catch (error) {
-      console.error("Error enviando email:", error)
-      alert("Error al enviar email: " + (error.response?.data?.error || error.message))
-    } finally {
-      setEnviandoEmail(null)
     }
   }
 
@@ -627,27 +599,12 @@ const Pagos = () => {
                         {pago.estado === "pagado" && (
                           <div className="flex gap-1.5">
                             <button
-                              onClick={() => handleVerRecibo(pago.id)}
-                              className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg
-                                       font-medium shadow-lg hover:shadow-blue-500/50 transition-all duration-300
-                                       hover:scale-105 active:scale-95 text-xs"
-                              title="Ver/Imprimir Recibo"
-                            >
-                              <span className="flex items-center gap-1">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                </svg>
-                                Recibo
-                              </span>
-                            </button>
-                            <button
-                              onClick={() => handleDescargarRecibo(pago.id)}
+                              onClick={() => handleReciboPdf(pago.id)}
                               disabled={descargandoPDF === pago.id}
                               className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
                                        font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
                                        hover:scale-105 active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Descargar PDF"
+                              title="Descargar recibo en PDF"
                             >
                               <span className="flex items-center gap-1">
                                 {descargandoPDF === pago.id ? (
@@ -661,29 +618,22 @@ const Pagos = () => {
                                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                   </svg>
                                 )}
-                                PDF
+                                Recibo PDF
                               </span>
                             </button>
                             <button
-                              onClick={() => handleEnviarEmail(pago.id)}
-                              disabled={enviandoEmail === pago.id}
-                              className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg
-                                       font-medium shadow-lg hover:shadow-purple-500/50 transition-all duration-300
-                                       hover:scale-105 active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Enviar por Email"
+                              type="button"
+                              disabled
+                              aria-disabled="true"
+                              className="px-3 py-1.5 bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white/80 rounded-lg
+                                       font-medium text-xs cursor-not-allowed opacity-70"
+                              title="Envío por correo no disponible por ahora"
                             >
                               <span className="flex items-center gap-1">
-                                {enviandoEmail === pago.id ? (
-                                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                  </svg>
-                                ) : (
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                  </svg>
-                                )}
+                                <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
                                 Email
                               </span>
                             </button>
@@ -805,27 +755,14 @@ const Pagos = () => {
                     {pago.estado === "pagado" && (
                       <>
                         <button
-                          onClick={() => handleVerRecibo(pago.id)}
-                          className="w-28 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-blue-500/50 transition-all duration-300
-                                   active:scale-95 text-xs"
-                        >
-                          <span className="flex items-center justify-center gap-1">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                            Ver Recibo
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => handleDescargarRecibo(pago.id)}
+                          onClick={() => handleReciboPdf(pago.id)}
                           disabled={descargandoPDF === pago.id}
-                          className="w-28 px-3 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
+                          className="min-w-[7.5rem] w-full max-w-[9rem] px-3 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
                                    font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
-                                   active:scale-95 text-xs disabled:opacity-50"
+                                   active:scale-95 text-[11px] leading-tight disabled:opacity-50"
+                          title="Descargar recibo en PDF"
                         >
-                          <span className="flex items-center justify-center gap-1">
+                          <span className="flex flex-col items-center justify-center gap-0.5">
                             {descargandoPDF === pago.id ? (
                               <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -837,28 +774,22 @@ const Pagos = () => {
                                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                               </svg>
                             )}
-                            PDF
+                            <span>Recibo PDF</span>
                           </span>
                         </button>
                         <button
-                          onClick={() => handleEnviarEmail(pago.id)}
-                          disabled={enviandoEmail === pago.id}
-                          className="w-28 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-purple-500/50 transition-all duration-300
-                                   active:scale-95 text-xs disabled:opacity-50"
+                          type="button"
+                          disabled
+                          aria-disabled="true"
+                          className="w-28 px-3 py-2 bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white/80 rounded-lg
+                                   font-medium text-xs cursor-not-allowed opacity-70"
+                          title="Envío por correo no disponible por ahora"
                         >
                           <span className="flex items-center justify-center gap-1">
-                            {enviandoEmail === pago.id ? (
-                              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                              </svg>
-                            ) : (
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                            )}
+                            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
                             Email
                           </span>
                         </button>
