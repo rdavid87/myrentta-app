@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { createPortal } from "react-dom"
+import { Link } from "react-router-dom"
 import api from "../services/api"
 
 const Contratos = () => {
@@ -1112,7 +1113,18 @@ const Contratos = () => {
                   )}
                 </select>
                 {!contratoToRenew && arrendatarios.length === 0 && (
-                  <p className="text-amber-400 text-xs sm:text-sm mt-2">⚠️ No hay arrendatarios disponibles sin contrato activo</p>
+                  <div className="mt-3 rounded-xl border border-amber-500/35 bg-amber-950/25 px-3 py-3 sm:px-4 space-y-3">
+                    <p className="text-amber-100/95 text-xs sm:text-sm leading-relaxed">
+                      Arrendatarios no disponibles para un nuevo contrato.
+                    </p>
+                    <Link
+                      to="/arrendatarios"
+                      onClick={closeModal}
+                      className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-cyan-600 to-teal-600 shadow-md hover:brightness-110 active:scale-[0.98] transition-all"
+                    >
+                      Registrar arrendatario
+                    </Link>
+                  </div>
                 )}
               </div>
 
@@ -1151,7 +1163,18 @@ const Contratos = () => {
                   )}
                 </select>
                 {!contratoToRenew && apartamentos.length === 0 && (
-                  <p className="text-amber-400 text-xs sm:text-sm mt-2">⚠️ No hay apartamentos disponibles</p>
+                  <div className="mt-3 rounded-xl border border-amber-500/35 bg-amber-950/25 px-3 py-3 sm:px-4 space-y-3">
+                    <p className="text-amber-100/95 text-xs sm:text-sm leading-relaxed">
+                      No hay <strong className="text-amber-50 font-semibold">apartamentos en estado disponible</strong> para asignar. Crea apartamentos nuevos o finaliza un contrato para liberar la unidad.
+                    </p>
+                    <Link
+                      to="/apartamentos"
+                      onClick={closeModal}
+                      className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-amber-600 to-orange-600 shadow-md hover:brightness-110 active:scale-[0.98] transition-all"
+                    >
+                      Ir a Apartamentos
+                    </Link>
+                  </div>
                 )}
               </div>
 
