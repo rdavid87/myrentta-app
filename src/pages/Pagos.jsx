@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import api from "../services/api"
+import VerificarMoraResultModal from "../components/VerificarMoraResultModal"
+import { normalizeVerificarMoraResponse } from "../utils/verificarMora"
+
+/** Métodos válidos al registrar el cobro real (API); `por_definir` se reemplaza al confirmar. */
+const METODOS_COBRO_CONFIRMADOS = new Set(["efectivo", "transferencia", "cheque"])
+
+function metodoAlConfirmarCobro(pago) {
+  const m = pago?.metodo_pago
+  if (m && METODOS_COBRO_CONFIRMADOS.has(m)) return m
+  return "efectivo"
+}
 
 const Pagos = () => {
   const [pagos, setPagos] = useState([])
@@ -19,6 +30,8 @@ const Pagos = () => {
     anio: "",
     valor: "",
     metodo_pago: "efectivo",
+    estado: "pendiente",
+    fecha_pago: "",
   })
 
   const [formData, setFormData] = useState({
@@ -42,6 +55,11 @@ const Pagos = () => {
     fecha_pago: getLocalDateString(),
     metodo_pago: "efectivo",
   })
+
+  const [verificandoMora, setVerificandoMora] = useState(false)
+  const [showMoraModal, setShowMoraModal] = useState(false)
+  const [resultadoMora, setResultadoMora] = useState(null)
+  const [enviandoNotificaciones, setEnviandoNotificaciones] = useState(false)
 
   useEffect(() => {
     fetchPagos()
@@ -116,13 +134,60 @@ const Pagos = () => {
     }
   }
 
+  const handleVerificarMora = async () => {
+    setVerificandoMora(true)
+    try {
+      const { data } = await api.get("/notificaciones/verificar-mora")
+      setResultadoMora(normalizeVerificarMoraResponse(data))
+      setShowMoraModal(true)
+    } catch (error) {
+      console.error("Error verificando mora:", error)
+      alert("Error al verificar: " + (error.response?.data?.error || error.message))
+    } finally {
+      setVerificandoMora(false)
+    }
+  }
+
+  const handleEnviarNotificacionesMora = async () => {
+    setEnviandoNotificaciones(true)
+    try {
+      const { data } = await api.post("/notificaciones/enviar-mora")
+      setResultadoMora((prev) => ({
+        ...prev,
+        notificaciones_enviadas: data.notificaciones_enviadas,
+        detalles: data.detalles,
+        errores: data.errores,
+        enviado: true,
+      }))
+      fetchPagos()
+    } catch (error) {
+      console.error("Error enviando notificaciones:", error)
+      alert("Error al enviar: " + (error.response?.data?.error || error.message))
+    } finally {
+      setEnviandoNotificaciones(false)
+    }
+  }
+
+  const closeMoraModal = () => {
+    setShowMoraModal(false)
+    setResultadoMora(null)
+  }
+
+  const fechaAPartirDeAPI = (iso) => {
+    if (!iso) return ""
+    const s = typeof iso === "string" ? iso : String(iso)
+    return s.slice(0, 10)
+  }
+
   const openEditModal = (pago) => {
     setPagoToEdit(pago)
     setEditFormData({
       mes: String(pago.mes),
       anio: String(pago.anio),
       valor: String(pago.valor),
-      metodo_pago: pago.metodo_pago || "efectivo",
+      metodo_pago: pago.metodo_pago || "por_definir",
+      estado: pago.estado === "pagado" ? "pendiente" : pago.estado || "pendiente",
+      fecha_pago: fechaAPartirDeAPI(pago.fecha_pago) || getLocalDateString(),
     })
     setShowEditModal(true)
   }
@@ -130,7 +195,14 @@ const Pagos = () => {
   const closeEditModal = () => {
     setShowEditModal(false)
     setPagoToEdit(null)
-    setEditFormData({ mes: "", anio: "", valor: "", metodo_pago: "efectivo" })
+    setEditFormData({
+      mes: "",
+      anio: "",
+      valor: "",
+      metodo_pago: "efectivo",
+      estado: "pendiente",
+      fecha_pago: "",
+    })
   }
 
   const handleEditSubmit = async (e) => {
@@ -152,12 +224,42 @@ const Pagos = () => {
       return
     }
     try {
-      await api.put(`/pagos/${pagoToEdit.id}`, {
+      const payload = {
         mes,
         anio,
         valor,
         metodo_pago: editFormData.metodo_pago,
-      })
+      }
+
+      const eraPagado = pagoToEdit.estado === "pagado"
+      if (eraPagado) {
+        if (editFormData.estado !== "pendiente" && editFormData.estado !== "en_mora") {
+          alert("Para un pago ya confirmado, elige Pendiente o En mora para revertir el cobro.")
+          return
+        }
+        payload.estado = editFormData.estado
+      } else {
+        if (editFormData.estado === "pagado") {
+          if (!editFormData.fecha_pago) {
+            alert("Indica la fecha de pago al marcar como pagado.")
+            return
+          }
+          if (editFormData.metodo_pago === "por_definir") {
+            alert("Elige un método real (efectivo, transferencia o cheque) al marcar como pagado.")
+            return
+          }
+          payload.estado = "pagado"
+          payload.fecha_pago = editFormData.fecha_pago
+        } else if (
+          editFormData.estado &&
+          editFormData.estado !== "pagado" &&
+          editFormData.estado !== pagoToEdit.estado
+        ) {
+          payload.estado = editFormData.estado
+        }
+      }
+
+      await api.put(`/pagos/${pagoToEdit.id}`, payload)
       closeEditModal()
       fetchPagos()
       alert("✅ Pago actualizado")
@@ -270,7 +372,7 @@ const Pagos = () => {
     setPagoToConfirm(pago)
     setConfirmarData({
       fecha_pago: getLocalDateString(),
-      metodo_pago: pago.metodo_pago || "efectivo",
+      metodo_pago: metodoAlConfirmarCobro(pago),
     })
     setShowConfirmarModal(true)
   }
@@ -289,7 +391,7 @@ const Pagos = () => {
   }
 
   const formatDate = (dateString) => {
-    if (!dateString) return "-"
+    if (!dateString) return "—"
     const date = new Date(dateString)
     const year = date.getUTCFullYear()
     const month = String(date.getUTCMonth() + 1).padStart(2, '0')
@@ -307,7 +409,12 @@ const Pagos = () => {
 
   const formatMetodoLabel = (m) => {
     if (!m) return "—"
-    const map = { efectivo: "Efectivo", transferencia: "Transferencia", cheque: "Cheque" }
+    const map = {
+      por_definir: "Por definir",
+      efectivo: "Efectivo",
+      transferencia: "Transferencia",
+      cheque: "Cheque",
+    }
     return map[m] || m
   }
 
@@ -401,6 +508,35 @@ const Pagos = () => {
               </div>
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <button
+                  type="button"
+                  onClick={handleVerificarMora}
+                  disabled={verificandoMora}
+                  className="group relative w-full sm:w-auto px-4 sm:px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl
+                           font-semibold shadow-lg hover:shadow-violet-500/50 transition-all duration-300
+                           hover:scale-105 active:scale-95 overflow-hidden text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Contratos activos: revisa canon vencido según día de pago y filas de pagos."
+                >
+                  <span className="relative flex items-center justify-center gap-2">
+                    {verificandoMora ? (
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                        />
+                      </svg>
+                    )}
+                    {verificandoMora ? "Verificando..." : "Verificar Mora"}
+                  </span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => setShowModal(true)}
                   className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl
                            font-semibold shadow-lg hover:shadow-emerald-500/50 transition-all duration-300
@@ -597,7 +733,22 @@ const Pagos = () => {
                           </>
                         )}
                         {pago.estado === "pagado" && (
-                          <div className="flex gap-1.5">
+                          <div className="flex flex-wrap gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(pago)}
+                              className="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                                       font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
+                                       hover:scale-105 active:scale-95 text-xs"
+                              title="Revertir o ajustar datos del pago confirmado"
+                            >
+                              <span className="flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Editar
+                              </span>
+                            </button>
                             <button
                               onClick={() => handleReciboPdf(pago.id)}
                               disabled={descargandoPDF === pago.id}
@@ -754,6 +905,21 @@ const Pagos = () => {
                     )}
                     {pago.estado === "pagado" && (
                       <>
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(pago)}
+                          className="min-w-[7.5rem] w-full max-w-[9rem] px-3 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                                   font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
+                                   active:scale-95 text-[11px] leading-tight"
+                          title="Revertir o ajustar"
+                        >
+                          <span className="flex flex-col items-center justify-center gap-0.5">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>Editar</span>
+                          </span>
+                        </button>
                         <button
                           onClick={() => handleReciboPdf(pago.id)}
                           disabled={descargandoPDF === pago.id}
@@ -981,7 +1147,9 @@ const Pagos = () => {
             </div>
             <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4">
               <p className="text-xs text-gray-500 bg-gray-800/40 rounded-lg px-3 py-2 border border-gray-600/40">
-                Puedes ajustar período (mes/año), valor y método. No aplica a pagos ya confirmados.
+                {pagoToEdit.estado === "pagado"
+                  ? "Este pago está confirmado. Elige Pendiente o En mora para revertir el cobro (se borrará la fecha de pago en el sistema)."
+                  : "Ajusta período, valor, método y estado. Para marcar como Pagado sin usar «Confirmar», elige estado Pagado e indica la fecha."}
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -1032,11 +1200,59 @@ const Pagos = () => {
                   className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
                   required
                 >
+                  <option value="por_definir" className="bg-gray-800">Por definir</option>
                   <option value="efectivo" className="bg-gray-800">💵 Efectivo</option>
                   <option value="transferencia" className="bg-gray-800">💳 Transferencia</option>
                   <option value="cheque" className="bg-gray-800">📄 Cheque</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-2">Estado</label>
+                <select
+                  value={editFormData.estado}
+                  onChange={(e) => setEditFormData({ ...editFormData, estado: e.target.value })}
+                  className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
+                >
+                  {pagoToEdit.estado === "pagado" ? (
+                    <>
+                      <option value="pendiente" className="bg-gray-800">
+                        Pendiente (revertir cobro)
+                      </option>
+                      <option value="en_mora" className="bg-gray-800">
+                        En mora (revertir cobro)
+                      </option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="pendiente" className="bg-gray-800">
+                        Pendiente
+                      </option>
+                      <option value="en_mora" className="bg-gray-800">
+                        En mora
+                      </option>
+                      <option value="pagado" className="bg-gray-800">
+                        Pagado (sin usar Confirmar)
+                      </option>
+                    </>
+                  )}
+                </select>
+              </div>
+
+              {pagoToEdit.estado !== "pagado" && editFormData.estado === "pagado" && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-2">Fecha del cobro</label>
+                  <input
+                    type="date"
+                    value={editFormData.fecha_pago}
+                    onChange={(e) => setEditFormData({ ...editFormData, fecha_pago: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
+                    required={editFormData.estado === "pagado"}
+                  />
+                  <p className="text-[11px] text-gray-500 mt-1">Obligatorio al pasar el estado a Pagado desde esta pantalla.</p>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="submit"
@@ -1059,6 +1275,14 @@ const Pagos = () => {
 
       {/* Modal Confirmar Pago */}
       {/* Modal Confirmar Pago - Responsive */}
+      <VerificarMoraResultModal
+        open={showMoraModal}
+        resultadoMora={resultadoMora}
+        onClose={closeMoraModal}
+        onEnviarNotificaciones={handleEnviarNotificacionesMora}
+        enviandoNotificaciones={enviandoNotificaciones}
+      />
+
       {showConfirmarModal && pagoToConfirm && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
           <div className="relative bg-gradient-to-br from-gray-900 via-emerald-900/10 to-gray-900 rounded-2xl sm:rounded-3xl shadow-2xl 
@@ -1099,6 +1323,11 @@ const Pagos = () => {
                       <p className="text-emerald-400 font-bold text-base">{formatCurrency(pagoToConfirm.valor)}</p>
                     </div>
                   </div>
+                  {!METODOS_COBRO_CONFIRMADOS.has(pagoToConfirm.metodo_pago) && (
+                    <p className="text-xs text-amber-200/90 mt-3">
+                      La cuota venía con método <strong className="text-amber-100">por definir</strong>; indica abajo cómo se cobró al confirmar.
+                    </p>
+                  )}
                 </div>
 
                 {/* Fecha de pago */}

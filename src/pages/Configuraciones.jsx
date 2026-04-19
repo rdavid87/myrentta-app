@@ -98,15 +98,19 @@ const Configuraciones = () => {
             <section>
               <h3 className="text-white font-semibold mb-2">Pagos y cuotas automáticas</h3>
               <p>
-                Al <strong className="text-gray-200 font-medium">crear un contrato activo</strong>, el sistema intenta crear en{" "}
-                <strong className="text-teal-300/90 font-medium">Gestión de pagos</strong> una fila pendiente según el modo de cobro:
+                La <strong className="text-gray-200 font-medium">creación de la cuota</strong> al guardar un contrato activo la resuelve el{" "}
+                <strong className="text-gray-200 font-medium">servidor (API)</strong>: esta aplicación solo muestra lo que devuelve{" "}
+                <strong className="text-gray-200 font-medium">Gestión de pagos</strong>. Al entrar en esa pantalla se cargan los pagos; si el API
+                generó la fila, ya la verás en la tabla (sin lógica extra en el navegador).
+              </p>
+              <p className="mt-2">
+                Esa cuota suele crearse según el <strong className="text-gray-200 font-medium">modo de cobro</strong> del contrato:
               </p>
               <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-400">
                 <li>
                   <strong className="text-gray-200 font-medium">Cobro anticipado (mes adelantado):</strong> cuota del{" "}
-                  <strong className="text-gray-200 font-medium">mes calendario siguiente</strong> a la fecha en que creas el contrato,
-                  si las fechas del contrato cubren al menos un día de ese mes. El método por defecto es{" "}
-                  <strong className="text-gray-200 font-medium">efectivo</strong> (puedes cambiarlo editando el pago).
+                  <strong className="text-gray-200 font-medium">mes calendario siguiente</strong> a la fecha del contrato, si las fechas cubren al
+                  menos un día de ese mes.
                 </li>
                 <li>
                   <strong className="text-gray-200 font-medium">Cobro a mes vencido (fin de mes):</strong> cuota del{" "}
@@ -114,14 +118,18 @@ const Configuraciones = () => {
                 </li>
               </ul>
               <p className="mt-2">
-                Si no aparece ningún pago, revisa que el contrato abarque el mes correspondiente o registra el pago manualmente con{" "}
+                El método de pago que asigne el API para esas filas automáticas debe ser{" "}
+                <strong className="text-gray-200 font-medium">por definir</strong> (<code className="text-gray-400">por_definir</code>) hasta que
+                registres el cobro con <strong className="text-gray-200 font-medium">Confirmar</strong> y elijas efectivo, transferencia o cheque.
+              </p>
+              <p className="mt-2">
+                Si no aparece ningún pago, revisa en el backend las reglas de fechas o registra el pago manualmente con{" "}
                 <strong className="text-gray-200 font-medium">Registrar pago</strong>.
               </p>
               <p className="mt-2">
-                La columna <strong className="text-gray-200 font-medium">fecha de pago</strong> solo se llena cuando marcas el cobro con{" "}
-                <strong className="text-gray-200 font-medium">Confirmar</strong>; mientras tanto verás guion. El estado{" "}
-                <strong className="text-gray-200 font-medium">en mora</strong> aplica cuando ya pasó la fecha límite del canon según el contrato;
-                el mismo día en que se crea la fila de pago no se marca mora para que puedas revisarla tranquilo.
+                La columna <strong className="text-gray-200 font-medium">fecha de pago</strong> solo se llena al confirmar el cobro; mientras tanto verás
+                guion. Los estados <strong className="text-gray-200 font-medium">pendiente</strong> y <strong className="text-gray-200 font-medium">en mora</strong>{" "}
+                los define el API según la fecha límite del contrato (por ejemplo, el mismo día de creación de la fila puede no contarse como mora).
               </p>
             </section>
             <section>
@@ -135,10 +143,14 @@ const Configuraciones = () => {
             <section>
               <h3 className="text-white font-semibold mb-2">Verificar mora</h3>
               <p>
-                Esa acción solo incluye contratos en estado <strong className="text-emerald-400/90 font-medium">activo</strong> (día de pago y pagos registrados).
+                El botón <strong className="text-gray-200 font-medium">Verificar Mora</strong> está en la pantalla de{" "}
+                <strong className="text-gray-200 font-medium">Pagos</strong>. Esa acción solo incluye contratos en estado{" "}
+                <strong className="text-emerald-400/90 font-medium">activo</strong> (día de pago y pagos registrados).
                 Los <strong className="text-gray-400 font-medium">finalizados</strong> no entran en el informe, aunque hubiera deudas pasadas.
-                Cada contrato activo aparece <strong className="text-gray-200 font-medium">una sola vez</strong>. Los días de mora se calculan con tus <strong className="text-gray-200 font-medium">pagos</strong> (canon anticipado: vence en el día de pago del mes anterior al periodo). Si hay varios meses impagos, se muestra el atraso desde el vencimiento más antiguo y el texto del periodo indica varios meses.
-                Cuando el resultado indica cero mora, no hay canon vencido entre los activos según esa verificación.
+                Cada contrato activo aparece <strong className="text-gray-200 font-medium">una sola vez</strong>. Los días de mora se calculan con tus{" "}
+                <strong className="text-gray-200 font-medium">pagos</strong> (canon anticipado: vence en el día de pago del mes anterior al periodo). Si hay
+                varios meses impagos, se muestra el atraso desde el vencimiento más antiguo y el texto del periodo indica varios meses. Cuando el resultado
+                indica cero mora, no hay canon vencido entre los activos según esa verificación.
               </p>
             </section>
           </div>
