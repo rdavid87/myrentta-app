@@ -43,7 +43,7 @@ const Apartamentos = () => {
     try {
       const dataToSend = {
         ...formData,
-        valor_arriendo: parseFloat(formData.valor_arriendo)
+        valor_arriendo: parseFloat(formData.valor_arriendo.toString().replace(/\./g, "").replace(",", "."))
       }
       
       if (editingId) {
@@ -289,7 +289,7 @@ const Apartamentos = () => {
                   {/* Contenido */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-white font-semibold text-lg truncate">{apt.numero}</h3>
+                      <h3 className="text-white font-semibold text-sm leading-snug break-words">{apt.numero}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border flex-shrink-0 ${getEstadoBadge(apt.estado)}`}>
                         {apt.estado === "disponible" ? "Disponible" : "Arrendado"}
                       </span>
@@ -443,8 +443,8 @@ const Apartamentos = () => {
                     💰 Valor Arriendo
                   </label>
                   <input
-                    type="number"
-                    placeholder="Ej: 500000"
+                    type="text"
+                    placeholder="Ej: 500000 o 500.000"
                     value={formData.valor_arriendo}
                     onChange={(e) => setFormData({ ...formData, valor_arriendo: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
@@ -452,6 +452,7 @@ const Apartamentos = () => {
                              transition-all duration-300"
                     required
                   />
+                  <p className="text-xs text-gray-500 mt-1">Puedes escribir con o sin puntos. Ej: 400000 o 400.000</p>
                 </div>
               </div>
 

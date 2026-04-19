@@ -1,5 +1,17 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import api from "../services/api"
+import VerificarMoraResultModal from "../components/VerificarMoraResultModal"
+import { normalizeVerificarMoraResponse } from "../utils/verificarMora"
+
+/** Métodos válidos al registrar el cobro real (API); `por_definir` se reemplaza al confirmar. */
+const METODOS_COBRO_CONFIRMADOS = new Set(["efectivo", "transferencia", "cheque"])
+
+function metodoAlConfirmarCobro(pago) {
+  const m = pago?.metodo_pago
+  if (m && METODOS_COBRO_CONFIRMADOS.has(m)) return m
+  return "efectivo"
+}
 
 const Pagos = () => {
   const [pagos, setPagos] = useState([])
@@ -8,19 +20,26 @@ const Pagos = () => {
   const [showModal, setShowModal] = useState(false)
   const [showConfirmarModal, setShowConfirmarModal] = useState(false)
   const [pagoToConfirm, setPagoToConfirm] = useState(null)
-  const [enviandoEmail, setEnviandoEmail] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState("todos")
-  const [generandoPagos, setGenerandoPagos] = useState(false)
-  const [showGenerarModal, setShowGenerarModal] = useState(false)
-  const [resultadoGeneracion, setResultadoGeneracion] = useState(null)
+
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [pagoToEdit, setPagoToEdit] = useState(null)
+  const [editFormData, setEditFormData] = useState({
+    mes: "",
+    anio: "",
+    valor: "",
+    metodo_pago: "efectivo",
+    estado: "pendiente",
+    fecha_pago: "",
+  })
 
   const [formData, setFormData] = useState({
     contrato_id: "",
     mes: "",
     anio: new Date().getFullYear().toString(),
     valor: "",
-    metodo_pago: "transferencia",
+    metodo_pago: "efectivo",
   })
 
   // Función para obtener fecha local en formato YYYY-MM-DD (evita problemas de timezone)
@@ -34,8 +53,13 @@ const Pagos = () => {
 
   const [confirmarData, setConfirmarData] = useState({
     fecha_pago: getLocalDateString(),
-    metodo_pago: "transferencia",
+    metodo_pago: "efectivo",
   })
+
+  const [verificandoMora, setVerificandoMora] = useState(false)
+  const [showMoraModal, setShowMoraModal] = useState(false)
+  const [resultadoMora, setResultadoMora] = useState(null)
+  const [enviandoNotificaciones, setEnviandoNotificaciones] = useState(false)
 
   useEffect(() => {
     fetchPagos()
@@ -110,32 +134,146 @@ const Pagos = () => {
     }
   }
 
-  // Generar pagos automáticos
-  const handleGenerarPagos = async () => {
-    setGenerandoPagos(true)
+  const handleVerificarMora = async () => {
+    setVerificandoMora(true)
     try {
-      const { data } = await api.post("/pagos/generar-automaticos")
-      setResultadoGeneracion(data)
-      setShowGenerarModal(true)
-      fetchPagos()
+      const { data } = await api.get("/notificaciones/verificar-mora")
+      setResultadoMora(normalizeVerificarMoraResponse(data))
+      setShowMoraModal(true)
     } catch (error) {
-      console.error("Error generando pagos:", error)
-      alert("Error: " + (error.response?.data?.error || error.message))
+      console.error("Error verificando mora:", error)
+      alert("Error al verificar: " + (error.response?.data?.error || error.message))
     } finally {
-      setGenerandoPagos(false)
+      setVerificandoMora(false)
     }
   }
 
-  const closeGenerarModal = () => {
-    setShowGenerarModal(false)
-    setResultadoGeneracion(null)
+  const handleEnviarNotificacionesMora = async () => {
+    setEnviandoNotificaciones(true)
+    try {
+      const { data } = await api.post("/notificaciones/enviar-mora")
+      setResultadoMora((prev) => ({
+        ...prev,
+        notificaciones_enviadas: data.notificaciones_enviadas,
+        detalles: data.detalles,
+        errores: data.errores,
+        enviado: true,
+      }))
+      fetchPagos()
+    } catch (error) {
+      console.error("Error enviando notificaciones:", error)
+      alert("Error al enviar: " + (error.response?.data?.error || error.message))
+    } finally {
+      setEnviandoNotificaciones(false)
+    }
+  }
+
+  const closeMoraModal = () => {
+    setShowMoraModal(false)
+    setResultadoMora(null)
+  }
+
+  const fechaAPartirDeAPI = (iso) => {
+    if (!iso) return ""
+    const s = typeof iso === "string" ? iso : String(iso)
+    return s.slice(0, 10)
+  }
+
+  const openEditModal = (pago) => {
+    setPagoToEdit(pago)
+    setEditFormData({
+      mes: String(pago.mes),
+      anio: String(pago.anio),
+      valor: String(pago.valor),
+      metodo_pago: pago.metodo_pago || "por_definir",
+      estado: pago.estado === "pagado" ? "pendiente" : pago.estado || "pendiente",
+      fecha_pago: fechaAPartirDeAPI(pago.fecha_pago) || getLocalDateString(),
+    })
+    setShowEditModal(true)
+  }
+
+  const closeEditModal = () => {
+    setShowEditModal(false)
+    setPagoToEdit(null)
+    setEditFormData({
+      mes: "",
+      anio: "",
+      valor: "",
+      metodo_pago: "efectivo",
+      estado: "pendiente",
+      fecha_pago: "",
+    })
+  }
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault()
+    if (!pagoToEdit) return
+    const mes = parseInt(editFormData.mes, 10)
+    const anio = parseInt(editFormData.anio, 10)
+    const valor = parseFloat(String(editFormData.valor).replace(",", "."))
+    if (Number.isNaN(mes) || mes < 1 || mes > 12) {
+      alert("Selecciona un mes válido.")
+      return
+    }
+    if (Number.isNaN(anio) || anio < 2000) {
+      alert("Ingresa un año válido.")
+      return
+    }
+    if (Number.isNaN(valor) || valor <= 0) {
+      alert("Ingresa un valor válido.")
+      return
+    }
+    try {
+      const payload = {
+        mes,
+        anio,
+        valor,
+        metodo_pago: editFormData.metodo_pago,
+      }
+
+      const eraPagado = pagoToEdit.estado === "pagado"
+      if (eraPagado) {
+        if (editFormData.estado !== "pendiente" && editFormData.estado !== "en_mora") {
+          alert("Para un pago ya confirmado, elige Pendiente o En mora para revertir el cobro.")
+          return
+        }
+        payload.estado = editFormData.estado
+      } else {
+        if (editFormData.estado === "pagado") {
+          if (!editFormData.fecha_pago) {
+            alert("Indica la fecha de pago al marcar como pagado.")
+            return
+          }
+          if (editFormData.metodo_pago === "por_definir") {
+            alert("Elige un método real (efectivo, transferencia o cheque) al marcar como pagado.")
+            return
+          }
+          payload.estado = "pagado"
+          payload.fecha_pago = editFormData.fecha_pago
+        } else if (
+          editFormData.estado &&
+          editFormData.estado !== "pagado" &&
+          editFormData.estado !== pagoToEdit.estado
+        ) {
+          payload.estado = editFormData.estado
+        }
+      }
+
+      await api.put(`/pagos/${pagoToEdit.id}`, payload)
+      closeEditModal()
+      fetchPagos()
+      alert("✅ Pago actualizado")
+    } catch (error) {
+      console.error("Error editando pago:", error)
+      alert("Error al actualizar: " + (error.response?.data?.error || error.message))
+    }
   }
 
   // Estado para descarga PDF
   const [descargandoPDF, setDescargandoPDF] = useState(null)
 
-  // Descargar recibo como PDF usando iframe aislado
-  const handleDescargarRecibo = async (pagoId) => {
+  // Descargar recibo en PDF (html2pdf en iframe aislado)
+  const handleReciboPdf = async (pagoId) => {
     setDescargandoPDF(pagoId)
     try {
       const { data: htmlContent } = await api.get(`/recibos/${pagoId}/html`, { responseType: "text" })
@@ -210,33 +348,6 @@ const Pagos = () => {
     }
   }
 
-  // Ver recibo en nueva ventana (para imprimir)
-  const handleVerRecibo = async (pagoId) => {
-    try {
-      const { data } = await api.get(`/recibos/${pagoId}/html`, { responseType: "text" })
-      const ventana = window.open("", "_blank")
-      ventana.document.write(data)
-      ventana.document.close()
-    } catch (error) {
-      console.error("Error mostrando recibo:", error)
-      alert("Error al mostrar recibo: " + (error.response?.data?.error || error.message))
-    }
-  }
-
-  // Enviar recibo por email
-  const handleEnviarEmail = async (pagoId) => {
-    setEnviandoEmail(pagoId)
-    try {
-      const { data } = await api.post(`/recibos/${pagoId}/enviar`)
-      alert(`✅ ${data.message}`)
-    } catch (error) {
-      console.error("Error enviando email:", error)
-      alert("Error al enviar email: " + (error.response?.data?.error || error.message))
-    } finally {
-      setEnviandoEmail(null)
-    }
-  }
-
   const closeModal = () => {
     setShowModal(false)
     setFormData({
@@ -244,7 +355,7 @@ const Pagos = () => {
       mes: "",
       anio: new Date().getFullYear().toString(),
       valor: "",
-      metodo_pago: "transferencia",
+      metodo_pago: "efectivo",
     })
   }
 
@@ -253,7 +364,7 @@ const Pagos = () => {
     setPagoToConfirm(null)
     setConfirmarData({
       fecha_pago: getLocalDateString(),
-      metodo_pago: "transferencia",
+      metodo_pago: "efectivo",
     })
   }
 
@@ -261,7 +372,7 @@ const Pagos = () => {
     setPagoToConfirm(pago)
     setConfirmarData({
       fecha_pago: getLocalDateString(),
-      metodo_pago: pago.metodo_pago || "transferencia",
+      metodo_pago: metodoAlConfirmarCobro(pago),
     })
     setShowConfirmarModal(true)
   }
@@ -280,7 +391,7 @@ const Pagos = () => {
   }
 
   const formatDate = (dateString) => {
-    if (!dateString) return "-"
+    if (!dateString) return "—"
     const date = new Date(dateString)
     const year = date.getUTCFullYear()
     const month = String(date.getUTCMonth() + 1).padStart(2, '0')
@@ -294,6 +405,17 @@ const Pagos = () => {
       currency: "COP",
       minimumFractionDigits: 0,
     }).format(amount)
+  }
+
+  const formatMetodoLabel = (m) => {
+    if (!m) return "—"
+    const map = {
+      por_definir: "Por definir",
+      efectivo: "Efectivo",
+      transferencia: "Transferencia",
+      cheque: "Cheque",
+    }
+    return map[m] || m
   }
 
   const getNombreMes = (mes) => {
@@ -376,38 +498,45 @@ const Pagos = () => {
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-2">
                   💳 Gestión de Pagos
                 </h1>
-                <p className="text-sm sm:text-base text-gray-400">Registra y confirma los pagos de arrendamiento</p>
+                <p className="text-sm sm:text-base text-gray-400 max-w-xl">
+                  Registra y confirma pagos.{" "}
+                  <Link to="/configuraciones" className="text-teal-300/90 hover:text-teal-200 underline-offset-2 hover:underline">
+                    Ayuda sobre cuotas automáticas (Configuración)
+                  </Link>
+                  .
+                </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                {/* Botón Generar Pagos del Mes */}
                 <button
-                  onClick={handleGenerarPagos}
-                  disabled={generandoPagos}
-                  className="group relative w-full sm:w-auto px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl
-                           font-semibold shadow-lg hover:shadow-purple-500/50 transition-all duration-300
-                           hover:scale-105 active:scale-95 overflow-hidden text-sm sm:text-base
-                           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  type="button"
+                  onClick={handleVerificarMora}
+                  disabled={verificandoMora}
+                  className="group relative w-full sm:w-auto px-4 sm:px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl
+                           font-semibold shadow-lg hover:shadow-violet-500/50 transition-all duration-300
+                           hover:scale-105 active:scale-95 overflow-hidden text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Contratos activos: revisa canon vencido según día de pago y filas de pagos."
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600 opacity-0 
-                                group-hover:opacity-100 transition-opacity duration-300"></div>
                   <span className="relative flex items-center justify-center gap-2">
-                    {generandoPagos ? (
+                    {verificandoMora ? (
                       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                        />
                       </svg>
                     )}
-                    {generandoPagos ? "Generando..." : "Generar Pagos"}
+                    {verificandoMora ? "Verificando..." : "Verificar Mora"}
                   </span>
                 </button>
-
-                {/* Botón Registrar Pago */}
                 <button
+                  type="button"
                   onClick={() => setShowModal(true)}
                   className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl
                            font-semibold shadow-lg hover:shadow-emerald-500/50 transition-all duration-300
@@ -518,7 +647,12 @@ const Pagos = () => {
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider">Período</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider">Valor</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider">Método</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider">Fecha Pago</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+                    <span className="block">Fecha pago</span>
+                    <span className="block font-normal normal-case text-[10px] text-gray-500 tracking-normal mt-0.5">
+                      al confirmar cobro
+                    </span>
+                  </th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider">Estado</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -539,17 +673,36 @@ const Pagos = () => {
                       </span>
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-emerald-300 font-semibold text-sm">{formatCurrency(pago.valor)}</td>
-                    <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm capitalize">{pago.metodo_pago}</td>
-                    <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm">{formatDate(pago.fecha_pago)}</td>
+                    <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm">{formatMetodoLabel(pago.metodo_pago)}</td>
+                    <td
+                      className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm"
+                      title={!pago.fecha_pago ? "Se completa cuando confirmas el pago (no antes)" : undefined}
+                    >
+                      {formatDate(pago.fecha_pago)}
+                    </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getEstadoBadge(pago.estado)}`}>
                         {getEstadoIcon(pago.estado)} {pago.estado === "pagado" ? "Pagado" : pago.estado === "en_mora" ? "En mora" : "Pendiente"}
                       </span>
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4">
-                      <div className="flex gap-1.5">
+                      <div className="flex flex-wrap gap-1.5">
                         {(pago.estado === "pendiente" || pago.estado === "en_mora") && (
                           <>
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(pago)}
+                              className="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                                       font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
+                                       hover:scale-105 active:scale-95 text-xs"
+                            >
+                              <span className="flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Editar
+                              </span>
+                            </button>
                             <button
                               onClick={() => openConfirmarModal(pago)}
                               className="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg
@@ -580,29 +733,29 @@ const Pagos = () => {
                           </>
                         )}
                         {pago.estado === "pagado" && (
-                          <div className="flex gap-1.5">
+                          <div className="flex flex-wrap gap-1.5">
                             <button
-                              onClick={() => handleVerRecibo(pago.id)}
-                              className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg
-                                       font-medium shadow-lg hover:shadow-blue-500/50 transition-all duration-300
+                              type="button"
+                              onClick={() => openEditModal(pago)}
+                              className="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                                       font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
                                        hover:scale-105 active:scale-95 text-xs"
-                              title="Ver/Imprimir Recibo"
+                              title="Revertir o ajustar datos del pago confirmado"
                             >
                               <span className="flex items-center gap-1">
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
-                                Recibo
+                                Editar
                               </span>
                             </button>
                             <button
-                              onClick={() => handleDescargarRecibo(pago.id)}
+                              onClick={() => handleReciboPdf(pago.id)}
                               disabled={descargandoPDF === pago.id}
                               className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
                                        font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
                                        hover:scale-105 active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Descargar PDF"
+                              title="Descargar recibo en PDF"
                             >
                               <span className="flex items-center gap-1">
                                 {descargandoPDF === pago.id ? (
@@ -616,29 +769,22 @@ const Pagos = () => {
                                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                   </svg>
                                 )}
-                                PDF
+                                Recibo PDF
                               </span>
                             </button>
                             <button
-                              onClick={() => handleEnviarEmail(pago.id)}
-                              disabled={enviandoEmail === pago.id}
-                              className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg
-                                       font-medium shadow-lg hover:shadow-purple-500/50 transition-all duration-300
-                                       hover:scale-105 active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Enviar por Email"
+                              type="button"
+                              disabled
+                              aria-disabled="true"
+                              className="px-3 py-1.5 bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white/80 rounded-lg
+                                       font-medium text-xs cursor-not-allowed opacity-70"
+                              title="Envío por correo no disponible por ahora"
                             >
                               <span className="flex items-center gap-1">
-                                {enviandoEmail === pago.id ? (
-                                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                  </svg>
-                                ) : (
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                  </svg>
-                                )}
+                                <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
                                 Email
                               </span>
                             </button>
@@ -659,7 +805,7 @@ const Pagos = () => {
                 </p>
                 <p className="text-gray-500 text-sm mt-2">
                   {pagos.length === 0 
-                    ? "Registra el primer pago para comenzar"
+                    ? "Usa Registrar pago o revisa en Configuración cómo se generan las cuotas al crear contratos."
                     : "Intenta con otros términos de búsqueda o filtros"}
                 </p>
               </div>
@@ -699,11 +845,13 @@ const Pagos = () => {
                       </div>
                       <div>
                         <p className="text-gray-500 text-xs">Método</p>
-                        <p className="text-gray-200 capitalize">{pago.metodo_pago}</p>
+                        <p className="text-gray-200">{formatMetodoLabel(pago.metodo_pago)}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500 text-xs">Fecha Pago</p>
-                        <p className="text-gray-200">{formatDate(pago.fecha_pago)}</p>
+                        <p className="text-gray-500 text-xs">Fecha pago (al confirmar)</p>
+                        <p className="text-gray-200" title={!pago.fecha_pago ? "Se registra al confirmar el cobro" : undefined}>
+                          {formatDate(pago.fecha_pago)}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -712,6 +860,20 @@ const Pagos = () => {
                   <div className="flex flex-col gap-2">
                     {(pago.estado === "pendiente" || pago.estado === "en_mora") && (
                       <>
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(pago)}
+                          className="w-28 px-3 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                                   font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
+                                   active:scale-95 text-xs"
+                        >
+                          <span className="flex items-center justify-center gap-1">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Editar
+                          </span>
+                        </button>
                         <button
                           onClick={() => openConfirmarModal(pago)}
                           className="w-28 px-3 py-2 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg
@@ -744,27 +906,29 @@ const Pagos = () => {
                     {pago.estado === "pagado" && (
                       <>
                         <button
-                          onClick={() => handleVerRecibo(pago.id)}
-                          className="w-28 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-blue-500/50 transition-all duration-300
-                                   active:scale-95 text-xs"
+                          type="button"
+                          onClick={() => openEditModal(pago)}
+                          className="min-w-[7.5rem] w-full max-w-[9rem] px-3 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                                   font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
+                                   active:scale-95 text-[11px] leading-tight"
+                          title="Revertir o ajustar"
                         >
-                          <span className="flex items-center justify-center gap-1">
+                          <span className="flex flex-col items-center justify-center gap-0.5">
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
-                            Ver Recibo
+                            <span>Editar</span>
                           </span>
                         </button>
                         <button
-                          onClick={() => handleDescargarRecibo(pago.id)}
+                          onClick={() => handleReciboPdf(pago.id)}
                           disabled={descargandoPDF === pago.id}
-                          className="w-28 px-3 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
+                          className="min-w-[7.5rem] w-full max-w-[9rem] px-3 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
                                    font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
-                                   active:scale-95 text-xs disabled:opacity-50"
+                                   active:scale-95 text-[11px] leading-tight disabled:opacity-50"
+                          title="Descargar recibo en PDF"
                         >
-                          <span className="flex items-center justify-center gap-1">
+                          <span className="flex flex-col items-center justify-center gap-0.5">
                             {descargandoPDF === pago.id ? (
                               <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -776,28 +940,22 @@ const Pagos = () => {
                                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                               </svg>
                             )}
-                            PDF
+                            <span>Recibo PDF</span>
                           </span>
                         </button>
                         <button
-                          onClick={() => handleEnviarEmail(pago.id)}
-                          disabled={enviandoEmail === pago.id}
-                          className="w-28 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-purple-500/50 transition-all duration-300
-                                   active:scale-95 text-xs disabled:opacity-50"
+                          type="button"
+                          disabled
+                          aria-disabled="true"
+                          className="w-28 px-3 py-2 bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white/80 rounded-lg
+                                   font-medium text-xs cursor-not-allowed opacity-70"
+                          title="Envío por correo no disponible por ahora"
                         >
                           <span className="flex items-center justify-center gap-1">
-                            {enviandoEmail === pago.id ? (
-                              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                              </svg>
-                            ) : (
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                            )}
+                            <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
                             Email
                           </span>
                         </button>
@@ -816,7 +974,7 @@ const Pagos = () => {
                 </p>
                 <p className="text-gray-500 text-sm mt-2">
                   {pagos.length === 0 
-                    ? "Registra el primer pago para comenzar"
+                    ? "Usa Registrar pago o revisa la ayuda en Configuración."
                     : "Intenta con otros términos de búsqueda o filtros"}
                 </p>
               </div>
@@ -941,8 +1099,8 @@ const Pagos = () => {
                              transition-all duration-300"
                     required
                   >
-                    <option value="transferencia" className="bg-gray-800">💳 Transferencia</option>
                     <option value="efectivo" className="bg-gray-800">💵 Efectivo</option>
+                    <option value="transferencia" className="bg-gray-800">💳 Transferencia</option>
                     <option value="cheque" className="bg-gray-800">📄 Cheque</option>
                   </select>
                 </div>
@@ -974,8 +1132,157 @@ const Pagos = () => {
         </div>
       )}
 
+      {/* Modal Editar Pago (pendiente / en mora) */}
+      {showEditModal && pagoToEdit && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl max-w-lg w-full border border-gray-700/50 overflow-hidden my-8">
+            <div className="relative bg-gradient-to-r from-sky-600/20 to-cyan-600/20 border-b border-gray-700/50 p-4 sm:p-6">
+              <h2 className="relative text-xl font-bold text-white flex items-center gap-2">
+                <span className="text-2xl">✏️</span>
+                Editar pago
+              </h2>
+              <p className="text-sm text-gray-400 mt-1">
+                {pagoToEdit.arrendatario_nombre} · {pagoToEdit.apartamento_numero}
+              </p>
+            </div>
+            <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4">
+              <p className="text-xs text-gray-500 bg-gray-800/40 rounded-lg px-3 py-2 border border-gray-600/40">
+                {pagoToEdit.estado === "pagado"
+                  ? "Este pago está confirmado. Elige Pendiente o En mora para revertir el cobro (se borrará la fecha de pago en el sistema)."
+                  : "Ajusta período, valor, método y estado. Para marcar como Pagado sin usar «Confirmar», elige estado Pagado e indica la fecha."}
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-2">Mes del periodo</label>
+                  <select
+                    value={editFormData.mes}
+                    onChange={(e) => setEditFormData({ ...editFormData, mes: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
+                    required
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
+                      <option key={m} value={String(m)} className="bg-gray-800">
+                        {getNombreMes(m)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-2">Año</label>
+                  <input
+                    type="number"
+                    min="2020"
+                    max="2040"
+                    value={editFormData.anio}
+                    onChange={(e) => setEditFormData({ ...editFormData, anio: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-2">Valor</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={editFormData.valor}
+                  onChange={(e) => setEditFormData({ ...editFormData, valor: e.target.value })}
+                  className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-2">Método de pago</label>
+                <select
+                  value={editFormData.metodo_pago}
+                  onChange={(e) => setEditFormData({ ...editFormData, metodo_pago: e.target.value })}
+                  className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
+                  required
+                >
+                  <option value="por_definir" className="bg-gray-800">Por definir</option>
+                  <option value="efectivo" className="bg-gray-800">💵 Efectivo</option>
+                  <option value="transferencia" className="bg-gray-800">💳 Transferencia</option>
+                  <option value="cheque" className="bg-gray-800">📄 Cheque</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-2">Estado</label>
+                <select
+                  value={editFormData.estado}
+                  onChange={(e) => setEditFormData({ ...editFormData, estado: e.target.value })}
+                  className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
+                >
+                  {pagoToEdit.estado === "pagado" ? (
+                    <>
+                      <option value="pendiente" className="bg-gray-800">
+                        Pendiente (revertir cobro)
+                      </option>
+                      <option value="en_mora" className="bg-gray-800">
+                        En mora (revertir cobro)
+                      </option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="pendiente" className="bg-gray-800">
+                        Pendiente
+                      </option>
+                      <option value="en_mora" className="bg-gray-800">
+                        En mora
+                      </option>
+                      <option value="pagado" className="bg-gray-800">
+                        Pagado (sin usar Confirmar)
+                      </option>
+                    </>
+                  )}
+                </select>
+              </div>
+
+              {pagoToEdit.estado !== "pagado" && editFormData.estado === "pagado" && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-300 mb-2">Fecha del cobro</label>
+                  <input
+                    type="date"
+                    value={editFormData.fecha_pago}
+                    onChange={(e) => setEditFormData({ ...editFormData, fecha_pago: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
+                    required={editFormData.estado === "pagado"}
+                  />
+                  <p className="text-[11px] text-gray-500 mt-1">Obligatorio al pasar el estado a Pagado desde esta pantalla.</p>
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-xl font-semibold shadow-lg hover:brightness-110 transition-all"
+                >
+                  Guardar cambios
+                </button>
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Modal Confirmar Pago */}
       {/* Modal Confirmar Pago - Responsive */}
+      <VerificarMoraResultModal
+        open={showMoraModal}
+        resultadoMora={resultadoMora}
+        onClose={closeMoraModal}
+        onEnviarNotificaciones={handleEnviarNotificacionesMora}
+        enviandoNotificaciones={enviandoNotificaciones}
+      />
+
       {showConfirmarModal && pagoToConfirm && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
           <div className="relative bg-gradient-to-br from-gray-900 via-emerald-900/10 to-gray-900 rounded-2xl sm:rounded-3xl shadow-2xl 
@@ -1016,6 +1323,11 @@ const Pagos = () => {
                       <p className="text-emerald-400 font-bold text-base">{formatCurrency(pagoToConfirm.valor)}</p>
                     </div>
                   </div>
+                  {!METODOS_COBRO_CONFIRMADOS.has(pagoToConfirm.metodo_pago) && (
+                    <p className="text-xs text-amber-200/90 mt-3">
+                      La cuota venía con método <strong className="text-amber-100">por definir</strong>; indica abajo cómo se cobró al confirmar.
+                    </p>
+                  )}
                 </div>
 
                 {/* Fecha de pago */}
@@ -1047,8 +1359,8 @@ const Pagos = () => {
                              transition-all duration-300"
                     required
                   >
-                    <option value="transferencia" className="bg-gray-800">💳 Transferencia</option>
                     <option value="efectivo" className="bg-gray-800">💵 Efectivo</option>
+                    <option value="transferencia" className="bg-gray-800">💳 Transferencia</option>
                     <option value="cheque" className="bg-gray-800">📄 Cheque</option>
                   </select>
                 </div>
@@ -1076,129 +1388,6 @@ const Pagos = () => {
                 </div>
               </div>
             </form>
-
-            {/* Efecto de brillo inferior */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
-          </div>
-        </div>
-      )}
-      {/* Modal de Resultado de Generación de Pagos */}
-      {showGenerarModal && resultadoGeneracion && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 rounded-3xl shadow-2xl 
-                        max-w-lg w-full border border-purple-500/30 overflow-hidden my-4 max-h-[90vh] flex flex-col">
-            
-            {/* Efecto de brillo superior */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-emerald-500"></div>
-            
-            {/* Header */}
-            <div className="relative p-6 sm:p-8 text-center flex-shrink-0">
-              <div className="absolute inset-0 bg-gradient-to-b from-purple-600/10 to-transparent"></div>
-              
-              <div className="relative inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 mb-3">
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full opacity-20 animate-pulse"></div>
-                <div className="absolute inset-2 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full opacity-30"></div>
-                <div className="relative text-3xl sm:text-4xl">
-                  {resultadoGeneracion.pagos_generados > 0 ? '✅' : '📋'}
-                </div>
-              </div>
-              
-              <h2 className="relative text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent mb-1">
-                Generación de Pagos
-              </h2>
-              <p className="relative text-gray-400 text-xs sm:text-sm">
-                {new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}
-              </p>
-            </div>
-
-            {/* Contenido */}
-            <div className="px-6 sm:px-8 pb-4 space-y-4 overflow-y-auto flex-1">
-              
-              {/* Cards de estadísticas */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div className="bg-gradient-to-br from-blue-500/20 to-indigo-500/10 border border-blue-500/30 rounded-2xl p-4 text-center">
-                  <div className="text-3xl sm:text-4xl font-bold text-blue-400 mb-1">
-                    {resultadoGeneracion.contratos_activos}
-                  </div>
-                  <div className="text-xs sm:text-sm text-blue-300/80">Contratos activos</div>
-                </div>
-                <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-                  <div className="text-3xl sm:text-4xl font-bold text-emerald-400 mb-1">
-                    {resultadoGeneracion.pagos_generados}
-                  </div>
-                  <div className="text-xs sm:text-sm text-emerald-300/80">Pagos generados</div>
-                </div>
-              </div>
-
-              {/* Mensaje según resultado */}
-              {resultadoGeneracion.pagos_generados === 0 ? (
-                <div className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 rounded-2xl p-4 text-center">
-                  <div className="text-2xl mb-2">ℹ️</div>
-                  <p className="text-blue-300 font-medium text-sm sm:text-base">
-                    No hay pagos nuevos para generar
-                  </p>
-                  <p className="text-blue-400/60 text-xs sm:text-sm mt-1">
-                    Los pagos del mes ya fueron generados o no hay contratos vigentes
-                  </p>
-                </div>
-              ) : (
-                /* Lista de pagos generados */
-                resultadoGeneracion.detalles && resultadoGeneracion.detalles.length > 0 && (
-                  <div className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4">
-                    <h3 className="text-sm font-semibold text-emerald-300 mb-3 flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                      Pagos creados en estado pendiente
-                    </h3>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {resultadoGeneracion.detalles.map((detalle, index) => (
-                        <div key={index} className="flex items-start gap-2 text-xs sm:text-sm">
-                          <span className="text-emerald-400 mt-0.5">✓</span>
-                          <span className="text-gray-300">{detalle}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              )}
-
-              {/* Errores si hay */}
-              {resultadoGeneracion.errores && resultadoGeneracion.errores.length > 0 && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4">
-                  <h3 className="text-sm font-semibold text-red-300 mb-2 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Errores
-                  </h3>
-                  <div className="space-y-1 max-h-24 overflow-y-auto">
-                    {resultadoGeneracion.errores.map((error, index) => (
-                      <p key={index} className="text-xs sm:text-sm text-red-300/80">• {error}</p>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-2 border-t border-gray-700/30 flex-shrink-0">
-              <button
-                onClick={closeGenerarModal}
-                className="w-full px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 
-                         text-white rounded-2xl font-semibold shadow-lg shadow-emerald-500/30
-                         hover:shadow-emerald-500/50 transition-all duration-300
-                         hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  Cerrar
-                </span>
-              </button>
-            </div>
 
             {/* Efecto de brillo inferior */}
             <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
