@@ -6,13 +6,6 @@ const Configuraciones = () => {
   const [saving, setSaving] = useState(false)
   const [testingEmail, setTestingEmail] = useState(false)
   const [formData, setFormData] = useState({
-    email_modo: "plataforma",
-    resend_api_key: "",
-    smtp_host: "smtp.gmail.com",
-    smtp_port: "465",
-    smtp_user: "",
-    smtp_password: "",
-    smtp_from_name: "",
     enviar_email_auto: "false",
   })
 
