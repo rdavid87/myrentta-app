@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import api from "../services/api"
 import VerificarMoraResultModal from "../components/VerificarMoraResultModal"
 import { normalizeVerificarMoraResponse } from "../utils/verificarMora"
+import { nombreMes as getNombreMes, periodoRangoDesdeMesAnio } from "../utils/periodoCuota"
 
 /** Métodos válidos al registrar el cobro real (API); `por_definir` se reemplaza al confirmar. */
 const METODOS_COBRO_CONFIRMADOS = new Set(["efectivo", "transferencia", "cheque"])
@@ -418,31 +419,7 @@ const Pagos = () => {
     return map[m] || m
   }
 
-  const getNombreMes = (mes) => {
-    const meses = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-    return meses[mes] || mes
-  }
-
-  // Obtener período completo (mes anterior - mes actual) para pagos anticipados
-  const getPeriodo = (mes, anio) => {
-    const meses = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-    
-    // Mes anterior
-    let mesAnterior = mes - 1
-    let anioAnterior = anio
-    if (mesAnterior < 1) {
-      mesAnterior = 12
-      anioAnterior = anio - 1
-    }
-    
-    // Si el año es diferente, mostrar ambos años
-    if (anioAnterior !== anio) {
-      return `${meses[mesAnterior]} ${anioAnterior} - ${meses[mes]} ${anio}`
-    }
-    return `${meses[mesAnterior]} - ${meses[mes]} ${anio}`
-  }
+  const getPeriodo = (mes, anio) => periodoRangoDesdeMesAnio(mes, anio) || "—"
 
   const getEstadoBadge = (estado) => {
     switch (estado) {

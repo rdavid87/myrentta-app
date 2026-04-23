@@ -1,3 +1,17 @@
+import { periodoRangoDesdeMesAnio } from "../utils/periodoCuota"
+
+/** Misma regla que la tabla de Pagos; prioriza mes/año numéricos del API sobre el texto `mes_pago`. */
+function etiquetaPeriodoContratoMora(contrato) {
+  const m = contrato.mes ?? contrato.mes_cuota
+  const a = contrato.anio ?? contrato.anio_cuota
+  if (m != null && a != null) {
+    const desdeNumeros = periodoRangoDesdeMesAnio(Number(m), Number(a))
+    if (desdeNumeros) return desdeNumeros
+  }
+  if (contrato.mes_pago && String(contrato.mes_pago).trim()) return String(contrato.mes_pago).trim()
+  return null
+}
+
 /**
  * Modal de resultado de GET /notificaciones/verificar-mora y envío POST /notificaciones/enviar-mora.
  * Pensado para usarse desde la pantalla de Pagos (contexto de cuotas).
@@ -95,14 +109,16 @@ export default function VerificarMoraResultModal({
                 Pendientes de notificación
               </h3>
               <div className="space-y-3 max-h-40 overflow-y-auto">
-                {resultadoMora.contratos.map((contrato, index) => (
+                {resultadoMora.contratos.map((contrato, index) => {
+                  const periodoEtiqueta = etiquetaPeriodoContratoMora(contrato)
+                  return (
                   <div key={contrato.contrato_id ?? index} className="bg-gray-900/50 rounded-xl p-3 border border-gray-700/30">
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-white font-medium text-sm">{contrato.arrendatario_nombre}</p>
                         <p className="text-gray-400 text-xs">{contrato.apartamento_nombre}</p>
-                        {contrato.mes_pago && (
-                          <p className="text-amber-200/70 text-[11px] mt-1">Periodo: {contrato.mes_pago}</p>
+                        {periodoEtiqueta && (
+                          <p className="text-amber-200/70 text-[11px] mt-1">Periodo: {periodoEtiqueta}</p>
                         )}
                         <p className="text-gray-500 text-xs mt-1">{contrato.arrendatario_email}</p>
                       </div>
@@ -113,7 +129,8 @@ export default function VerificarMoraResultModal({
                       </div>
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}

@@ -16,7 +16,7 @@ const Contratos = () => {
     fecha_inicio: "",
     fecha_fin: "",
     canon_mensual: "",
-    dia_pago: "",
+    dia_pago: "0",
     modo_cobro: "anticipado",
   })
   const [contratoToRenew, setContratoToRenew] = useState(null)
@@ -55,7 +55,7 @@ const Contratos = () => {
     fecha_inicio: "",
     fecha_fin: "",
     canon_mensual: "",
-    dia_pago: "",
+    dia_pago: "0",
     modo_cobro: "anticipado",
   })
 
@@ -101,12 +101,13 @@ const Contratos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      const diaOffset = parseInt(String(formData.dia_pago ?? "0").trim(), 10)
       const dataToSend = {
         ...formData,
         arrendatario_id: parseInt(formData.arrendatario_id),
         apartamento_id: parseInt(formData.apartamento_id),
         canon_mensual: parseFloat(formData.canon_mensual.toString().replace(/\./g, "").replace(",", ".")),
-        dia_pago: parseInt(formData.dia_pago),
+        dia_pago: Number.isNaN(diaOffset) ? 0 : Math.min(90, Math.max(0, diaOffset)),
         modo_cobro: formData.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
       }
 
@@ -185,7 +186,7 @@ const Contratos = () => {
       fecha_inicio: toDateInputValue(contrato.fecha_inicio),
       fecha_fin: toDateInputValue(contrato.fecha_fin),
       canon_mensual: Number(contrato.canon_mensual).toLocaleString("es-CO"),
-      dia_pago: contrato.dia_pago.toString(),
+      dia_pago: String(contrato.dia_pago ?? 0),
       modo_cobro: contrato.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
     })
     setShowEditModal(true)
@@ -194,7 +195,7 @@ const Contratos = () => {
   const closeEditModal = () => {
     setShowEditModal(false)
     setContratoToEdit(null)
-    setEditFormData({ fecha_inicio: "", fecha_fin: "", canon_mensual: "", dia_pago: "", modo_cobro: "anticipado" })
+    setEditFormData({ fecha_inicio: "", fecha_fin: "", canon_mensual: "", dia_pago: "0", modo_cobro: "anticipado" })
   }
 
   const isEditContractUnchanged = useMemo(() => {
@@ -203,7 +204,7 @@ const Contratos = () => {
       String(editFormData.canon_mensual || "").replace(/\./g, "").replace(",", ".")
     )
     if (Number.isNaN(canonParsed)) return false
-    const dia = parseInt(String(editFormData.dia_pago || ""), 10)
+    const dia = parseInt(String(editFormData.dia_pago ?? "0").trim(), 10)
     if (Number.isNaN(dia)) return false
     const modoActual = editFormData.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado"
     const modoContrato = contratoToEdit.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado"
@@ -224,13 +225,13 @@ const Contratos = () => {
       return
     }
     const canon = parseFloat(editFormData.canon_mensual.toString().replace(/\./g, "").replace(",", "."))
-    const dia = parseInt(editFormData.dia_pago, 10)
+    const dia = parseInt(String(editFormData.dia_pago ?? "0").trim(), 10)
     if (Number.isNaN(canon) || canon <= 0) {
       alert("Ingresa un canon mensual válido.")
       return
     }
-    if (Number.isNaN(dia) || dia < 1 || dia > 31) {
-      alert("El día de pago debe estar entre 1 y 31.")
+    if (Number.isNaN(dia) || dia < 0 || dia > 90) {
+      alert("Los días extra deben estar entre 0 y 90.")
       return
     }
     try {
@@ -286,7 +287,7 @@ const Contratos = () => {
       fecha_inicio: "",
       fecha_fin: "",
       canon_mensual: "",
-      dia_pago: "",
+      dia_pago: "0",
       modo_cobro: "anticipado",
     })
   }
@@ -305,7 +306,7 @@ const Contratos = () => {
       fecha_inicio: "",
       fecha_fin: "",
       canon_mensual: "",
-      dia_pago: "",
+      dia_pago: "0",
       modo_cobro: "anticipado",
     })
     setShowModal(true)
@@ -329,7 +330,7 @@ const Contratos = () => {
       fecha_inicio: "",
       fecha_fin: "",
       canon_mensual: contrato.canon_mensual.toLocaleString("es-CO"),
-      dia_pago: contrato.dia_pago.toString(),
+      dia_pago: String(contrato.dia_pago ?? 0),
       modo_cobro: contrato.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
     })
     setShowModal(true)
@@ -643,7 +644,7 @@ const Contratos = () => {
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Fecha Inicio</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Fecha Fin</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Canon</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Límite</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Extra días</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Estado</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -667,7 +668,7 @@ const Contratos = () => {
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-center">
                       <div className="flex flex-col items-center gap-0.5">
                         <span className="px-2 py-1 bg-amber-600/20 text-amber-300 rounded-lg text-xs tabular-nums">
-                          Día {contrato.dia_pago}
+                          {Number(contrato.dia_pago) === 0 ? "0 días extra" : `+${contrato.dia_pago} días`}
                         </span>
                         <span className="text-[10px] text-gray-500 leading-tight text-center max-w-[9rem]">
                           {(contrato.modo_cobro || "anticipado") === "fin_mes"
@@ -836,8 +837,10 @@ const Contratos = () => {
                       </p>
                     </div>
                     <div className="min-w-0 col-span-2 sm:col-span-1">
-                      <p className="text-gray-500 text-xs mb-0.5">Día límite / cobro</p>
-                      <p className="text-amber-300 font-medium leading-tight tabular-nums">Día {contrato.dia_pago}</p>
+                      <p className="text-gray-500 text-xs mb-0.5">Días extra / cobro</p>
+                      <p className="text-amber-300 font-medium leading-tight tabular-nums">
+                        {Number(contrato.dia_pago) === 0 ? "0 días extra" : `+${contrato.dia_pago} días`}
+                      </p>
                       <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
                         {(contrato.modo_cobro || "anticipado") === "fin_mes"
                           ? "Cobro a Mes Vencido (Fin de Mes)"
@@ -1060,7 +1063,7 @@ const Contratos = () => {
                 </div>
               </div>
 
-              {/* Canon, modo de cobro y día límite */}
+              {/* Canon, modo de cobro y días extra */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
@@ -1084,37 +1087,30 @@ const Contratos = () => {
                 </div>
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    📆 Día límite de pago
+                    📆 Días extra (después del aniversario)
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    max="31"
-                    placeholder="Ej: 5"
+                    min="0"
+                    max="90"
+                    placeholder="0"
                     value={formData.dia_pago}
                     onChange={(e) => setFormData({ ...formData, dia_pago: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 
                              focus:border-amber-500/50 transition-all duration-300"
-                    required
                   />
-                  {formData.dia_pago ? (
-                    formData.modo_cobro === "fin_mes" ? (
-                      <p className="text-xs text-amber-400/80 mt-1">
-                        📅 El canon de cada mes (periodo facturado) vence el día{" "}
-                        <span className="font-semibold text-amber-300">{formData.dia_pago}</span> de ese mismo mes.
-                      </p>
-                    ) : (
-                      <p className="text-xs text-amber-400/80 mt-1">
-                        📅 Pago anticipado: el canon del mes del periodo vence el día{" "}
-                        <span className="font-semibold text-amber-300">{formData.dia_pago}</span> del mes calendario anterior a ese periodo.
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Día del mes hasta el cual se acepta el pago sin mora (según el modo de cobro).
-                    </p>
-                  )}
+                  <p className="text-xs text-amber-400/80 mt-1.5 leading-relaxed">
+                    El vencimiento parte del <span className="font-semibold text-amber-300">mismo día del mes</span> que la{" "}
+                    <span className="font-semibold text-amber-300">fecha de inicio</span> (aniversario en cada mes que
+                    toque). Aquí sumas <span className="font-semibold">días calendario</span> después de esa fecha.{" "}
+                    <span className="font-semibold text-amber-300">0</span> = sin días extra (solo el aniversario).
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                    {formData.modo_cobro === "fin_mes"
+                      ? "Fin de mes: el aniversario cae en el mes del período facturado."
+                      : "Anticipado: el aniversario cae en el mes calendario anterior al período facturado."}
+                  </p>
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
@@ -1262,7 +1258,7 @@ const Contratos = () => {
 
             <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4">
               <p className="text-xs text-gray-500 bg-gray-800/40 rounded-lg px-3 py-2 border border-gray-600/40">
-                Puedes corregir fechas, canon, día límite y modo de cobro (anticipado o fin de mes). Para cambiar arrendatario o apartamento, elimina este contrato y crea uno nuevo.
+                Puedes corregir fechas, canon, días extra y modo de cobro (anticipado o fin de mes). Para cambiar arrendatario o apartamento, elimina este contrato y crea uno nuevo.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1305,17 +1301,22 @@ const Contratos = () => {
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">📆 Día límite de pago</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  📆 Días extra (después del aniversario)
+                </label>
                 <input
                   type="number"
-                  min="1"
-                  max="31"
+                  min="0"
+                  max="90"
+                  placeholder="0"
                   value={editFormData.dia_pago}
                   onChange={(e) => setEditFormData({ ...editFormData, dia_pago: e.target.value })}
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                            focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                  required
                 />
+                <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                  Mismo criterio que al crear: días que se suman al aniversario (día del mes de la fecha de inicio). Entre 0 y 90.
+                </p>
               </div>
 
               <div>
