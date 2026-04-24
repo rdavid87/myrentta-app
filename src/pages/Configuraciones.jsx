@@ -141,10 +141,9 @@ const Configuraciones = () => {
                 <strong className="text-gray-200 font-medium">Pagos</strong>. Esa acción solo incluye contratos en estado{" "}
                 <strong className="text-emerald-400/90 font-medium">activo</strong> (día de pago y pagos registrados).
                 Los <strong className="text-gray-400 font-medium">finalizados</strong> no entran en el informe, aunque hubiera deudas pasadas.
-                Cada contrato activo aparece <strong className="text-gray-200 font-medium">una sola vez</strong>. Los días de mora se calculan con tus{" "}
-                <strong className="text-gray-200 font-medium">pagos</strong> (canon anticipado: vence en el día de pago del mes anterior al periodo). Si hay
-                varios meses impagos, se muestra el atraso desde el vencimiento más antiguo y el texto del periodo indica varios meses. Cuando el resultado
-                indica cero mora, no hay canon vencido entre los activos según esa verificación.
+                Puede haber <strong className="text-gray-200 font-medium">varias filas</strong> por el mismo contrato (una por cuota vencida no pagada).
+                Los días de mora y el texto <strong className="text-gray-200 font-medium">periodo no pagado</strong> los calcula el API según la fecha límite
+                de cada pago. Cuando el resultado indica cero mora, no hay canon vencido entre los activos según esa verificación.
               </p>
             </section>
           </div>

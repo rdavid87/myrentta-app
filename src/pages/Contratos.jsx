@@ -16,7 +16,7 @@ const Contratos = () => {
     fecha_inicio: "",
     fecha_fin: "",
     canon_mensual: "",
-    dia_pago: "",
+    dia_pago: "0",
     modo_cobro: "anticipado",
   })
   const [contratoToRenew, setContratoToRenew] = useState(null)
@@ -24,17 +24,6 @@ const Contratos = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState("todos")
   
-  // Estados para notificaciones
-  const [verificandoMora, setVerificandoMora] = useState(false)
-  const [showNotifModal, setShowNotifModal] = useState(false)
-  const [contratoNotif, setContratoNotif] = useState(null)
-  const [motivoDesactivacion, setMotivoDesactivacion] = useState("")
-  
-  // Estados para modal de verificación de mora
-  const [showMoraModal, setShowMoraModal] = useState(false)
-  const [resultadoMora, setResultadoMora] = useState(null)
-  const [enviandoNotificaciones, setEnviandoNotificaciones] = useState(false)
-
   /** Menú flotante "Más" (portal, posición fija para no recortar en tabla) */
   const [actionsMenu, setActionsMenu] = useState(null)
 
@@ -66,7 +55,7 @@ const Contratos = () => {
     fecha_inicio: "",
     fecha_fin: "",
     canon_mensual: "",
-    dia_pago: "",
+    dia_pago: "0",
     modo_cobro: "anticipado",
   })
 
@@ -112,12 +101,13 @@ const Contratos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      const diaOffset = parseInt(String(formData.dia_pago ?? "0").trim(), 10)
       const dataToSend = {
         ...formData,
         arrendatario_id: parseInt(formData.arrendatario_id),
         apartamento_id: parseInt(formData.apartamento_id),
         canon_mensual: parseFloat(formData.canon_mensual.toString().replace(/\./g, "").replace(",", ".")),
-        dia_pago: parseInt(formData.dia_pago),
+        dia_pago: Number.isNaN(diaOffset) ? 0 : Math.min(90, Math.max(0, diaOffset)),
         modo_cobro: formData.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
       }
 
@@ -196,7 +186,7 @@ const Contratos = () => {
       fecha_inicio: toDateInputValue(contrato.fecha_inicio),
       fecha_fin: toDateInputValue(contrato.fecha_fin),
       canon_mensual: Number(contrato.canon_mensual).toLocaleString("es-CO"),
-      dia_pago: contrato.dia_pago.toString(),
+      dia_pago: String(contrato.dia_pago ?? 0),
       modo_cobro: contrato.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
     })
     setShowEditModal(true)
@@ -205,7 +195,7 @@ const Contratos = () => {
   const closeEditModal = () => {
     setShowEditModal(false)
     setContratoToEdit(null)
-    setEditFormData({ fecha_inicio: "", fecha_fin: "", canon_mensual: "", dia_pago: "", modo_cobro: "anticipado" })
+    setEditFormData({ fecha_inicio: "", fecha_fin: "", canon_mensual: "", dia_pago: "0", modo_cobro: "anticipado" })
   }
 
   const isEditContractUnchanged = useMemo(() => {
@@ -214,7 +204,7 @@ const Contratos = () => {
       String(editFormData.canon_mensual || "").replace(/\./g, "").replace(",", ".")
     )
     if (Number.isNaN(canonParsed)) return false
-    const dia = parseInt(String(editFormData.dia_pago || ""), 10)
+    const dia = parseInt(String(editFormData.dia_pago ?? "0").trim(), 10)
     if (Number.isNaN(dia)) return false
     const modoActual = editFormData.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado"
     const modoContrato = contratoToEdit.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado"
@@ -235,13 +225,13 @@ const Contratos = () => {
       return
     }
     const canon = parseFloat(editFormData.canon_mensual.toString().replace(/\./g, "").replace(",", "."))
-    const dia = parseInt(editFormData.dia_pago, 10)
+    const dia = parseInt(String(editFormData.dia_pago ?? "0").trim(), 10)
     if (Number.isNaN(canon) || canon <= 0) {
       alert("Ingresa un canon mensual válido.")
       return
     }
-    if (Number.isNaN(dia) || dia < 1 || dia > 31) {
-      alert("El día de pago debe estar entre 1 y 31.")
+    if (Number.isNaN(dia) || dia < 0 || dia > 90) {
+      alert("Los días extra deben estar entre 0 y 90.")
       return
     }
     try {
@@ -288,75 +278,6 @@ const Contratos = () => {
     }
   }
 
-  // Verificar contratos en mora (sin enviar)
-  const handleVerificarRecordatorios = async () => {
-    setVerificandoMora(true)
-    try {
-      const { data } = await api.get("/notificaciones/verificar-mora")
-      setResultadoMora(data)
-      setShowMoraModal(true)
-    } catch (error) {
-      console.error("Error verificando:", error)
-      alert("Error al verificar: " + (error.response?.data?.error || error.message))
-    } finally {
-      setVerificandoMora(false)
-    }
-  }
-
-  // Enviar notificaciones de mora
-  const handleEnviarNotificaciones = async () => {
-    setEnviandoNotificaciones(true)
-    try {
-      const { data } = await api.post("/notificaciones/enviar-mora")
-      setResultadoMora(prev => ({
-        ...prev,
-        notificaciones_enviadas: data.notificaciones_enviadas,
-        detalles: data.detalles,
-        errores: data.errores,
-        enviado: true
-      }))
-    } catch (error) {
-      console.error("Error enviando notificaciones:", error)
-      alert("Error al enviar: " + (error.response?.data?.error || error.message))
-    } finally {
-      setEnviandoNotificaciones(false)
-    }
-  }
-
-  // Cerrar modal de mora
-  const closeMoraModal = () => {
-    setShowMoraModal(false)
-    setResultadoMora(null)
-  }
-
-  // Toggle notificaciones de un contrato
-  const handleToggleNotificaciones = async (activas) => {
-    if (!contratoNotif) return
-    
-    try {
-      await api.put(`/notificaciones/contrato/${contratoNotif.id}/toggle`, {
-        activas,
-        motivo: activas ? "" : motivoDesactivacion
-      })
-      
-      setShowNotifModal(false)
-      setContratoNotif(null)
-      setMotivoDesactivacion("")
-      fetchContratos()
-      
-      alert(`✅ Notificaciones ${activas ? 'activadas' : 'desactivadas'} exitosamente`)
-    } catch (error) {
-      console.error("Error actualizando notificaciones:", error)
-      alert("Error: " + (error.response?.data?.error || error.message))
-    }
-  }
-
-  const openNotifModal = (contrato) => {
-    setContratoNotif(contrato)
-    setMotivoDesactivacion(contrato.motivo_notificaciones_desactivadas || "")
-    setShowNotifModal(true)
-  }
-
   const closeModal = () => {
     setShowModal(false)
     setContratoToRenew(null)
@@ -366,7 +287,7 @@ const Contratos = () => {
       fecha_inicio: "",
       fecha_fin: "",
       canon_mensual: "",
-      dia_pago: "",
+      dia_pago: "0",
       modo_cobro: "anticipado",
     })
   }
@@ -385,7 +306,7 @@ const Contratos = () => {
       fecha_inicio: "",
       fecha_fin: "",
       canon_mensual: "",
-      dia_pago: "",
+      dia_pago: "0",
       modo_cobro: "anticipado",
     })
     setShowModal(true)
@@ -409,7 +330,7 @@ const Contratos = () => {
       fecha_inicio: "",
       fecha_fin: "",
       canon_mensual: contrato.canon_mensual.toLocaleString("es-CO"),
-      dia_pago: contrato.dia_pago.toString(),
+      dia_pago: String(contrato.dia_pago ?? 0),
       modo_cobro: contrato.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
     })
     setShowModal(true)
@@ -559,30 +480,6 @@ const Contratos = () => {
                         <span className="block text-[11px] text-gray-500">Nuevo contrato al cerrar el actual</span>
                       </span>
                     </button>
-                    <p className="px-2.5 pt-2 pb-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-500">
-                      Avisos de mora
-                    </p>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm text-purple-100
-                               hover:bg-purple-500/15 hover:ring-1 hover:ring-purple-400/20 transition-all"
-                      onClick={() => {
-                        openNotifModal(actionsMenu.contrato)
-                        closeActionsMenu()
-                      }}
-                    >
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/20 text-purple-300">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                      </span>
-                      <span className="font-medium">
-                        {actionsMenu.contrato.notificaciones_activas !== false
-                          ? "Desactivar avisos"
-                          : "Activar avisos"}
-                      </span>
-                    </button>
                     <p className="px-2.5 pt-2 pb-0.5 text-[10px] font-medium uppercase tracking-wide text-rose-400/80">
                       Zona sensible
                     </p>
@@ -645,29 +542,6 @@ const Contratos = () => {
                 <p className="text-sm sm:text-base text-gray-400">Gestiona los contratos de renta de apartamentos</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:justify-end">
-                  <button
-                    onClick={handleVerificarRecordatorios}
-                    disabled={verificandoMora}
-                    className="group relative w-full sm:w-auto px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl
-                             font-semibold shadow-lg hover:shadow-purple-500/50 transition-all duration-300
-                             hover:scale-105 active:scale-95 overflow-hidden text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Solo contratos activos: revisa canon vencido según día de pago y registros de pagos."
-                  >
-                    <span className="relative flex items-center justify-center gap-2">
-                      {verificandoMora ? (
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                      )}
-                      {verificandoMora ? "Verificando..." : "Verificar Mora"}
-                    </span>
-                  </button>
                   <button
                     onClick={openNewModal}
                     className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-amber-600 to-yellow-600 text-white rounded-xl
@@ -770,7 +644,7 @@ const Contratos = () => {
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Fecha Inicio</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Fecha Fin</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Canon</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Límite</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Extra días</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Estado</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-amber-300 uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -794,7 +668,7 @@ const Contratos = () => {
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-center">
                       <div className="flex flex-col items-center gap-0.5">
                         <span className="px-2 py-1 bg-amber-600/20 text-amber-300 rounded-lg text-xs tabular-nums">
-                          Día {contrato.dia_pago}
+                          {Number(contrato.dia_pago) === 0 ? "0 días extra" : `+${contrato.dia_pago} días`}
                         </span>
                         <span className="text-[10px] text-gray-500 leading-tight text-center max-w-[9rem]">
                           {(contrato.modo_cobro || "anticipado") === "fin_mes"
@@ -963,8 +837,10 @@ const Contratos = () => {
                       </p>
                     </div>
                     <div className="min-w-0 col-span-2 sm:col-span-1">
-                      <p className="text-gray-500 text-xs mb-0.5">Día límite / cobro</p>
-                      <p className="text-amber-300 font-medium leading-tight tabular-nums">Día {contrato.dia_pago}</p>
+                      <p className="text-gray-500 text-xs mb-0.5">Días extra / cobro</p>
+                      <p className="text-amber-300 font-medium leading-tight tabular-nums">
+                        {Number(contrato.dia_pago) === 0 ? "0 días extra" : `+${contrato.dia_pago} días`}
+                      </p>
                       <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
                         {(contrato.modo_cobro || "anticipado") === "fin_mes"
                           ? "Cobro a Mes Vencido (Fin de Mes)"
@@ -1187,7 +1063,7 @@ const Contratos = () => {
                 </div>
               </div>
 
-              {/* Canon, modo de cobro y día límite */}
+              {/* Canon, modo de cobro y días extra */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
@@ -1211,37 +1087,30 @@ const Contratos = () => {
                 </div>
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    📆 Día límite de pago
+                    📆 Días extra (después del aniversario)
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    max="31"
-                    placeholder="Ej: 5"
+                    min="0"
+                    max="90"
+                    placeholder="0"
                     value={formData.dia_pago}
                     onChange={(e) => setFormData({ ...formData, dia_pago: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 
                              focus:border-amber-500/50 transition-all duration-300"
-                    required
                   />
-                  {formData.dia_pago ? (
-                    formData.modo_cobro === "fin_mes" ? (
-                      <p className="text-xs text-amber-400/80 mt-1">
-                        📅 El canon de cada mes (periodo facturado) vence el día{" "}
-                        <span className="font-semibold text-amber-300">{formData.dia_pago}</span> de ese mismo mes.
-                      </p>
-                    ) : (
-                      <p className="text-xs text-amber-400/80 mt-1">
-                        📅 Pago anticipado: el canon del mes del periodo vence el día{" "}
-                        <span className="font-semibold text-amber-300">{formData.dia_pago}</span> del mes calendario anterior a ese periodo.
-                      </p>
-                    )
-                  ) : (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Día del mes hasta el cual se acepta el pago sin mora (según el modo de cobro).
-                    </p>
-                  )}
+                  <p className="text-xs text-amber-400/80 mt-1.5 leading-relaxed">
+                    El vencimiento parte del <span className="font-semibold text-amber-300">mismo día del mes</span> que la{" "}
+                    <span className="font-semibold text-amber-300">fecha de inicio</span> (aniversario en cada mes que
+                    toque). Aquí sumas <span className="font-semibold">días calendario</span> después de esa fecha.{" "}
+                    <span className="font-semibold text-amber-300">0</span> = sin días extra (solo el aniversario).
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                    {formData.modo_cobro === "fin_mes"
+                      ? "Fin de mes: el aniversario cae en el mes del período facturado."
+                      : "Anticipado: el aniversario cae en el mes calendario anterior al período facturado."}
+                  </p>
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
@@ -1389,7 +1258,7 @@ const Contratos = () => {
 
             <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4">
               <p className="text-xs text-gray-500 bg-gray-800/40 rounded-lg px-3 py-2 border border-gray-600/40">
-                Puedes corregir fechas, canon, día límite y modo de cobro (anticipado o fin de mes). Para cambiar arrendatario o apartamento, elimina este contrato y crea uno nuevo.
+                Puedes corregir fechas, canon, días extra y modo de cobro (anticipado o fin de mes). Para cambiar arrendatario o apartamento, elimina este contrato y crea uno nuevo.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1432,17 +1301,22 @@ const Contratos = () => {
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">📆 Día límite de pago</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
+                  📆 Días extra (después del aniversario)
+                </label>
                 <input
                   type="number"
-                  min="1"
-                  max="31"
+                  min="0"
+                  max="90"
+                  placeholder="0"
                   value={editFormData.dia_pago}
                   onChange={(e) => setEditFormData({ ...editFormData, dia_pago: e.target.value })}
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                            focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                  required
                 />
+                <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
+                  Mismo criterio que al crear: días que se suman al aniversario (día del mes de la fecha de inicio). Entre 0 y 90.
+                </p>
               </div>
 
               <div>
@@ -1486,336 +1360,6 @@ const Contratos = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Notificaciones */}
-      {showNotifModal && contratoNotif && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl max-w-md w-full 
-                        border border-gray-700/50 overflow-hidden my-4 max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="relative bg-gradient-to-r from-purple-600/20 to-pink-600/20 border-b border-gray-700/50 p-4 sm:p-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-10"></div>
-              <h2 className="relative text-xl sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
-                <span className="text-2xl sm:text-3xl">🔔</span>
-                <span className="leading-tight">Notificaciones de Pago</span>
-              </h2>
-            </div>
-
-            <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-              {/* Info del contrato */}
-              <div className="bg-gray-700/30 rounded-xl p-3 sm:p-4 space-y-2">
-                <div>
-                  <p className="text-xs text-gray-400">Arrendatario</p>
-                  <p className="text-white font-medium text-sm sm:text-base">{contratoNotif.arrendatario_nombre}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400">Apartamento</p>
-                  <p className="text-white font-medium text-sm sm:text-base">{contratoNotif.apartamento_numero}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400">Estado de notificaciones</p>
-                  <p className={`font-medium text-sm sm:text-base ${contratoNotif.notificaciones_activas !== false ? 'text-green-400' : 'text-red-400'}`}>
-                    {contratoNotif.notificaciones_activas !== false ? '✅ Activas' : '❌ Desactivadas'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Explicación - más compacta en móvil */}
-              <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3 sm:p-4">
-                <p className="text-xs sm:text-sm text-purple-200">
-                  <strong>📧 Recordatorios automáticos:</strong>
-                </p>
-                <ul className="text-xs text-purple-300 mt-2 space-y-0.5 ml-4 list-disc">
-                  <li>Día 1: Recordatorio amigable</li>
-                  <li>Día 3: Aviso urgente</li>
-                  <li>Día 5: Último aviso</li>
-                  <li>Después: Cada 3 días</li>
-                </ul>
-              </div>
-
-              {/* Motivo de desactivación */}
-              {contratoNotif.notificaciones_activas !== false && (
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    📝 Motivo de desactivación (opcional)
-                  </label>
-                  <textarea
-                    value={motivoDesactivacion}
-                    onChange={(e) => setMotivoDesactivacion(e.target.value)}
-                    placeholder="Ej: Acuerdo de pago hasta fin de mes..."
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 
-                             focus:border-purple-500/50 transition-all duration-300 resize-none"
-                    rows="2"
-                  />
-                </div>
-              )}
-
-              {/* Motivo actual si está desactivado */}
-              {contratoNotif.notificaciones_activas === false && contratoNotif.motivo_notificaciones_desactivadas && (
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 sm:p-4">
-                  <p className="text-xs sm:text-sm text-amber-200">
-                    <strong>📋 Motivo:</strong>
-                  </p>
-                  <p className="text-xs sm:text-sm text-amber-300 mt-1">{contratoNotif.motivo_notificaciones_desactivadas}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Botones - fuera del scroll para que siempre se vean */}
-            <div className="p-4 sm:p-6 pt-0 border-t border-gray-700/50 bg-gray-800/50">
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                {contratoNotif.notificaciones_activas !== false ? (
-                  <button
-                    onClick={() => handleToggleNotificaciones(false)}
-                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl
-                             font-semibold shadow-lg hover:shadow-red-500/50 transition-all duration-300
-                             hover:scale-105 active:scale-95 text-sm sm:text-base"
-                  >
-                    🔕 Desactivar Notificaciones
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleToggleNotificaciones(true)}
-                    className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl
-                             font-semibold shadow-lg hover:shadow-green-500/50 transition-all duration-300
-                             hover:scale-105 active:scale-95 text-sm sm:text-base"
-                  >
-                    🔔 Activar Notificaciones
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => { setShowNotifModal(false); setContratoNotif(null); setMotivoDesactivacion(""); }}
-                  className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold
-                           transition-all duration-300 hover:scale-105 active:scale-95 text-sm sm:text-base"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Resultados de Verificación de Mora - Futurista */}
-      {showMoraModal && resultadoMora && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 rounded-3xl shadow-2xl 
-                        max-w-lg w-full border border-purple-500/30 overflow-hidden my-4 max-h-[90vh] flex flex-col">
-            
-            {/* Efecto de brillo superior */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500"></div>
-            
-            {/* Header futurista */}
-            <div className="relative p-6 sm:p-8 text-center flex-shrink-0">
-              <div className="absolute inset-0 bg-gradient-to-b from-purple-600/10 to-transparent"></div>
-              
-              {/* Icono animado */}
-              <div className="relative inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 mb-3">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-20 animate-pulse"></div>
-                <div className="absolute inset-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full opacity-30"></div>
-                <div className="relative text-3xl sm:text-4xl">
-                  {resultadoMora.enviado ? '✅' : resultadoMora.contratos_en_mora > 0 ? '⚠️' : '✅'}
-                </div>
-              </div>
-              
-              <h2 className="relative text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent mb-1">
-                {resultadoMora.enviado ? 'Notificaciones Enviadas' : 'Verificación de Mora'}
-              </h2>
-              <p className="relative text-gray-400 text-xs sm:text-sm">
-                {new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-              </p>
-            </div>
-
-            {/* Contenido con estadísticas - scrolleable */}
-            <div className="px-6 sm:px-8 pb-4 space-y-4 overflow-y-auto flex-1">
-              
-              {/* Card de estadística principal */}
-              <div className={`border rounded-2xl p-4 sm:p-5 text-center ${
-                resultadoMora.contratos_en_mora > 0 
-                  ? 'bg-gradient-to-br from-amber-500/20 to-orange-500/10 border-amber-500/30'
-                  : 'bg-gradient-to-br from-emerald-500/20 to-green-500/10 border-emerald-500/30'
-              }`}>
-                <div className={`text-4xl sm:text-5xl font-bold mb-2 ${
-                  resultadoMora.contratos_en_mora > 0 ? 'text-amber-400' : 'text-emerald-400'
-                }`}>
-                  {resultadoMora.contratos_en_mora}
-                </div>
-                <div className={`text-sm sm:text-base font-medium ${
-                  resultadoMora.contratos_en_mora > 0 ? 'text-amber-300' : 'text-emerald-300'
-                }`}>
-                  {resultadoMora.contratos_en_mora === 1 ? 'Contrato en mora' : 'Contratos en mora'}
-                </div>
-              </div>
-
-              {/* Mensaje de éxito si no hay mora */}
-              {resultadoMora.contratos_en_mora === 0 && !resultadoMora.enviado && (
-                <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-                  <div className="text-2xl mb-2">🎉</div>
-                  <p className="text-emerald-300 font-medium text-sm sm:text-base">
-                    No hay contratos activos con pagos vencidos
-                  </p>
-                  <p className="text-emerald-400/60 text-xs sm:text-sm mt-1">
-                    Entre los contratos en curso, los arrendatarios están al día según esta verificación.
-                  </p>
-                </div>
-              )}
-
-              {/* Lista de contratos en mora (antes de enviar) */}
-              {resultadoMora.contratos_en_mora > 0 && !resultadoMora.enviado && resultadoMora.contratos && (
-                <div className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4">
-                  <h3 className="text-sm font-semibold text-amber-300 mb-3 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Pendientes de notificación
-                  </h3>
-                  <div className="space-y-3 max-h-40 overflow-y-auto">
-                    {resultadoMora.contratos.map((contrato, index) => (
-                      <div key={contrato.contrato_id ?? index} className="bg-gray-900/50 rounded-xl p-3 border border-gray-700/30">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-white font-medium text-sm">{contrato.arrendatario_nombre}</p>
-                            <p className="text-gray-400 text-xs">{contrato.apartamento_nombre}</p>
-                            {contrato.mes_pago && (
-                              <p className="text-amber-200/70 text-[11px] mt-1">Periodo: {contrato.mes_pago}</p>
-                            )}
-                            <p className="text-gray-500 text-xs mt-1">{contrato.arrendatario_email}</p>
-                          </div>
-                          <div className="text-right">
-                            <span className="inline-block px-2 py-1 bg-red-500/20 text-red-300 rounded-lg text-xs font-medium">
-                              {contrato.dias_mora} {contrato.dias_mora === 1 ? 'día' : 'días'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Resultado después de enviar */}
-              {resultadoMora.enviado && (
-                <>
-                  {/* Card de enviados */}
-                  <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/10 border border-emerald-500/30 rounded-2xl p-4 text-center">
-                    <div className="text-3xl sm:text-4xl font-bold text-emerald-400 mb-1">
-                      {resultadoMora.notificaciones_enviadas || 0}
-                    </div>
-                    <div className="text-sm text-emerald-300">Notificaciones enviadas</div>
-                  </div>
-
-                  {/* Detalles de envíos */}
-                  {resultadoMora.detalles && resultadoMora.detalles.length > 0 && (
-                    <div className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4">
-                      <h3 className="text-sm font-semibold text-emerald-300 mb-3 flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        Enviados exitosamente
-                      </h3>
-                      <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {resultadoMora.detalles.map((detalle, index) => (
-                          <div key={index} className="flex items-start gap-2 text-xs sm:text-sm">
-                            <span className="text-emerald-400 mt-0.5">✓</span>
-                            <span className="text-gray-300">{detalle}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Errores si hay */}
-              {resultadoMora.errores && resultadoMora.errores.length > 0 && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4">
-                  <h3 className="text-sm font-semibold text-red-300 mb-2 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Errores
-                  </h3>
-                  <div className="space-y-1 max-h-24 overflow-y-auto">
-                    {resultadoMora.errores.map((error, index) => (
-                      <p key={index} className="text-xs sm:text-sm text-red-300/80">• {error}</p>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer con botones */}
-            <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-2 border-t border-gray-700/30 flex-shrink-0">
-              {/* Si no hay mora o ya se envió, solo mostrar Cerrar */}
-              {(resultadoMora.contratos_en_mora === 0 || resultadoMora.enviado) ? (
-                <button
-                  onClick={closeMoraModal}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 
-                           text-white rounded-2xl font-semibold shadow-lg shadow-purple-500/30
-                           hover:shadow-purple-500/50 transition-all duration-300
-                           hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Cerrar
-                  </span>
-                </button>
-              ) : (
-                /* Si hay mora y no se ha enviado, mostrar opciones */
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    onClick={handleEnviarNotificaciones}
-                    disabled={enviandoNotificaciones}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 
-                             text-white rounded-2xl font-semibold shadow-lg shadow-emerald-500/30
-                             hover:shadow-emerald-500/50 transition-all duration-300
-                             hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base
-                             disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      {enviandoNotificaciones ? (
-                        <>
-                          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                          </svg>
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                          Enviar Notificaciones
-                        </>
-                      )}
-                    </span>
-                  </button>
-                  <button
-                    onClick={closeMoraModal}
-                    disabled={enviandoNotificaciones}
-                    className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-2xl font-semibold
-                             transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base
-                             disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Efecto de brillo inferior */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
           </div>
         </div>
       )}

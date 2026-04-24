@@ -1,3 +1,27 @@
+import { periodoRangoDesdeMesAnio } from "../utils/periodoCuota"
+
+/**
+ * Label for unpaid coverage period on GET /notificaciones/verificar-mora.
+ * Prefer API `periodo_no_pago` (backend mora rule); then mes/año + Pagos-style range; legacy string `mes_pago`.
+ */
+function getUnpaidPeriodLabel(contrato) {
+  const fromApi =
+    (contrato.periodo_no_pago && String(contrato.periodo_no_pago).trim()) ||
+    (contrato.unpaid_period && String(contrato.unpaid_period).trim())
+  if (fromApi) return fromApi
+
+  const m = contrato.mes ?? contrato.mes_cuota
+  const a = contrato.anio ?? contrato.anio_cuota
+  if (m != null && a != null) {
+    const desdeNumeros = periodoRangoDesdeMesAnio(Number(m), Number(a))
+    if (desdeNumeros) return desdeNumeros
+  }
+
+  const legacy = contrato.mes_pago
+  if (legacy != null && typeof legacy === "string" && String(legacy).trim()) return String(legacy).trim()
+  return null
+}
+
 /**
  * Modal de resultado de GET /notificaciones/verificar-mora y envío POST /notificaciones/enviar-mora.
  * Pensado para usarse desde la pantalla de Pagos (contexto de cuotas).
@@ -95,14 +119,19 @@ export default function VerificarMoraResultModal({
                 Pendientes de notificación
               </h3>
               <div className="space-y-3 max-h-40 overflow-y-auto">
-                {resultadoMora.contratos.map((contrato, index) => (
-                  <div key={contrato.contrato_id ?? index} className="bg-gray-900/50 rounded-xl p-3 border border-gray-700/30">
+                {resultadoMora.contratos.map((contrato, index) => {
+                  const periodoEtiqueta = getUnpaidPeriodLabel(contrato)
+                  return (
+                  <div
+                    key={contrato.pago_id ?? `${contrato.contrato_id}-${index}`}
+                    className="bg-gray-900/50 rounded-xl p-3 border border-gray-700/30"
+                  >
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-white font-medium text-sm">{contrato.arrendatario_nombre}</p>
                         <p className="text-gray-400 text-xs">{contrato.apartamento_nombre}</p>
-                        {contrato.mes_pago && (
-                          <p className="text-amber-200/70 text-[11px] mt-1">Periodo: {contrato.mes_pago}</p>
+                        {periodoEtiqueta && (
+                          <p className="text-amber-200/70 text-[11px] mt-1">Periodo no pagado: {periodoEtiqueta}</p>
                         )}
                         <p className="text-gray-500 text-xs mt-1">{contrato.arrendatario_email}</p>
                       </div>
@@ -113,7 +142,8 @@ export default function VerificarMoraResultModal({
                       </div>
                     </div>
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
