@@ -7,6 +7,7 @@ const Configuraciones = () => {
   const [testingEmail, setTestingEmail] = useState(false)
   const [formData, setFormData] = useState({
     enviar_email_auto: "false",
+    instrucciones_pago: "",
   })
 
   useEffect(() => {
@@ -229,7 +230,24 @@ const Configuraciones = () => {
               </h2>
             </div>
 
-            <div className="p-4 sm:p-6">
+            <div className="p-4 sm:p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Instrucciones de pago
+                </label>
+                <textarea
+                  value={formData.instrucciones_pago}
+                  onChange={(e) => handleChange("instrucciones_pago", e.target.value)}
+                  rows="4"
+                  className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-gray-200 text-sm
+                           placeholder-gray-500 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400
+                           resize-none"
+                  placeholder="Instrucciones para pagos de contratos, cuotas, métodos de pago, etc."
+                />
+                <p className="text-gray-500 text-xs mt-1">
+                  Estas instrucciones se mostrarán en los contratos y pantallas de pago.
+                </p>
+              </div>
               <div className="flex items-center gap-3 p-4 bg-gray-700/30 rounded-xl">
                 <input
                   type="checkbox"
