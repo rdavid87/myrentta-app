@@ -10,5 +10,6 @@ export function normalizeVerificarMoraResponse(raw) {
     : Array.isArray(raw.contratos_en_mora_detalle)
       ? raw.contratos_en_mora_detalle
       : []
+  // Each item may include periodo_no_pago (unpaid coverage label from API).
   return { ...raw, contratos_en_mora, contratos }
 }

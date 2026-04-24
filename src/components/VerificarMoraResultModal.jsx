@@ -1,14 +1,24 @@
 import { periodoRangoDesdeMesAnio } from "../utils/periodoCuota"
 
-/** Misma regla que la tabla de Pagos; prioriza mes/año numéricos del API sobre el texto `mes_pago`. */
-function etiquetaPeriodoContratoMora(contrato) {
+/**
+ * Label for unpaid coverage period on GET /notificaciones/verificar-mora.
+ * Prefer API `periodo_no_pago` (backend mora rule); then mes/año + Pagos-style range; legacy string `mes_pago`.
+ */
+function getUnpaidPeriodLabel(contrato) {
+  const fromApi =
+    (contrato.periodo_no_pago && String(contrato.periodo_no_pago).trim()) ||
+    (contrato.unpaid_period && String(contrato.unpaid_period).trim())
+  if (fromApi) return fromApi
+
   const m = contrato.mes ?? contrato.mes_cuota
   const a = contrato.anio ?? contrato.anio_cuota
   if (m != null && a != null) {
     const desdeNumeros = periodoRangoDesdeMesAnio(Number(m), Number(a))
     if (desdeNumeros) return desdeNumeros
   }
-  if (contrato.mes_pago && String(contrato.mes_pago).trim()) return String(contrato.mes_pago).trim()
+
+  const legacy = contrato.mes_pago
+  if (legacy != null && typeof legacy === "string" && String(legacy).trim()) return String(legacy).trim()
   return null
 }
 
@@ -110,15 +120,18 @@ export default function VerificarMoraResultModal({
               </h3>
               <div className="space-y-3 max-h-40 overflow-y-auto">
                 {resultadoMora.contratos.map((contrato, index) => {
-                  const periodoEtiqueta = etiquetaPeriodoContratoMora(contrato)
+                  const periodoEtiqueta = getUnpaidPeriodLabel(contrato)
                   return (
-                  <div key={contrato.contrato_id ?? index} className="bg-gray-900/50 rounded-xl p-3 border border-gray-700/30">
+                  <div
+                    key={contrato.pago_id ?? `${contrato.contrato_id}-${index}`}
+                    className="bg-gray-900/50 rounded-xl p-3 border border-gray-700/30"
+                  >
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-white font-medium text-sm">{contrato.arrendatario_nombre}</p>
                         <p className="text-gray-400 text-xs">{contrato.apartamento_nombre}</p>
                         {periodoEtiqueta && (
-                          <p className="text-amber-200/70 text-[11px] mt-1">Periodo: {periodoEtiqueta}</p>
+                          <p className="text-amber-200/70 text-[11px] mt-1">Periodo no pagado: {periodoEtiqueta}</p>
                         )}
                         <p className="text-gray-500 text-xs mt-1">{contrato.arrendatario_email}</p>
                       </div>
