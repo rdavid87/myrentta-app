@@ -16,7 +16,7 @@ const Contratos = () => {
     fecha_inicio: "",
     fecha_fin: "",
     canon_mensual: "",
-    dia_pago: "0",
+    paymentDay: "0",
     modo_cobro: "anticipado",
   })
   const [contratoToRenew, setContratoToRenew] = useState(null)
@@ -55,7 +55,7 @@ const Contratos = () => {
     fecha_inicio: "",
     fecha_fin: "",
     canon_mensual: "",
-    dia_pago: "0",
+    paymentDay: "0",
     modo_cobro: "anticipado",
   })
 
@@ -101,7 +101,7 @@ const Contratos = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const diaOffset = parseInt(String(formData.dia_pago ?? "0").trim(), 10)
+      const diaOffset = parseInt(String(formData.paymentDay ?? "0").trim(), 10)
       const dataToSend = {
         ...formData,
         arrendatario_id: parseInt(formData.arrendatario_id),
@@ -186,7 +186,7 @@ const Contratos = () => {
       fecha_inicio: toDateInputValue(contrato.fecha_inicio),
       fecha_fin: toDateInputValue(contrato.fecha_fin),
       canon_mensual: Number(contrato.canon_mensual).toLocaleString("es-CO"),
-      dia_pago: String(contrato.dia_pago ?? 0),
+      paymentDay: String(contrato.dia_pago ?? 0),
       modo_cobro: contrato.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
     })
     setShowEditModal(true)
@@ -195,7 +195,7 @@ const Contratos = () => {
   const closeEditModal = () => {
     setShowEditModal(false)
     setContratoToEdit(null)
-    setEditFormData({ fecha_inicio: "", fecha_fin: "", canon_mensual: "", dia_pago: "0", modo_cobro: "anticipado" })
+    setEditFormData({ fecha_inicio: "", fecha_fin: "", canon_mensual: "", paymentDay: "0", modo_cobro: "anticipado" })
   }
 
   const isEditContractUnchanged = useMemo(() => {
@@ -204,7 +204,7 @@ const Contratos = () => {
       String(editFormData.canon_mensual || "").replace(/\./g, "").replace(",", ".")
     )
     if (Number.isNaN(canonParsed)) return false
-    const dia = parseInt(String(editFormData.dia_pago ?? "0").trim(), 10)
+    const dia = parseInt(String(editFormData.paymentDay ?? "0").trim(), 10)
     if (Number.isNaN(dia)) return false
     const modoActual = editFormData.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado"
     const modoContrato = contratoToEdit.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado"
@@ -225,7 +225,7 @@ const Contratos = () => {
       return
     }
     const canon = parseFloat(editFormData.canon_mensual.toString().replace(/\./g, "").replace(",", "."))
-    const dia = parseInt(String(editFormData.dia_pago ?? "0").trim(), 10)
+    const dia = parseInt(String(editFormData.paymentDay ?? "0").trim(), 10)
     if (Number.isNaN(canon) || canon <= 0) {
       alert("Ingresa un canon mensual válido.")
       return
@@ -287,7 +287,7 @@ const Contratos = () => {
       fecha_inicio: "",
       fecha_fin: "",
       canon_mensual: "",
-      dia_pago: "0",
+      paymentDay: "0",
       modo_cobro: "anticipado",
     })
   }
@@ -306,7 +306,7 @@ const Contratos = () => {
       fecha_inicio: "",
       fecha_fin: "",
       canon_mensual: "",
-      dia_pago: "0",
+      paymentDay: "0",
       modo_cobro: "anticipado",
     })
     setShowModal(true)
@@ -330,7 +330,7 @@ const Contratos = () => {
       fecha_inicio: "",
       fecha_fin: "",
       canon_mensual: contrato.canon_mensual.toLocaleString("es-CO"),
-      dia_pago: String(contrato.dia_pago ?? 0),
+      paymentDay: String(contrato.dia_pago ?? 0),
       modo_cobro: contrato.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
     })
     setShowModal(true)
@@ -1094,8 +1094,8 @@ const Contratos = () => {
                     min="0"
                     max="90"
                     placeholder="0"
-                    value={formData.dia_pago}
-                    onChange={(e) => setFormData({ ...formData, dia_pago: e.target.value })}
+                    value={formData.paymentDay}
+                    onChange={(e) => setFormData({ ...formData, paymentDay: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 
                              focus:border-amber-500/50 transition-all duration-300"
@@ -1309,8 +1309,8 @@ const Contratos = () => {
                   min="0"
                   max="90"
                   placeholder="0"
-                  value={editFormData.dia_pago}
-                  onChange={(e) => setEditFormData({ ...editFormData, dia_pago: e.target.value })}
+                  value={editFormData.paymentDay}
+                  onChange={(e) => setEditFormData({ ...editFormData, paymentDay: e.target.value })}
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                            focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                 />

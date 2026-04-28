@@ -1,31 +1,21 @@
-import { periodoRangoDesdeMesAnio } from "../utils/periodoCuota"
+    import { getPeriodRangeFromMonthYear } from "../utils/periodoCuota"
 
-/**
- * Label for unpaid coverage period on GET /notificaciones/verificar-mora.
- * Prefer API `periodo_no_pago` (backend mora rule); then mes/año + Pagos-style range; legacy string `mes_pago`.
- */
-function getUnpaidPeriodLabel(contrato) {
-  const fromApi =
-    (contrato.periodo_no_pago && String(contrato.periodo_no_pago).trim()) ||
-    (contrato.unpaid_period && String(contrato.unpaid_period).trim())
+function getUnpaidPeriodLabel(contract) {
+  const fromApi = contract.unpaidPeriod && String(contract.unpaidPeriod).trim()
   if (fromApi) return fromApi
 
-  const m = contrato.mes ?? contrato.mes_cuota
-  const a = contrato.anio ?? contrato.anio_cuota
-  if (m != null && a != null) {
-    const desdeNumeros = periodoRangoDesdeMesAnio(Number(m), Number(a))
-    if (desdeNumeros) return desdeNumeros
+  const month = contract.mes ?? contract.mes_cuota
+  const year = contract.anio ?? contract.anio_cuota
+  if (month != null && year != null) {
+    const fromNumbers = getPeriodRangeFromMonthYear(Number(month), Number(year))
+    if (fromNumbers) return fromNumbers
   }
 
-  const legacy = contrato.mes_pago
+  const legacy = contract.paymentMonth
   if (legacy != null && typeof legacy === "string" && String(legacy).trim()) return String(legacy).trim()
   return null
 }
 
-/**
- * Modal de resultado de GET /notificaciones/verificar-mora y envío POST /notificaciones/enviar-mora.
- * Pensado para usarse desde la pantalla de Pagos (contexto de cuotas).
- */
 export default function VerificarMoraResultModal({
   open,
   resultadoMora,
@@ -119,25 +109,25 @@ export default function VerificarMoraResultModal({
                 Pendientes de notificación
               </h3>
               <div className="space-y-3 max-h-40 overflow-y-auto">
-                {resultadoMora.contratos.map((contrato, index) => {
-                  const periodoEtiqueta = getUnpaidPeriodLabel(contrato)
+                {resultadoMora.contratos.map((contract, index) => {
+                  const periodLabel = getUnpaidPeriodLabel(contract)
                   return (
                   <div
-                    key={contrato.pago_id ?? `${contrato.contrato_id}-${index}`}
+                    key={contract.paymentId ?? `${contract.contractId}-${index}`}
                     className="bg-gray-900/50 rounded-xl p-3 border border-gray-700/30"
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-white font-medium text-sm">{contrato.arrendatario_nombre}</p>
-                        <p className="text-gray-400 text-xs">{contrato.apartamento_nombre}</p>
-                        {periodoEtiqueta && (
-                          <p className="text-amber-200/70 text-[11px] mt-1">Periodo no pagado: {periodoEtiqueta}</p>
+                        <p className="text-white font-medium text-sm">{contract.tenantName}</p>
+                        <p className="text-gray-400 text-xs">{contract.apartmentName}</p>
+                        {periodLabel && (
+                          <p className="text-amber-200/70 text-[11px] mt-1">Periodo no pagado: {periodLabel}</p>
                         )}
-                        <p className="text-gray-500 text-xs mt-1">{contrato.arrendatario_email}</p>
+                        <p className="text-gray-500 text-xs mt-1">{contract.tenantEmail}</p>
                       </div>
                       <div className="text-right">
                         <span className="inline-block px-2 py-1 bg-red-500/20 text-red-300 rounded-lg text-xs font-medium">
-                          {contrato.dias_mora} {contrato.dias_mora === 1 ? "día" : "días"}
+                          {contract.lateDays} {contract.lateDays === 1 ? "día" : "días"}
                         </span>
                       </div>
                     </div>

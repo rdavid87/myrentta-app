@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import api from "../services/api"
 import VerificarMoraResultModal from "../components/VerificarMoraResultModal"
 import { normalizeVerificarMoraResponse } from "../utils/verificarMora"
-import { nombreMes as getNombreMes, periodoRangoDesdeMesAnio } from "../utils/periodoCuota"
+import { getMonthName, getPeriodRangeFromMonthYear } from "../utils/periodoCuota"
 
 /** Métodos válidos al registrar el cobro real (API); `por_definir` se reemplaza al confirmar. */
 const METODOS_COBRO_CONFIRMADOS = new Set(["efectivo", "transferencia", "cheque"])
@@ -419,7 +419,7 @@ const Pagos = () => {
     return map[m] || m
   }
 
-  const getPeriodo = (mes, anio) => periodoRangoDesdeMesAnio(mes, anio) || "—"
+  const getPeriod = (month, year) => getPeriodRangeFromMonthYear(month, year) || "—"
 
   const getEstadoBadge = (estado) => {
     switch (estado) {
@@ -448,7 +448,7 @@ const Pagos = () => {
     const matchesSearch = 
       pago.arrendatario_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pago.apartamento_numero?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getNombreMes(pago.mes).toLowerCase().includes(searchTerm.toLowerCase())
+      getMonthName(pago.mes).toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesEstado = filterEstado === "todos" || pago.estado === filterEstado
     
@@ -646,7 +646,7 @@ const Pagos = () => {
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm">
                       <span className="px-2 py-1 bg-gray-700/50 rounded text-teal-300">
-                        {getPeriodo(pago.mes, pago.anio)}
+                        {getPeriod(pago.mes, pago.anio)}
                       </span>
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-emerald-300 font-semibold text-sm">{formatCurrency(pago.valor)}</td>
@@ -814,7 +814,7 @@ const Pagos = () => {
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
                         <p className="text-gray-500 text-xs">Período</p>
-                        <p className="text-gray-200">{getPeriodo(pago.mes, pago.anio)}</p>
+                        <p className="text-gray-200">{getPeriod(pago.mes, pago.anio)}</p>
                       </div>
                       <div>
                         <p className="text-gray-500 text-xs">Valor</p>
@@ -1139,7 +1139,7 @@ const Pagos = () => {
                   >
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
                       <option key={m} value={String(m)} className="bg-gray-800">
-                        {getNombreMes(m)}
+                        {getMonthName(m)}
                       </option>
                     ))}
                   </select>
@@ -1293,7 +1293,7 @@ const Pagos = () => {
                     </div>
                     <div>
                       <p className="text-xs text-gray-400">Período</p>
-                      <p className="text-teal-300 font-medium text-sm">{getPeriodo(pagoToConfirm.mes, pagoToConfirm.anio)}</p>
+                      <p className="text-teal-300 font-medium text-sm">{getPeriod(pagoToConfirm.mes, pagoToConfirm.anio)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400">Valor a pagar</p>
