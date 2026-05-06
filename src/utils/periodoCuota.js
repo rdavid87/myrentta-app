@@ -7,6 +7,23 @@ export function getMonthName(mes) {
   return MESES[m] || String(mes)
 }
 
+/**
+ * Lista de pagos / UI: modo anticipado = rango mes ancla → siguiente civil (alineado a cuotas);
+ * fin_mes = un solo mes usando `periodo` del API cuando existe.
+ */
+export function formatPaymentPeriodForList(pago) {
+  if (!pago) return "—"
+  const modo = String(pago.modo_cobro ?? "anticipado").trim().toLowerCase()
+  if (modo === "fin_mes") {
+    if (pago.periodo?.trim()) return pago.periodo.trim()
+    return `${getMonthName(pago.mes)} ${pago.anio}`
+  }
+  const rango = getPeriodRangeFromMonthYear(pago.mes, pago.anio)
+  if (rango) return rango
+  if (pago.periodo?.trim()) return pago.periodo.trim()
+  return "—"
+}
+
 export function getPeriodRangeFromMonthYear(month, year) {
   const monthNum = Number(month)
   const yearNum = Number(year)
