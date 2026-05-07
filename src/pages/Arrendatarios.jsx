@@ -3,6 +3,23 @@
 import { useState, useEffect } from "react"
 import api from "../services/api"
 
+const resolveApartamentoNombre = (apt = {}) => {
+  const directCandidates = [apt.name, apt.nombre]
+
+  for (const value of directCandidates) {
+    if (typeof value === "string" && value.trim()) return value.trim()
+  }
+
+  const byKeyHeuristic = Object.entries(apt).find(
+    ([key, value]) =>
+      typeof value === "string" &&
+      value.trim() &&
+      (key.toLowerCase() === "nombre" || key.toLowerCase() === "name")
+  )
+
+  return byKeyHeuristic ? byKeyHeuristic[1].trim() : null
+}
+
 const Arrendatarios = () => {
   const [arrendatarios, setArrendatarios] = useState([])
   const [apartamentos, setApartamentos] = useState([])
@@ -54,7 +71,7 @@ const Arrendatarios = () => {
   const getApartamentoNombre = (apartamentoId) => {
     if (!apartamentoId) return null
     const apt = apartamentos.find(a => a.id === apartamentoId)
-    return apt ? apt.nombre : null
+    return apt ? resolveApartamentoNombre(apt) : null
   }
 
   const handleSubmit = async (e) => {

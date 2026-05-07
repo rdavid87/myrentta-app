@@ -3,6 +3,32 @@
 import { useState, useEffect } from "react"
 import api from "../services/api"
 
+const resolveApartamentoNombre = (apt = {}) => {
+  const directCandidates = [apt.name, apt.nombre]
+
+  for (const value of directCandidates) {
+    if (typeof value === "string" && value.trim()) return value.trim()
+  }
+
+  const byKeyHeuristic = Object.entries(apt).find(
+    ([key, value]) =>
+      typeof value === "string" &&
+      value.trim() &&
+      (key.toLowerCase() === "nombre" || key.toLowerCase() === "name")
+  )
+
+  return byKeyHeuristic ? byKeyHeuristic[1].trim() : ""
+}
+
+const normalizeApartamento = (apt = {}) => {
+  const nombreNormalizado = resolveApartamentoNombre(apt)
+
+  return {
+    ...apt,
+    nombre: nombreNormalizado,
+  }
+}
+
 const Apartamentos = () => {
   const [apartamentos, setApartamentos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -23,7 +49,7 @@ const Apartamentos = () => {
   const fetchApartamentos = async () => {
     try {
       const { data } = await api.get("/apartamentos")
-      setApartamentos(data || [])
+      setApartamentos((data || []).map(normalizeApartamento))
     } catch (error) {
       console.error("Error fetching apartamentos:", error)
     } finally {
