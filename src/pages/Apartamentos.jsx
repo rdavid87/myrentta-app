@@ -10,7 +10,7 @@ const Apartamentos = () => {
   const [editingId, setEditingId] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [formData, setFormData] = useState({
-    numero: "",
+    nombre: "",
     direccion: "",
     ciudad: "",
     valor_arriendo: "",
@@ -33,7 +33,7 @@ const Apartamentos = () => {
 
   // Filtrar apartamentos por nombre o ciudad
   const filteredApartamentos = apartamentos.filter(apt => 
-    apt.numero?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    apt.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     apt.ciudad?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     apt.direccion?.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -63,7 +63,7 @@ const Apartamentos = () => {
   const handleEdit = (apartamento) => {
     setEditingId(apartamento.id)
     setFormData({
-      numero: apartamento.numero,
+      nombre: apartamento.nombre,
       direccion: apartamento.direccion,
       ciudad: apartamento.ciudad,
       valor_arriendo: apartamento.valor_arriendo.toString(),
@@ -74,12 +74,12 @@ const Apartamentos = () => {
   const closeModal = () => {
     setShowModal(false)
     setEditingId(null)
-    setFormData({ numero: "", direccion: "", ciudad: "", valor_arriendo: "" })
+    setFormData({ nombre: "", direccion: "", ciudad: "", valor_arriendo: "" })
   }
 
   const openNewModal = () => {
     setEditingId(null)
-    setFormData({ numero: "", direccion: "", ciudad: "", valor_arriendo: "" })
+    setFormData({ nombre: "", direccion: "", ciudad: "", valor_arriendo: "" })
     setShowModal(true)
   }
 
@@ -207,9 +207,9 @@ const Apartamentos = () => {
                     <td className="px-4 xl:px-6 py-3 xl:py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
-                          {apt.numero?.charAt(0)?.toUpperCase() || "A"}
+                          {apt.nombre?.charAt(0)?.toUpperCase() || "A"}
                         </div>
-                        <span className="font-medium text-gray-200">{apt.numero}</span>
+                        <span className="font-medium text-gray-200">{apt.nombre}</span>
                       </div>
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm">{apt.direccion}</td>
@@ -283,13 +283,13 @@ const Apartamentos = () => {
                 <div className="flex gap-4">
                   {/* Avatar */}
                   <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
-                    {apt.numero?.charAt(0)?.toUpperCase() || "A"}
+                    {apt.nombre?.charAt(0)?.toUpperCase() || "A"}
                   </div>
                   
                   {/* Contenido */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-white font-semibold text-sm leading-snug break-words">{apt.numero}</h3>
+                      <h3 className="text-white font-semibold text-sm leading-snug break-words">{apt.nombre}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border flex-shrink-0 ${getEstadoBadge(apt.estado)}`}>
                         {apt.estado === "disponible" ? "Disponible" : "Arrendado"}
                       </span>
@@ -397,8 +397,8 @@ const Apartamentos = () => {
                 <input
                   type="text"
                   placeholder="Ej: Apartamento 101"
-                  value={formData.numero}
-                  onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                            placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 
                            transition-all duration-300"
