@@ -3,7 +3,12 @@ import { Link } from "react-router-dom"
 import api from "../services/api"
 import VerificarMoraResultModal from "../components/VerificarMoraResultModal"
 import { normalizeVerificarMoraResponse } from "../utils/verificarMora"
-import { getMonthName, getPeriodRangeFromMonthYear } from "../utils/periodoCuota"
+import {
+  getMonthName,
+  getPeriodRangeFromMonthYear,
+  formatPaymentPeriodForList,
+  dedupeInstallmentPeriodOptions,
+} from "../utils/periodoCuota"
 
 /** Métodos válidos al registrar el cobro real (API); `por_definir` se reemplaza al confirmar. */
 const METODOS_COBRO_CONFIRMADOS = new Set(["efectivo", "transferencia", "cheque"])
@@ -42,6 +47,10 @@ const Pagos = () => {
     valor: "",
     metodo_pago: "efectivo",
   })
+
+  /** Response from GET /pagos/contrato/:id/cuotas (registrar pago modal). */
+  const [cuotasAlta, setCuotasAlta] = useState(null)
+  const [cuotasAltaLoading, setCuotasAltaLoading] = useState(false)
 
   // Función para obtener fecha local en formato YYYY-MM-DD (evita problemas de timezone)
   const getLocalDateString = () => {
@@ -89,14 +98,37 @@ const Pagos = () => {
     }
   }
 
+  /** Load installment slots + labels from API (matches backend installment rules). */
+  const fetchCuotasPorContrato = async (contratoId) => {
+    const cid = Number(contratoId)
+    if (!cid) return null
+    const { data } = await api.get(`/pagos/contrato/${cid}/cuotas`)
+    return data || null
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      if (!formData.contrato_id || !String(formData.mes) || formData.anio === "") {
+        alert("Selecciona contrato y período válidos.")
+        return
+      }
+      const mes = parseInt(formData.mes, 10)
+      const anio = parseInt(formData.anio, 10)
+      if (cuotasAlta?.periodos?.length) {
+        const registrarOpts = dedupeInstallmentPeriodOptions(cuotasAlta.periodos, cuotasAlta.siguiente)
+        const opt = registrarOpts.find((p) => p.mes === mes && p.anio === anio)
+        if (!opt || opt.existe) {
+          alert("Ese período no está disponible para un pago nuevo (ya existe cobro para esa cuota).")
+          return
+        }
+      }
+
       const dataToSend = {
         ...formData,
         contrato_id: parseInt(formData.contrato_id),
-        mes: parseInt(formData.mes),
-        anio: parseInt(formData.anio),
+        mes,
+        anio,
         valor: parseFloat(formData.valor),
       }
 
@@ -351,6 +383,8 @@ const Pagos = () => {
 
   const closeModal = () => {
     setShowModal(false)
+    setCuotasAlta(null)
+    setCuotasAltaLoading(false)
     setFormData({
       contrato_id: "",
       mes: "",
@@ -378,18 +412,67 @@ const Pagos = () => {
     setShowConfirmarModal(true)
   }
 
-  // Autocompletar valor cuando se selecciona un contrato
-  const handleContratoChange = (contratoId) => {
-    setFormData({ ...formData, contrato_id: contratoId })
-    const contrato = contratos.find(c => c.id === parseInt(contratoId))
-    if (contrato) {
-      setFormData(prev => ({
+  // Autocompletar valor y períodos cuando se selecciona un contrato
+  const handleContratoChange = async (contratoId) => {
+    setCuotasAlta(null)
+    const contrato = contratos.find((c) => String(c.id) === String(contratoId))
+
+    if (!contratoId) {
+      setFormData((prev) => ({
         ...prev,
-        contrato_id: contratoId,
-        valor: contrato.canon_mensual.toString(),
+        contrato_id: "",
+        mes: "",
+        anio: new Date().getFullYear().toString(),
+        valor: "",
       }))
+      return
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      contrato_id: contratoId,
+      mes: "",
+      anio: new Date().getFullYear().toString(),
+      valor: contrato ? String(contrato.canon_mensual) : prev.valor,
+    }))
+
+    setCuotasAltaLoading(true)
+    try {
+      const data = await fetchCuotasPorContrato(contratoId)
+      setCuotasAlta(data)
+      const opts = dedupeInstallmentPeriodOptions(data?.periodos ?? [], data?.siguiente ?? null)
+      const sig = data?.siguiente
+      /** Slot suggested by API, only if the merged UI row for that mes/año is still available. */
+      const sigUiOpen = sig ? opts.find((p) => p.mes === sig.mes && p.anio === sig.anio && !p.existe) : null
+      const primeraLibreUi = opts.find((p) => !p.existe)
+
+      const pickMesAnio =
+        sigUiOpen || primeraLibreUi || (sig ? { mes: sig.mes, anio: sig.anio } : null)
+
+      if (pickMesAnio) {
+        setFormData((prev) => ({
+          ...prev,
+          contrato_id: contratoId,
+          mes: String(pickMesAnio.mes),
+          anio: String(pickMesAnio.anio),
+          valor: contrato ? String(contrato.canon_mensual) : prev.valor,
+          metodo_pago: prev.metodo_pago,
+        }))
+      }
+    } catch (error) {
+      console.error("Error cargando cuotas:", error)
+      setCuotasAlta(null)
+      alert("No se pudieron cargar los períodos del contrato. Revisa la conexión o el API.")
+    } finally {
+      setCuotasAltaLoading(false)
     }
   }
+
+  /** Select value for create form: composite key mes|anio */
+  const createPeriodSlotValue =
+    formData.mes !== "" && formData.anio !== ""
+      ? `${formData.mes}|${formData.anio}`
+      : ""
 
   const formatDate = (dateString) => {
     if (!dateString) return "—"
@@ -419,8 +502,6 @@ const Pagos = () => {
     return map[m] || m
   }
 
-  const getPeriod = (month, year) => getPeriodRangeFromMonthYear(month, year) || "—"
-
   const getEstadoBadge = (estado) => {
     switch (estado) {
       case "pagado":
@@ -445,10 +526,13 @@ const Pagos = () => {
 
   // Filtrar pagos
   const filteredPagos = pagos.filter(pago => {
-    const matchesSearch = 
-      pago.arrendatario_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pago.apartamento_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getMonthName(pago.mes).toLowerCase().includes(searchTerm.toLowerCase())
+    const q = searchTerm.toLowerCase()
+    const matchesSearch =
+      pago.arrendatario_nombre?.toLowerCase().includes(q) ||
+      pago.apartamento_nombre?.toLowerCase().includes(q) ||
+      getMonthName(pago.mes).toLowerCase().includes(q) ||
+      (pago.periodo && String(pago.periodo).toLowerCase().includes(q)) ||
+      formatPaymentPeriodForList(pago).toLowerCase().includes(q)
     
     const matchesEstado = filterEstado === "todos" || pago.estado === filterEstado
     
@@ -514,7 +598,11 @@ const Pagos = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowModal(true)}
+                  onClick={() => {
+                    setCuotasAlta(null)
+                    setCuotasAltaLoading(false)
+                    setShowModal(true)
+                  }}
                   className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl
                            font-semibold shadow-lg hover:shadow-emerald-500/50 transition-all duration-300
                            hover:scale-105 active:scale-95 overflow-hidden text-sm sm:text-base"
@@ -541,7 +629,7 @@ const Pagos = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Buscar por arrendatario, apartamento o mes..."
+                  placeholder="Buscar por arrendatario, apartamento o período..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
@@ -630,8 +718,8 @@ const Pagos = () => {
                       al confirmar cobro
                     </span>
                   </th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider">Estado</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider">Acciones</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider whitespace-nowrap">Estado</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-emerald-300 uppercase tracking-wider whitespace-nowrap min-w-[17rem]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700/50">
@@ -646,7 +734,7 @@ const Pagos = () => {
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm">
                       <span className="px-2 py-1 bg-gray-700/50 rounded text-teal-300">
-                        {getPeriod(pago.mes, pago.anio)}
+                        {formatPaymentPeriodForList(pago)}
                       </span>
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-emerald-300 font-semibold text-sm">{formatCurrency(pago.valor)}</td>
@@ -657,19 +745,24 @@ const Pagos = () => {
                     >
                       {formatDate(pago.fecha_pago)}
                     </td>
-                    <td className="px-4 xl:px-6 py-3 xl:py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getEstadoBadge(pago.estado)}`}>
-                        {getEstadoIcon(pago.estado)} {pago.estado === "pagado" ? "Pagado" : pago.estado === "en_mora" ? "En mora" : "Pendiente"}
+                    <td className="px-4 xl:px-6 py-3 xl:py-4 whitespace-nowrap align-middle">
+                      <span
+                        className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-1 rounded-full text-xs font-semibold border leading-none ${getEstadoBadge(pago.estado)}`}
+                      >
+                        <span className="shrink-0 text-[0.95em] leading-none" aria-hidden="true">
+                          {getEstadoIcon(pago.estado)}
+                        </span>
+                        <span>{pago.estado === "pagado" ? "Pagado" : pago.estado === "en_mora" ? "En mora" : "Pendiente"}</span>
                       </span>
                     </td>
-                    <td className="px-4 xl:px-6 py-3 xl:py-4">
-                      <div className="flex flex-wrap gap-1.5">
+                    <td className="px-4 xl:px-6 py-3 xl:py-4 align-middle min-w-[17rem]">
+                      <div className="flex flex-nowrap items-center gap-1.5">
                         {(pago.estado === "pendiente" || pago.estado === "en_mora") && (
                           <>
                             <button
                               type="button"
                               onClick={() => openEditModal(pago)}
-                              className="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                              className="shrink-0 whitespace-nowrap px-3 py-1.5 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
                                        font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
                                        hover:scale-105 active:scale-95 text-xs"
                             >
@@ -682,7 +775,7 @@ const Pagos = () => {
                             </button>
                             <button
                               onClick={() => openConfirmarModal(pago)}
-                              className="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg
+                              className="shrink-0 whitespace-nowrap px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg
                                        font-medium shadow-lg hover:shadow-emerald-500/50 transition-all duration-300
                                        hover:scale-105 active:scale-95 text-xs"
                             >
@@ -695,7 +788,7 @@ const Pagos = () => {
                             </button>
                             <button
                               onClick={() => handleDelete(pago.id)}
-                              className="px-3 py-1.5 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg
+                              className="shrink-0 whitespace-nowrap px-3 py-1.5 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg
                                        font-medium shadow-lg hover:shadow-red-500/50 transition-all duration-300
                                        hover:scale-105 active:scale-95 text-xs"
                             >
@@ -710,11 +803,11 @@ const Pagos = () => {
                           </>
                         )}
                         {pago.estado === "pagado" && (
-                          <div className="flex flex-wrap gap-1.5">
+                          <>
                             <button
                               type="button"
                               onClick={() => openEditModal(pago)}
-                              className="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                              className="shrink-0 whitespace-nowrap px-3 py-1.5 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
                                        font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
                                        hover:scale-105 active:scale-95 text-xs"
                               title="Revertir o ajustar datos del pago confirmado"
@@ -729,7 +822,7 @@ const Pagos = () => {
                             <button
                               onClick={() => handleReciboPdf(pago.id)}
                               disabled={descargandoPDF === pago.id}
-                              className="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
+                              className="shrink-0 whitespace-nowrap px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
                                        font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
                                        hover:scale-105 active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Descargar recibo en PDF"
@@ -753,7 +846,7 @@ const Pagos = () => {
                               type="button"
                               disabled
                               aria-disabled="true"
-                              className="px-3 py-1.5 bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white/80 rounded-lg
+                              className="shrink-0 whitespace-nowrap px-3 py-1.5 bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-white/80 rounded-lg
                                        font-medium text-xs cursor-not-allowed opacity-70"
                               title="Envío por correo no disponible por ahora"
                             >
@@ -765,7 +858,7 @@ const Pagos = () => {
                                 Email
                               </span>
                             </button>
-                          </div>
+                          </>
                         )}
                       </div>
                     </td>
@@ -801,10 +894,15 @@ const Pagos = () => {
                   {/* Contenido principal */}
                   <div className="flex-1 space-y-3">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
                         <h3 className="text-white font-semibold text-lg">{pago.arrendatario_nombre}</h3>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${getEstadoBadge(pago.estado)}`}>
-                          {getEstadoIcon(pago.estado)} {pago.estado === "pagado" ? "Pagado" : pago.estado === "en_mora" ? "Mora" : "Pendiente"}
+                        <span
+                          className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-semibold border leading-none shrink-0 ${getEstadoBadge(pago.estado)}`}
+                        >
+                          <span className="shrink-0 text-[0.95em] leading-none" aria-hidden="true">
+                            {getEstadoIcon(pago.estado)}
+                          </span>
+                          <span>{pago.estado === "pagado" ? "Pagado" : pago.estado === "en_mora" ? "Mora" : "Pendiente"}</span>
                         </span>
                       </div>
                       <p className="text-teal-300 text-sm font-medium">{pago.apartamento_nombre}</p>
@@ -814,7 +912,7 @@ const Pagos = () => {
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
                         <p className="text-gray-500 text-xs">Período</p>
-                        <p className="text-gray-200">{getPeriod(pago.mes, pago.anio)}</p>
+                        <p className="text-gray-200">{formatPaymentPeriodForList(pago)}</p>
                       </div>
                       <div>
                         <p className="text-gray-500 text-xs">Valor</p>
@@ -999,34 +1097,60 @@ const Pagos = () => {
                 )}
               </div>
 
-              {/* Período */}
+              {/* Período (mes ancla según backend; etiqueta = rango visible p. ej. Abril-Mayo 2026) */}
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div>
+                <div className="col-span-2 sm:col-span-1">
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    📅 Mes
+                    📅 Periodo
                   </label>
                   <select
-                    value={formData.mes}
-                    onChange={(e) => setFormData({ ...formData, mes: e.target.value })}
+                    value={createPeriodSlotValue}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      if (!v) {
+                        setFormData((prev) => ({ ...prev, mes: "", anio: new Date().getFullYear().toString() }))
+                        return
+                      }
+                      const [mesStr, anioStr] = v.split("|")
+                      setFormData((prev) => ({
+                        ...prev,
+                        mes: mesStr,
+                        anio: anioStr || prev.anio,
+                      }))
+                    }}
+                    disabled={
+                      !formData.contrato_id ||
+                      cuotasAltaLoading ||
+                      !cuotasAlta?.periodos?.length
+                    }
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                              focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 
-                             transition-all duration-300"
-                    required
+                             transition-all duration-300 disabled:opacity-45 disabled:cursor-not-allowed"
+                    required={!!cuotasAlta?.periodos?.length}
                   >
-                    <option value="" className="bg-gray-800">Mes</option>
-                    <option value="1" className="bg-gray-800">Enero</option>
-                    <option value="2" className="bg-gray-800">Febrero</option>
-                    <option value="3" className="bg-gray-800">Marzo</option>
-                    <option value="4" className="bg-gray-800">Abril</option>
-                    <option value="5" className="bg-gray-800">Mayo</option>
-                    <option value="6" className="bg-gray-800">Junio</option>
-                    <option value="7" className="bg-gray-800">Julio</option>
-                    <option value="8" className="bg-gray-800">Agosto</option>
-                    <option value="9" className="bg-gray-800">Septiembre</option>
-                    <option value="10" className="bg-gray-800">Octubre</option>
-                    <option value="11" className="bg-gray-800">Noviembre</option>
-                    <option value="12" className="bg-gray-800">Diciembre</option>
+                    <option value="" className="bg-gray-800">
+                      {!formData.contrato_id
+                        ? "Primero elige contrato"
+                        : cuotasAltaLoading
+                          ? "Cargando períodos…"
+                          : "Seleccionar período"}
+                    </option>
+                    {dedupeInstallmentPeriodOptions(cuotasAlta?.periodos, cuotasAlta?.siguiente).map((p) => {
+                      const disabled = !!p.existe
+                      const key = `${p.mes}|${p.anio}`
+                      return (
+                        <option key={key} value={key} disabled={disabled} className="bg-gray-800">
+                          {p.etiqueta}
+                          {p.existe ? " (ya existe)" : ""}
+                        </option>
+                      )
+                    })}
                   </select>
+                  {formData.contrato_id && cuotasAlta && !cuotasAlta.periodos?.length ? (
+                    <p className="text-amber-400 text-xs mt-2">
+                      No hay meses de cobro según las fechas del contrato.
+                    </p>
+                  ) : null}
                 </div>
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
@@ -1034,13 +1158,19 @@ const Pagos = () => {
                   </label>
                   <input
                     type="number"
-                    min="2020"
-                    max="2030"
+                    min="2000"
+                    max="2100"
+                    readOnly={!!cuotasAlta?.periodos?.length}
+                    title={
+                      cuotasAlta?.periodos?.length
+                        ? "Se toma del periodo seleccionado (coincide con el mes ancla)."
+                        : "Año fiscal del período"
+                    }
                     value={formData.anio}
-                    onChange={(e) => setFormData({ ...formData, anio: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, anio: e.target.value }))}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                              focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 
-                             transition-all duration-300"
+                             transition-all duration-300 read-only:opacity-80 read-only:cursor-default"
                     required
                   />
                 </div>
@@ -1126,36 +1256,18 @@ const Pagos = () => {
               <p className="text-xs text-gray-500 bg-gray-800/40 rounded-lg px-3 py-2 border border-gray-600/40">
                 {pagoToEdit.estado === "pagado"
                   ? "Este pago está confirmado. Elige Pendiente o En mora para revertir el cobro (se borrará la fecha de pago en el sistema)."
-                  : "Ajusta período, valor, método y estado. Para marcar como Pagado sin usar «Confirmar», elige estado Pagado e indica la fecha."}
+                  : "El período del pago no se puede cambiar aquí. Ajusta valor, método y estado. Para marcar como Pagado sin usar «Confirmar», elige estado Pagado e indica la fecha."}
               </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-2">Mes del periodo</label>
-                  <select
-                    value={editFormData.mes}
-                    onChange={(e) => setEditFormData({ ...editFormData, mes: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
-                    required
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
-                      <option key={m} value={String(m)} className="bg-gray-800">
-                        {getMonthName(m)}
-                      </option>
-                    ))}
-                  </select>
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-2">Periodo</label>
+                <div className="w-full px-3 py-2.5 bg-gray-800/70 border border-gray-600/50 rounded-xl text-teal-200 text-sm">
+                  {formatPaymentPeriodForList(pagoToEdit)}
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-2">Año</label>
-                  <input
-                    type="number"
-                    min="2020"
-                    max="2040"
-                    value={editFormData.anio}
-                    onChange={(e) => setEditFormData({ ...editFormData, anio: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm focus:ring-2 focus:ring-cyan-500/50"
-                    required
-                  />
-                </div>
+                {pagoToEdit.estado === "pagado" ? (
+                  <p className="text-[11px] text-gray-500 mt-1.5">
+                    No puedes cambiar mes/año mientras el pago siga marcado como pagado en el servidor.
+                  </p>
+                ) : null}
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-2">Valor</label>
@@ -1293,7 +1405,9 @@ const Pagos = () => {
                     </div>
                     <div>
                       <p className="text-xs text-gray-400">Período</p>
-                      <p className="text-teal-300 font-medium text-sm">{getPeriod(pagoToConfirm.mes, pagoToConfirm.anio)}</p>
+                      <p className="text-teal-300 font-medium text-sm">
+                        {formatPaymentPeriodForList(pagoToConfirm)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400">Valor a pagar</p>
