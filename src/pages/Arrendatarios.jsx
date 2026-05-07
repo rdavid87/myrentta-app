@@ -54,7 +54,7 @@ const Arrendatarios = () => {
   const getApartamentoNombre = (apartamentoId) => {
     if (!apartamentoId) return null
     const apt = apartamentos.find(a => a.id === apartamentoId)
-    return apt ? apt.numero : null
+    return apt ? apt.nombre : null
   }
 
   const handleSubmit = async (e) => {

@@ -447,7 +447,7 @@ const Pagos = () => {
   const filteredPagos = pagos.filter(pago => {
     const matchesSearch = 
       pago.arrendatario_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pago.apartamento_numero?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pago.apartamento_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getMonthName(pago.mes).toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesEstado = filterEstado === "todos" || pago.estado === filterEstado
@@ -640,7 +640,7 @@ const Pagos = () => {
                     <td className="px-4 xl:px-6 py-3 xl:py-4 font-medium text-gray-200 text-sm">{pago.arrendatario_nombre}</td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm">
                       <div className="flex flex-col">
-                        <span className="font-medium">{pago.apartamento_numero}</span>
+                        <span className="font-medium">{pago.apartamento_nombre}</span>
                         <span className="text-xs text-gray-500">{pago.apartamento_direccion}</span>
                       </div>
                     </td>
@@ -807,7 +807,7 @@ const Pagos = () => {
                           {getEstadoIcon(pago.estado)} {pago.estado === "pagado" ? "Pagado" : pago.estado === "en_mora" ? "Mora" : "Pendiente"}
                         </span>
                       </div>
-                      <p className="text-teal-300 text-sm font-medium">{pago.apartamento_numero}</p>
+                      <p className="text-teal-300 text-sm font-medium">{pago.apartamento_nombre}</p>
                       <p className="text-gray-400 text-xs">{pago.apartamento_direccion}</p>
                     </div>
 
@@ -990,7 +990,7 @@ const Pagos = () => {
                   <option value="" className="bg-gray-800">Seleccionar contrato</option>
                   {contratos.map((contrato) => (
                     <option key={contrato.id} value={contrato.id} className="bg-gray-800">
-                      {contrato.arrendatario_nombre} - {contrato.apartamento_numero} ({formatCurrency(contrato.canon_mensual)}/mes)
+                      {contrato.arrendatario_nombre} - {contrato.apartamento_nombre} ({formatCurrency(contrato.canon_mensual)}/mes)
                     </option>
                   ))}
                 </select>
@@ -1119,7 +1119,7 @@ const Pagos = () => {
                 Editar pago
               </h2>
               <p className="text-sm text-gray-400 mt-1">
-                {pagoToEdit.arrendatario_nombre} · {pagoToEdit.apartamento_numero}
+                {pagoToEdit.arrendatario_nombre} · {pagoToEdit.apartamento_nombre}
               </p>
             </div>
             <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4">
@@ -1289,7 +1289,7 @@ const Pagos = () => {
                     </div>
                     <div>
                       <p className="text-xs text-gray-400">Apartamento</p>
-                      <p className="text-white font-medium text-sm">{pagoToConfirm.apartamento_numero}</p>
+                      <p className="text-white font-medium text-sm">{pagoToConfirm.apartamento_nombre}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400">Período</p>

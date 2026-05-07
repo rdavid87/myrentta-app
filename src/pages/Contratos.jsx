@@ -392,7 +392,7 @@ const Contratos = () => {
   const filteredContratos = contratosVista.filter((contrato) => {
     const matchesSearch =
       contrato.arrendatario_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contrato.apartamento_numero?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contrato.apartamento_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contrato.apartamento_direccion?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesEstado = filterEstado === "todos" || contrato.estado === filterEstado
@@ -658,7 +658,7 @@ const Contratos = () => {
                     <td className="px-4 xl:px-6 py-3 xl:py-4 font-medium text-gray-200 text-sm">{contrato.arrendatario_nombre}</td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4 text-gray-300 text-sm">
                       <div className="flex flex-col">
-                        <span className="font-medium">{contrato.apartamento_numero}</span>
+                        <span className="font-medium">{contrato.apartamento_nombre}</span>
                         <span className="text-xs text-gray-500">{contrato.apartamento_direccion}</span>
                       </div>
                     </td>
@@ -800,7 +800,7 @@ const Contratos = () => {
                         {contrato.arrendatario_nombre}
                       </h3>
                       <p className="text-yellow-300 text-sm font-medium mt-0.5 break-words">
-                        {contrato.apartamento_numero}
+                        {contrato.apartamento_nombre}
                       </p>
                       <p className="text-gray-400 text-xs mt-1 break-words leading-relaxed">
                         {contrato.apartamento_direccion}
@@ -1016,12 +1016,12 @@ const Contratos = () => {
                   <option value="" className="bg-gray-800">Seleccionar apartamento</option>
                   {contratoToRenew ? (
                     <option value={contratoToRenew.apartamento_id} className="bg-gray-800">
-                      {contratoToRenew.apartamento_numero} - {contratoToRenew.apartamento_direccion}
+                      {contratoToRenew.apartamento_nombre} - {contratoToRenew.apartamento_direccion}
                     </option>
                   ) : (
                     apartamentos.map((apt) => (
                       <option key={apt.id} value={apt.id} className="bg-gray-800">
-                        {apt.numero} - {apt.direccion} - {formatCurrency(apt.valor_arriendo)}
+                        {apt.nombre} - {apt.direccion} - {formatCurrency(apt.valor_arriendo)}
                       </option>
                     ))
                   )}
@@ -1188,7 +1188,7 @@ const Contratos = () => {
                 </div>
                 <div>
                   <p className="text-xs text-gray-400">Apartamento</p>
-                  <p className="text-white font-medium">{contratoToExtend.apartamento_numero}</p>
+                  <p className="text-white font-medium">{contratoToExtend.apartamento_nombre}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-400">Fecha de fin actual</p>
@@ -1252,7 +1252,7 @@ const Contratos = () => {
                 Editar contrato
               </h2>
               <p className="relative text-sm text-gray-400 mt-2">
-                {contratoToEdit.arrendatario_nombre} · {contratoToEdit.apartamento_numero}
+                {contratoToEdit.arrendatario_nombre} · {contratoToEdit.apartamento_nombre}
               </p>
             </div>
 
