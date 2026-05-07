@@ -2,6 +2,35 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { createPortal } from "react-dom"
 import api from "../services/api"
 
+const resolveApartamentoNombre = (apt = {}) => {
+  const directCandidates = [apt.name, apt.nombre]
+
+  for (const value of directCandidates) {
+    if (typeof value === "string" && value.trim()) return value.trim()
+  }
+
+  const byKeyHeuristic = Object.entries(apt).find(
+    ([key, value]) =>
+      typeof value === "string" &&
+      value.trim() &&
+      (key.toLowerCase() === "nombre" || key.toLowerCase() === "name")
+  )
+
+  return byKeyHeuristic ? byKeyHeuristic[1].trim() : ""
+}
+
+const normalizeApartamento = (apt = {}) => {
+  const nombreNormalizado = resolveApartamentoNombre(apt)
+
+  return {
+    ...apt,
+    nombre: nombreNormalizado,
+  }
+}
+
+const getApartamentoDisplayName = (apt = {}) =>
+  apt.nombre?.trim() || `Sin nombre (ID ${apt.id ?? "?"})`
+
 const Contratos = () => {
   const [contratos, setContratos] = useState([])
   const [arrendatarios, setArrendatarios] = useState([])
@@ -91,7 +120,17 @@ const Contratos = () => {
     try {
       const { data } = await api.get("/apartamentos")
       // Filtrar solo apartamentos disponibles
-      const disponibles = data.filter(apt => apt.estado === "disponible")
+      const disponibles = (data || [])
+        .map(normalizeApartamento)
+        .filter(apt => apt.estado === "disponible")
+
+      const sinNombre = disponibles.filter((apt) => !apt.nombre)
+      if (sinNombre.length > 0) {
+        console.warn(
+          "[Contratos] Apartamentos sin nombre recibidos por API:",
+          sinNombre.map((apt) => ({ id: apt.id, keys: Object.keys(apt) }))
+        )
+      }
       setApartamentos(disponibles || [])
     } catch (error) {
       console.error("Error fetching apartamentos:", error)
@@ -1021,7 +1060,7 @@ const Contratos = () => {
                   ) : (
                     apartamentos.map((apt) => (
                       <option key={apt.id} value={apt.id} className="bg-gray-800">
-                        {apt.nombre} - {apt.direccion} - {formatCurrency(apt.valor_arriendo)}
+                        {getApartamentoDisplayName(apt)} - {formatCurrency(apt.valor_arriendo)}
                       </option>
                     ))
                   )}
