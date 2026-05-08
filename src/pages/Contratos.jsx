@@ -1126,7 +1126,7 @@ const Contratos = () => {
                 </div>
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                    📆 Días extra (después del aniversario)
+                    📆 Días de gracia para el pago
                   </label>
                   <input
                     type="number"
@@ -1140,15 +1140,10 @@ const Contratos = () => {
                              focus:border-amber-500/50 transition-all duration-300"
                   />
                   <p className="text-xs text-amber-400/80 mt-1.5 leading-relaxed">
-                    El vencimiento parte del <span className="font-semibold text-amber-300">mismo día del mes</span> que la{" "}
-                    <span className="font-semibold text-amber-300">fecha de inicio</span> (aniversario en cada mes que
-                    toque). Aquí sumas <span className="font-semibold">días calendario</span> después de esa fecha.{" "}
-                    <span className="font-semibold text-amber-300">0</span> = sin días extra (solo el aniversario).
+                    Indica cuántos días después del aniversario mensual se establece la fecha límite de pago.
                   </p>
                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                    {formData.modo_cobro === "fin_mes"
-                      ? "Fin de mes: el aniversario cae en el mes del período facturado."
-                      : "Anticipado: el aniversario cae en el mes calendario anterior al período facturado."}
+                    Por ejemplo, si el contrato inicia el 20 y pones 1, la fecha de cobro será el 21.
                   </p>
                 </div>
                 <div className="sm:col-span-2">
@@ -1341,7 +1336,7 @@ const Contratos = () => {
 
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                  📆 Días extra (después del aniversario)
+                  📆 Días de gracia para el pago
                 </label>
                 <input
                   type="number"
@@ -1353,8 +1348,11 @@ const Contratos = () => {
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
                            focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                 />
-                <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">
-                  Mismo criterio que al crear: días que se suman al aniversario (día del mes de la fecha de inicio). Entre 0 y 90.
+                <p className="text-xs text-amber-400/80 mt-1.5 leading-relaxed">
+                  Indica cuántos días después del aniversario mensual se establece la fecha límite de pago.
+                </p>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                  Por ejemplo, si el contrato inicia el 20 y pones 1, la fecha de cobro será el 21.
                 </p>
               </div>
 
