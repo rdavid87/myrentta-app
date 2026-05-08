@@ -110,7 +110,11 @@ const Apartamentos = () => {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm("¿Estás seguro de eliminar este apartamento?")) {
+    if (
+      window.confirm(
+        "¿Eliminar apartamento?\nTambién se eliminarán los contratos o pagos que tenga vinculados."
+      )
+    ) {
       try {
         await api.delete(`/apartamentos/${id}`)
         fetchApartamentos()
