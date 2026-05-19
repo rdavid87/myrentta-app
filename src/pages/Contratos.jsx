@@ -33,7 +33,7 @@ const getApartamentoDisplayName = (apt = {}) =>
 
 const Contratos = () => {
   const [contratos, setContratos] = useState([])
-  const [arrendatarios, setArrendatarios] = useState([])
+  const [tenants, setTenants] = useState([])
   const [apartamentos, setApartamentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -90,7 +90,7 @@ const Contratos = () => {
 
   useEffect(() => {
     fetchContratos()
-    fetchArrendatarios()
+    fetchTenants()
     fetchApartamentos()
   }, [])
 
@@ -105,14 +105,12 @@ const Contratos = () => {
     }
   }
 
-  const fetchArrendatarios = async () => {
+  const fetchTenants = async () => {
     try {
       const { data } = await api.get("/arrendatarios")
-      // Filtrar solo arrendatarios sin contrato activo
-      const sinContrato = data.filter(arr => !arr.apartamento_id)
-      setArrendatarios(sinContrato || [])
+      setTenants(data || [])
     } catch (error) {
-      console.error("Error fetching arrendatarios:", error)
+      console.error("Error fetching tenants:", error)
     }
   }
 
@@ -169,7 +167,7 @@ const Contratos = () => {
       await api.post("/contratos", dataToSend)
       closeModal()
       fetchContratos()
-      fetchArrendatarios()
+      fetchTenants()
       fetchApartamentos()
       
       if (contratoToRenew) {
@@ -201,7 +199,7 @@ const Contratos = () => {
       try {
         await api.put(`/contratos/${id}/finalizar`)
         fetchContratos()
-        fetchArrendatarios()
+        fetchTenants()
         fetchApartamentos()
       } catch (error) {
         console.error("Error finalizando contrato:", error)
@@ -296,7 +294,7 @@ const Contratos = () => {
       "¿Eliminar este contrato activo?\n\n" +
       "• Se borrarán todos los pagos registrados de este contrato.\n" +
       "• El apartamento quedará disponible.\n" +
-      "• El arrendatario quedará sin contrato asignado.\n\n" +
+      "• Si era su único contrato activo, el arrendatario quedará sin apartamento asignado en ficha.\n\n" +
       "Esta acción no se puede deshacer."
     const msgFinalizado =
       "¿Eliminar este contrato finalizado?\n\n" +
@@ -307,7 +305,7 @@ const Contratos = () => {
       try {
         await api.delete(`/contratos/${contrato.id}`)
         fetchContratos()
-        fetchArrendatarios()
+        fetchTenants()
         fetchApartamentos()
         alert("✅ Contrato eliminado")
       } catch (error) {
@@ -1019,15 +1017,15 @@ const Contratos = () => {
                       {contratoToRenew.arrendatario_nombre}
                     </option>
                   ) : (
-                    arrendatarios.map((arr) => (
-                      <option key={arr.id} value={arr.id} className="bg-gray-800">
-                        {arr.nombre_completo} - {arr.documento_identidad}
+                    tenants.map((tenant) => (
+                      <option key={tenant.id} value={tenant.id} className="bg-gray-800">
+                        {tenant.nombre_completo} - {tenant.documento_identidad}
                       </option>
                     ))
                   )}
                 </select>
-                {!contratoToRenew && arrendatarios.length === 0 && (
-                  <p className="text-amber-400 text-xs sm:text-sm mt-2">⚠️ No hay arrendatarios disponibles sin contrato activo</p>
+                {!contratoToRenew && tenants.length === 0 && (
+                  <p className="text-amber-400 text-xs sm:text-sm mt-2">⚠️ No hay arrendatarios registrados. Crea uno en la sección Arrendatarios.</p>
                 )}
               </div>
 
@@ -1173,7 +1171,7 @@ const Contratos = () => {
               <div className="flex flex-col sm:flex-row gap-3 pt-2 sm:pt-4">
                 <button
                   type="submit"
-                  disabled={!contratoToRenew && (arrendatarios.length === 0 || apartamentos.length === 0)}
+                  disabled={!contratoToRenew && (tenants.length === 0 || apartamentos.length === 0)}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-600 to-yellow-600 text-white rounded-xl
                            font-semibold shadow-lg hover:shadow-amber-500/50 transition-all duration-300
                            hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed

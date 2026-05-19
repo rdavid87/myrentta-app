@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import api from "../services/api"
 
 const resolveApartamentoNombre = (apt = {}) => {
@@ -22,6 +22,7 @@ const resolveApartamentoNombre = (apt = {}) => {
 
 const Arrendatarios = () => {
   const [arrendatarios, setArrendatarios] = useState([])
+  const [contracts, setContracts] = useState([])
   const [apartamentos, setApartamentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -37,6 +38,7 @@ const Arrendatarios = () => {
   useEffect(() => {
     fetchArrendatarios()
     fetchApartamentos()
+    fetchContracts()
   }, [])
 
   const fetchArrendatarios = async () => {
@@ -59,6 +61,56 @@ const Arrendatarios = () => {
     }
   }
 
+  const fetchContracts = async () => {
+    try {
+      const { data } = await api.get("/contratos")
+      setContracts(data || [])
+    } catch (error) {
+      console.error("Error fetching contracts:", error)
+    }
+  }
+
+  const getActiveContracts = (tenantId) =>
+    contracts.filter((c) => c.arrendatario_id === tenantId && c.estado === "activo")
+
+  const getApartmentLabel = (contract) => {
+    const name =
+      contract.apartamento_nombre?.trim() ||
+      resolveApartamentoNombre(apartamentos.find((a) => a.id === contract.apartamento_id))
+    return name || `Apto #${contract.apartamento_id}`
+  }
+
+  const renderActiveContracts = (tenantId) => {
+    const activeContracts = getActiveContracts(tenantId)
+    if (activeContracts.length === 0) {
+      return (
+        <span className="px-3 py-1 bg-gray-600/30 text-gray-400 border border-gray-600/30 rounded-full text-xs">
+          Sin contrato activo
+        </span>
+      )
+    }
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        {activeContracts.map((contract) => (
+          <span
+            key={contract.id}
+            className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold"
+            title={`Contrato #${contract.id}`}
+          >
+            🏠 {getApartmentLabel(contract)}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  const tenantsWithActiveContract = useMemo(() => {
+    const ids = new Set(
+      contracts.filter((c) => c.estado === "activo").map((c) => c.arrendatario_id)
+    )
+    return ids.size
+  }, [contracts])
+
   // Filtrar arrendatarios por nombre, documento o email
   const filteredArrendatarios = arrendatarios.filter(arr => 
     arr.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,13 +118,6 @@ const Arrendatarios = () => {
     arr.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     arr.telefono?.includes(searchTerm)
   )
-
-  // Obtener nombre del apartamento por ID (solo para visualización)
-  const getApartamentoNombre = (apartamentoId) => {
-    if (!apartamentoId) return null
-    const apt = apartamentos.find(a => a.id === apartamentoId)
-    return apt ? resolveApartamentoNombre(apt) : null
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -85,6 +130,7 @@ const Arrendatarios = () => {
       
       closeModal()
       fetchArrendatarios()
+      fetchContracts()
     } catch (error) {
       console.error("Error saving arrendatario:", error)
       alert("Error al guardar arrendatario: " + (error.response?.data?.error || error.message))
@@ -107,6 +153,7 @@ const Arrendatarios = () => {
       try {
         await api.delete(`/arrendatarios/${id}`)
         fetchArrendatarios()
+        fetchContracts()
       } catch (error) {
         console.error("Error deleting arrendatario:", error)
         alert("Error al eliminar: " + (error.response?.data?.error || error.message))
@@ -234,7 +281,7 @@ const Arrendatarios = () => {
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Documento</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Teléfono</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Email</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Apartamento</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Contratos activos</th>
                   <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
@@ -268,15 +315,7 @@ const Arrendatarios = () => {
                       </a>
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4">
-                      {getApartamentoNombre(arr.apartamento_id) ? (
-                        <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold">
-                          🏠 {getApartamentoNombre(arr.apartamento_id)}
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 bg-gray-600/30 text-gray-400 border border-gray-600/30 rounded-full text-xs">
-                          Sin asignar
-                        </span>
-                      )}
+                      {renderActiveContracts(arr.id)}
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4">
                       <div className="flex gap-2">
@@ -344,15 +383,9 @@ const Arrendatarios = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h3 className="text-white font-semibold text-lg truncate">{arr.nombre_completo}</h3>
-                      {getApartamentoNombre(arr.apartamento_id) ? (
-                        <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold flex-shrink-0">
-                          🏠 {getApartamentoNombre(arr.apartamento_id)}
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 bg-gray-600/30 text-gray-400 rounded-full text-xs flex-shrink-0">
-                          Sin asignar
-                        </span>
-                      )}
+                      <div className="flex-shrink-0 max-w-[55%]">
+                        {renderActiveContracts(arr.id)}
+                      </div>
                     </div>
                     
                     <div className="space-y-1.5 text-sm">
@@ -423,15 +456,15 @@ const Arrendatarios = () => {
           </div>
           <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 text-center">
             <p className="text-2xl sm:text-3xl font-bold text-emerald-400">
-              {arrendatarios.filter(a => a.apartamento_id).length}
+              {tenantsWithActiveContract}
             </p>
-            <p className="text-xs sm:text-sm text-gray-400">Con Apartamento</p>
+            <p className="text-xs sm:text-sm text-gray-400">Con contrato activo</p>
           </div>
           <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 text-center">
             <p className="text-2xl sm:text-3xl font-bold text-amber-400">
-              {arrendatarios.filter(a => !a.apartamento_id).length}
+              {arrendatarios.length - tenantsWithActiveContract}
             </p>
-            <p className="text-xs sm:text-sm text-gray-400">Sin Asignar</p>
+            <p className="text-xs sm:text-sm text-gray-400">Sin contrato activo</p>
           </div>
           <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 text-center">
             <p className="text-2xl sm:text-3xl font-bold text-purple-400">
