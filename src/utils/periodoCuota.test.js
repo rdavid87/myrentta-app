@@ -25,6 +25,13 @@ test("formatPaymentPeriodForList falls back to forward range when periodo missin
   )
 })
 
+test("formatPaymentPeriodForList uses same range fallback for fin_mes when periodo missing", () => {
+  assert.equal(
+    formatPaymentPeriodForList({ mes: 4, anio: 2026, modo_cobro: "fin_mes" }),
+    getPeriodRangeFromMonthYear(4, 2026),
+  )
+})
+
 test("dedupeInstallmentPeriodOptions marks existe when any duplicate label has a payment", () => {
   const periodos = [
     { mes: 5, anio: 2026, etiqueta: "Mayo - Junio 2026", existe: true, es_siguiente: false },

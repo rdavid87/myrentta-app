@@ -15,10 +15,6 @@ export function formatPaymentPeriodForList(pago) {
   if (!pago) return "—"
   const apiPeriodo = pago.periodo?.trim()
   if (apiPeriodo) return apiPeriodo
-  const modo = String(pago.modo_cobro ?? "anticipado").trim().toLowerCase()
-  if (modo === "fin_mes") {
-    return `${getMonthName(pago.mes)} ${pago.anio}`
-  }
   const rango = getPeriodRangeFromMonthYear(pago.mes, pago.anio)
   if (rango) return rango
   return "—"
