@@ -117,6 +117,12 @@ const Configuraciones = () => {
                 registres el cobro con <strong className="text-gray-200 font-medium">Confirmar</strong> y elijas efectivo, transferencia o cheque.
               </p>
               <p className="mt-2">
+                Las <strong className="text-gray-200 font-medium">cuotas siguientes</strong> (anticipado y mes vencido) las crea el
+                servidor con un <strong className="text-gray-200 font-medium">proceso automático diario a las 7:00</strong> (hora Colombia):{" "}
+                como máximo <strong className="text-gray-200 font-medium">una cuota nueva por contrato</strong> por día. No se generan todas al crear el
+                contrato ni al confirmar un pago.
+              </p>
+              <p className="mt-2">
                 Si no aparece ningún pago, revisa en el backend las reglas de fechas o registra el pago manualmente con{" "}
                 <strong className="text-gray-200 font-medium">Registrar pago</strong>.
               </p>
