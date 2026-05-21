@@ -8,6 +8,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      srcDir: "src",
+      filename: "pwabuilder-sw.js",
+      strategies: "injectManifest",
       registerType: "autoUpdate",
       manifest: {
         name: "MyRentta",
@@ -32,6 +35,7 @@ export default defineConfig({
           },
         ],
       },
+      injectRegister: "script",
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
       },
