@@ -2,6 +2,11 @@ import { useState, useEffect } from "react"
 import api from "../services/api"
 import ArrendatarioIcon from "../components/ArrendatarioIcon"
 import { formatPaymentPeriodForList } from "../utils/periodoCuota"
+import {
+  contratoVenceEnVentana,
+  fechaLimiteVentanaDias,
+  formatFechaUTC,
+} from "../utils/fechas"
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -11,6 +16,7 @@ const Dashboard = () => {
     totalArrendatarios: 0,
     contratosActivos: 0,
     contratosPorVencer: 0,
+    fechaLimitePorVencer: "",
     pagosDelMes: 0,
     ingresosMes: 0,
     pagosEnMora: 0,
@@ -43,15 +49,13 @@ const Dashboard = () => {
       const arrendados = apartamentos.filter(a => a.estado !== "disponible").length
       const contratosActivos = contratos.filter(c => c.estado === "activo").length
       
-      // Contratos por vencer (próximos 30 días)
+      // Contratos por vencer: fecha_fin entre hoy y hoy+30 (días calendario UTC)
       const hoy = new Date()
-      const en30Dias = new Date()
-      en30Dias.setDate(en30Dias.getDate() + 30)
-      const porVencer = contratos.filter(c => {
-        if (c.estado !== "activo") return false
-        const fechaFin = new Date(c.fecha_fin)
-        return fechaFin >= hoy && fechaFin <= en30Dias
-      }).length
+      const VENTANA_DIAS = 30
+      const limitePorVencer = fechaLimiteVentanaDias(hoy, VENTANA_DIAS)
+      const porVencer = contratos.filter(
+        c => c.estado === "activo" && contratoVenceEnVentana(c.fecha_fin, VENTANA_DIAS, hoy)
+      ).length
 
       // Ingresos del mes calendario actual (por fecha en que se recibió el pago, no por período de arriendo)
       const mesActual = hoy.getMonth() + 1
@@ -76,6 +80,7 @@ const Dashboard = () => {
         totalArrendatarios: arrendatarios.length,
         contratosActivos,
         contratosPorVencer: porVencer,
+        fechaLimitePorVencer: formatFechaUTC(limitePorVencer),
         pagosDelMes: pagosDelMes.length,
         ingresosMes,
         pagosEnMora: enMora.length,
@@ -247,7 +252,7 @@ const Dashboard = () => {
                 <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
                   <p className="text-amber-300 text-sm flex items-center gap-2">
                     <span className="text-lg">⏰</span>
-                    {stats.contratosPorVencer} contrato(s) por vencer en los próximos 30 días
+                    Hay contratos que vencen antes del {stats.fechaLimitePorVencer}
                   </p>
                 </div>
               )}

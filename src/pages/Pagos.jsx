@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { useState, useEffect, useMemo } from "react"
+import { Link, useSearchParams } from "react-router-dom"
 import api from "../services/api"
 import VerificarMoraResultModal from "../components/VerificarMoraResultModal"
 import { normalizeVerificarMoraResponse } from "../utils/verificarMora"
@@ -20,6 +20,9 @@ function metodoAlConfirmarCobro(pago) {
 }
 
 const Pagos = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const filterContractId = searchParams.get("contrato")
+
   const [pagos, setPagos] = useState([])
   const [contratos, setContratos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -524,8 +527,30 @@ const Pagos = () => {
     }
   }
 
+  const clearContractFilter = () => {
+    const next = new URLSearchParams(searchParams)
+    next.delete("contrato")
+    setSearchParams(next, { replace: true })
+  }
+
+  const contractFilterLabel = useMemo(() => {
+    if (!filterContractId) return null
+    const pago = pagos.find((p) => String(p.contrato_id) === String(filterContractId))
+    if (pago) {
+      return `${pago.arrendatario_nombre} · ${pago.apartamento_nombre}`
+    }
+    const contract = contratos.find((c) => String(c.id) === String(filterContractId))
+    if (contract) {
+      return `${contract.arrendatario_nombre} - ${contract.apartamento_nombre}`
+    }
+    return `Contrato #${filterContractId}`
+  }, [filterContractId, pagos, contratos])
+
   // Filtrar pagos
   const filteredPagos = pagos.filter(pago => {
+    const matchesContract =
+      !filterContractId || String(pago.contrato_id) === String(filterContractId)
+
     const q = searchTerm.toLowerCase()
     const matchesSearch =
       pago.arrendatario_nombre?.toLowerCase().includes(q) ||
@@ -536,7 +561,7 @@ const Pagos = () => {
     
     const matchesEstado = filterEstado === "todos" || pago.estado === filterEstado
     
-    return matchesSearch && matchesEstado
+    return matchesContract && matchesSearch && matchesEstado
   })
 
   if (loading) {
@@ -619,6 +644,24 @@ const Pagos = () => {
               </div>
             </div>
 
+            {filterContractId && (
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4 rounded-xl
+                            bg-emerald-500/10 border border-emerald-500/30">
+                <p className="text-sm text-emerald-200 flex-1 min-w-0">
+                  <span className="text-emerald-400/90 font-medium">Pagos del contrato:</span>{" "}
+                  <span className="text-white">{contractFilterLabel}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={clearContractFilter}
+                  className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-200
+                           border border-emerald-500/40 hover:bg-emerald-500/20 transition-colors"
+                >
+                  Ver todos los pagos
+                </button>
+              </div>
+            )}
+
             {/* Barra de búsqueda y filtros */}
             <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
@@ -693,7 +736,7 @@ const Pagos = () => {
               </div>
             </div>
 
-            {(searchTerm || filterEstado !== "todos") && (
+            {(searchTerm || filterEstado !== "todos" || filterContractId) && (
               <p className="mt-3 text-sm text-gray-400">
                 {filteredPagos.length} pago(s) encontrado(s)
               </p>
