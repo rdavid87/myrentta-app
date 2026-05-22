@@ -561,8 +561,8 @@ const Pagos = () => {
                 </h1>
                 <p className="text-sm sm:text-base text-gray-400 max-w-xl">
                   Registra y confirma pagos.{" "}
-                  <Link to="/configuraciones" className="text-teal-300/90 hover:text-teal-200 underline-offset-2 hover:underline">
-                    Ayuda sobre cuotas automáticas (Configuración)
+                  <Link to="/ayuda" className="text-teal-300/90 hover:text-teal-200 underline-offset-2 hover:underline">
+                    Contactar soporte (Ayuda)
                   </Link>
                   .
                 </p>
@@ -649,10 +649,10 @@ const Pagos = () => {
               </div>
               
               {/* Filtro por estado */}
-              <div className="flex gap-2 flex-wrap">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full sm:w-auto sm:min-w-[28rem]">
                 <button
                   onClick={() => setFilterEstado("todos")}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                  className={`w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 ${
                     filterEstado === "todos"
                       ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
                       : "bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
@@ -662,7 +662,7 @@ const Pagos = () => {
                 </button>
                 <button
                   onClick={() => setFilterEstado("pendiente")}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                  className={`w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 ${
                     filterEstado === "pendiente"
                       ? "bg-amber-600 text-white shadow-lg shadow-amber-500/30"
                       : "bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
@@ -672,7 +672,7 @@ const Pagos = () => {
                 </button>
                 <button
                   onClick={() => setFilterEstado("pagado")}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                  className={`w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 ${
                     filterEstado === "pagado"
                       ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/30"
                       : "bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
@@ -682,7 +682,7 @@ const Pagos = () => {
                 </button>
                 <button
                   onClick={() => setFilterEstado("en_mora")}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                  className={`w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 ${
                     filterEstado === "en_mora"
                       ? "bg-red-600 text-white shadow-lg shadow-red-500/30"
                       : "bg-gray-700/50 text-gray-300 hover:bg-gray-600/50"
@@ -822,8 +822,8 @@ const Pagos = () => {
                             <button
                               onClick={() => handleReciboPdf(pago.id)}
                               disabled={descargandoPDF === pago.id}
-                              className="shrink-0 whitespace-nowrap px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
-                                       font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
+                              className="shrink-0 whitespace-nowrap px-3 py-1.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg
+                                       font-medium shadow-lg hover:shadow-violet-500/50 transition-all duration-300
                                        hover:scale-105 active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Descargar recibo en PDF"
                             >
@@ -859,7 +859,7 @@ const Pagos = () => {
                 </p>
                 <p className="text-gray-500 text-sm mt-2">
                   {pagos.length === 0 
-                    ? "Usa Registrar pago o revisa en Configuración cómo se generan las cuotas al crear contratos."
+                    ? "Usa Registrar pago o contacta a soporte desde Ayuda si necesitas asistencia."
                     : "Intenta con otros términos de búsqueda o filtros"}
                 </p>
               </div>
@@ -874,137 +874,141 @@ const Pagos = () => {
                 className="bg-gray-700/30 border border-gray-600/50 rounded-xl p-4
                          hover:border-emerald-500/50 transition-all duration-300"
               >
-                <div className="flex gap-4">
-                  {/* Contenido principal */}
-                  <div className="flex-1 space-y-3">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <h3 className="text-white font-semibold text-lg">{pago.arrendatario_nombre}</h3>
-                        <span
-                          className={`inline-flex items-center gap-1.5 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-semibold border leading-none shrink-0 ${getEstadoBadge(pago.estado)}`}
-                        >
-                          <span className="shrink-0 text-[0.95em] leading-none" aria-hidden="true">
-                            {getEstadoIcon(pago.estado)}
-                          </span>
-                          <span>{pago.estado === "pagado" ? "Pagado" : pago.estado === "en_mora" ? "Mora" : "Pendiente"}</span>
+                <div>
+                  <h3 className="text-white font-semibold text-sm leading-snug break-words">
+                    {pago.arrendatario_nombre}
+                  </h3>
+                  <div className="mt-2">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border leading-snug ${getEstadoBadge(pago.estado)}`}
+                    >
+                      <span className="shrink-0 text-[0.95em] leading-none" aria-hidden="true">
+                        {getEstadoIcon(pago.estado)}
+                      </span>
+                      <span>{pago.estado === "pagado" ? "Pagado" : pago.estado === "en_mora" ? "En mora" : "Pendiente"}</span>
+                    </span>
+                  </div>
+                  <p className="text-teal-300 text-sm font-medium mt-2 break-words">{pago.apartamento_nombre}</p>
+                  <p className="text-gray-400 text-xs mt-0.5 break-words leading-relaxed">{pago.apartamento_direccion}</p>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-gray-600/50 space-y-2.5 text-sm">
+                  <div className="flex gap-3 items-start">
+                    <p className="text-gray-500 text-xs w-[4.5rem] shrink-0 pt-0.5">Período</p>
+                    <p className="text-gray-200 flex-1 min-w-0 leading-snug break-words">
+                      {formatPaymentPeriodForList(pago)}
+                    </p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <p className="text-gray-500 text-xs w-[4.5rem] shrink-0 pt-0.5">Valor</p>
+                    <p className="text-emerald-300 font-semibold flex-1 min-w-0">{formatCurrency(pago.valor)}</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <p className="text-gray-500 text-xs w-[4.5rem] shrink-0 pt-0.5">Método</p>
+                    <p className="text-gray-200 flex-1 min-w-0 break-words">{formatMetodoLabel(pago.metodo_pago)}</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <div className="w-[4.5rem] shrink-0">
+                      <p className="text-gray-500 text-xs leading-tight">Fecha pago</p>
+                      <p className="text-gray-500 text-[10px] leading-tight mt-0.5">Al confirmar</p>
+                    </div>
+                    <p
+                      className="text-gray-200 flex-1 min-w-0"
+                      title={!pago.fecha_pago ? "Se registra al confirmar el cobro" : undefined}
+                    >
+                      {formatDate(pago.fecha_pago)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-600/50">
+                  {(pago.estado === "pendiente" || pago.estado === "en_mora") && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(pago)}
+                        className="flex-1 min-w-[calc(50%-0.25rem)] px-3 py-2.5 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                                 font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
+                                 active:scale-95 text-xs"
+                      >
+                        <span className="flex items-center justify-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Editar
                         </span>
-                      </div>
-                      <p className="text-teal-300 text-sm font-medium">{pago.apartamento_nombre}</p>
-                      <p className="text-gray-400 text-xs">{pago.apartamento_direccion}</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <p className="text-gray-500 text-xs">Período</p>
-                        <p className="text-gray-200">{formatPaymentPeriodForList(pago)}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs">Valor</p>
-                        <p className="text-emerald-300 font-semibold">{formatCurrency(pago.valor)}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs">Método</p>
-                        <p className="text-gray-200">{formatMetodoLabel(pago.metodo_pago)}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs">Fecha pago (al confirmar)</p>
-                        <p className="text-gray-200" title={!pago.fecha_pago ? "Se registra al confirmar el cobro" : undefined}>
-                          {formatDate(pago.fecha_pago)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Botones a la derecha */}
-                  <div className="flex flex-col gap-2">
-                    {(pago.estado === "pendiente" || pago.estado === "en_mora") && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(pago)}
-                          className="w-28 px-3 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
-                                   active:scale-95 text-xs"
-                        >
-                          <span className="flex items-center justify-center gap-1">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </button>
+                      <button
+                        onClick={() => openConfirmarModal(pago)}
+                        className="flex-1 min-w-[calc(50%-0.25rem)] px-3 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg
+                                 font-medium shadow-lg hover:shadow-emerald-500/50 transition-all duration-300
+                                 active:scale-95 text-xs"
+                      >
+                        <span className="flex items-center justify-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Confirmar
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(pago.id)}
+                        className="w-full px-3 py-2.5 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg
+                                 font-medium shadow-lg hover:shadow-red-500/50 transition-all duration-300
+                                 active:scale-95 text-xs"
+                      >
+                        <span className="flex items-center justify-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Eliminar
+                        </span>
+                      </button>
+                    </>
+                  )}
+                  {pago.estado === "pagado" && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(pago)}
+                        className="flex-1 px-3 py-2.5 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
+                                 font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
+                                 active:scale-95 text-xs"
+                        title="Revertir o ajustar datos del pago confirmado"
+                      >
+                        <span className="flex items-center justify-center gap-1.5">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Editar
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => handleReciboPdf(pago.id)}
+                        disabled={descargandoPDF === pago.id}
+                        className="flex-1 px-3 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg
+                                 font-medium shadow-lg hover:shadow-violet-500/50 transition-all duration-300
+                                 active:scale-95 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Descargar recibo en PDF"
+                      >
+                        <span className="flex items-center justify-center gap-1.5">
+                          {descargandoPDF === pago.id ? (
+                            <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            Editar
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => openConfirmarModal(pago)}
-                          className="w-28 px-3 py-2 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-emerald-500/50 transition-all duration-300
-                                   active:scale-95 text-xs"
-                        >
-                          <span className="flex items-center justify-center gap-1">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                            Confirmar
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(pago.id)}
-                          className="w-28 px-3 py-2 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-red-500/50 transition-all duration-300
-                                   active:scale-95 text-xs"
-                        >
-                          <span className="flex items-center justify-center gap-1">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            Eliminar
-                          </span>
-                        </button>
-                      </>
-                    )}
-                    {pago.estado === "pagado" && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => openEditModal(pago)}
-                          className="min-w-[7.5rem] w-full max-w-[9rem] px-3 py-2 bg-gradient-to-r from-sky-600 to-cyan-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
-                                   active:scale-95 text-[11px] leading-tight"
-                          title="Revertir o ajustar"
-                        >
-                          <span className="flex flex-col items-center justify-center gap-0.5">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            <span>Editar</span>
-                          </span>
-                        </button>
-                        <button
-                          onClick={() => handleReciboPdf(pago.id)}
-                          disabled={descargandoPDF === pago.id}
-                          className="min-w-[7.5rem] w-full max-w-[9rem] px-3 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
-                                   active:scale-95 text-[11px] leading-tight disabled:opacity-50"
-                          title="Descargar recibo en PDF"
-                        >
-                          <span className="flex flex-col items-center justify-center gap-0.5">
-                            {descargandoPDF === pago.id ? (
-                              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                              </svg>
-                            ) : (
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                              </svg>
-                            )}
-                            <span>Recibo PDF</span>
-                          </span>
-                        </button>
-                      </>
-                    )}
-                  </div>
+                          )}
+                          Recibo PDF
+                        </span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -1017,7 +1021,7 @@ const Pagos = () => {
                 </p>
                 <p className="text-gray-500 text-sm mt-2">
                   {pagos.length === 0 
-                    ? "Usa Registrar pago o revisa la ayuda en Configuración."
+                    ? "Usa Registrar pago o escríbenos desde Ayuda si necesitas soporte."
                     : "Intenta con otros términos de búsqueda o filtros"}
                 </p>
               </div>

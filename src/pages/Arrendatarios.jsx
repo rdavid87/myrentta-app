@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import api from "../services/api"
+import ArrendatarioIcon from "../components/ArrendatarioIcon"
 
 const resolveApartamentoNombre = (apt = {}) => {
   const directCandidates = [apt.name, apt.nombre]
@@ -84,7 +85,7 @@ const Arrendatarios = () => {
     const activeContracts = getActiveContracts(tenantId)
     if (activeContracts.length === 0) {
       return (
-        <span className="px-3 py-1 bg-gray-600/30 text-gray-400 border border-gray-600/30 rounded-full text-xs">
+        <span className="inline-flex items-center px-3 py-1 bg-gray-600/30 text-gray-400 border border-gray-600/30 rounded-full text-xs leading-snug whitespace-normal">
           Sin contrato activo
         </span>
       )
@@ -94,7 +95,7 @@ const Arrendatarios = () => {
         {activeContracts.map((contract) => (
           <span
             key={contract.id}
-            className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold"
+            className="inline-flex items-center px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold leading-snug break-words"
             title={`Contrato #${contract.id}`}
           >
             🏠 {getApartmentLabel(contract)}
@@ -196,32 +197,35 @@ const Arrendatarios = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-violet-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-fuchsia-500"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-fuchsia-950/20 to-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6 sm:mb-8 relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 rounded-2xl blur-xl opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-600 to-cyan-600 rounded-2xl blur-xl opacity-20"></div>
           <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-2xl">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent mb-2">
-                  👥 Arrendatarios
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-fuchsia-400 to-cyan-400 bg-clip-text text-transparent mb-2 flex items-center gap-2 sm:gap-3">
+                  <span className="inline-flex p-2 rounded-xl bg-gradient-to-br from-fuchsia-500/20 to-cyan-500/20 border border-fuchsia-500/30 text-fuchsia-300">
+                    <ArrendatarioIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+                  </span>
+                  Arrendatarios
                 </h1>
                 <p className="text-sm sm:text-base text-gray-400">Gestiona la información de tus inquilinos</p>
               </div>
               <button
                 onClick={openNewModal}
-                className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl
-                         font-semibold shadow-lg hover:shadow-violet-500/50 transition-all duration-300
+                className="group relative w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-fuchsia-600 to-cyan-600 text-white rounded-xl
+                         font-semibold shadow-lg hover:shadow-fuchsia-500/50 transition-all duration-300
                          hover:scale-105 active:scale-95 overflow-hidden text-sm sm:text-base"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-violet-600 opacity-0 
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-fuchsia-600 opacity-0 
                               group-hover:opacity-100 transition-opacity duration-300"></div>
                 <span className="relative flex items-center justify-center gap-2">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,7 +250,7 @@ const Arrendatarios = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 
+                           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500/50 
                            transition-all duration-300"
                 />
                 {searchTerm && (
@@ -275,22 +279,22 @@ const Arrendatarios = () => {
           {/* Tabla Desktop */}
           <div className="hidden lg:block overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-violet-600/20 to-purple-600/20 border-b border-gray-700">
+              <thead className="bg-gradient-to-r from-fuchsia-600/20 to-cyan-600/20 border-b border-gray-700">
                 <tr>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Nombre</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Documento</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Teléfono</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Email</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Contratos activos</th>
-                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-violet-300 uppercase tracking-wider">Acciones</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-fuchsia-300 uppercase tracking-wider">Nombre</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-fuchsia-300 uppercase tracking-wider">Documento</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-fuchsia-300 uppercase tracking-wider">Teléfono</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-fuchsia-300 uppercase tracking-wider">Email</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-fuchsia-300 uppercase tracking-wider">Contratos activos</th>
+                  <th className="px-4 xl:px-6 py-3 xl:py-4 text-left text-xs font-semibold text-fuchsia-300 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700/50">
                 {filteredArrendatarios.map((arr) => (
-                  <tr key={arr.id} className="hover:bg-violet-500/5 transition-colors duration-200">
+                  <tr key={arr.id} className="hover:bg-fuchsia-500/5 transition-colors duration-200">
                     <td className="px-4 xl:px-6 py-3 xl:py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-500 flex items-center justify-center text-white font-bold text-sm">
                           {getInitials(arr.nombre_completo)}
                         </div>
                         <span className="font-medium text-gray-200">{arr.nombre_completo}</span>
@@ -302,7 +306,7 @@ const Arrendatarios = () => {
                       </span>
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4">
-                      <a href={`tel:${arr.telefono}`} className="text-violet-300 hover:text-violet-200 transition-colors flex items-center gap-1">
+                      <a href={`tel:${arr.telefono}`} className="text-fuchsia-300 hover:text-fuchsia-200 transition-colors flex items-center gap-1">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
@@ -310,7 +314,7 @@ const Arrendatarios = () => {
                       </a>
                     </td>
                     <td className="px-4 xl:px-6 py-3 xl:py-4">
-                      <a href={`mailto:${arr.email}`} className="text-purple-300 hover:text-purple-200 transition-colors text-sm truncate max-w-[200px] block">
+                      <a href={`mailto:${arr.email}`} className="text-cyan-300 hover:text-cyan-200 transition-colors text-sm truncate max-w-[200px] block">
                         {arr.email}
                       </a>
                     </td>
@@ -321,8 +325,8 @@ const Arrendatarios = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleEdit(arr)}
-                          className="px-3 py-1.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg
-                                   font-medium shadow-lg hover:shadow-violet-500/50 transition-all duration-300
+                          className="px-3 py-1.5 bg-gradient-to-r from-fuchsia-600 to-cyan-600 text-white rounded-lg
+                                   font-medium shadow-lg hover:shadow-fuchsia-500/50 transition-all duration-300
                                    hover:scale-105 active:scale-95 text-xs"
                         >
                           <span className="flex items-center gap-1">
@@ -354,7 +358,9 @@ const Arrendatarios = () => {
 
             {filteredArrendatarios.length === 0 && (
               <div className="px-6 py-16 text-center">
-                <div className="text-6xl mb-4">👥</div>
+                <div className="mb-4 inline-flex p-4 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-400">
+                  <ArrendatarioIcon className="w-12 h-12" />
+                </div>
                 <p className="text-gray-400 text-lg">
                   {searchTerm ? "No se encontraron arrendatarios" : "No hay arrendatarios registrados"}
                 </p>
@@ -371,31 +377,31 @@ const Arrendatarios = () => {
               <div 
                 key={arr.id}
                 className="bg-gray-700/30 border border-gray-600/50 rounded-xl p-4
-                         hover:border-violet-500/50 transition-all duration-300"
+                         hover:border-fuchsia-500/50 transition-all duration-300"
               >
-                <div className="flex gap-4">
+                <div className="flex gap-3 sm:gap-4">
                   {/* Avatar */}
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-500 flex items-center justify-center text-white text-base sm:text-lg font-bold flex-shrink-0">
                     {getInitials(arr.nombre_completo)}
                   </div>
                   
                   {/* Contenido */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-white font-semibold text-lg truncate">{arr.nombre_completo}</h3>
-                      <div className="flex-shrink-0 max-w-[55%]">
-                        {renderActiveContracts(arr.id)}
-                      </div>
+                    <h3 className="text-white font-semibold text-sm leading-snug break-words">
+                      {arr.nombre_completo}
+                    </h3>
+                    <div className="mt-2">
+                      {renderActiveContracts(arr.id)}
                     </div>
                     
-                    <div className="space-y-1.5 text-sm">
+                    <div className="space-y-1.5 text-sm mt-3">
                       <p className="text-gray-400 font-mono">
                         🪪 {arr.documento_identidad}
                       </p>
-                      <a href={`tel:${arr.telefono}`} className="text-violet-300 hover:text-violet-200 flex items-center gap-1">
+                      <a href={`tel:${arr.telefono}`} className="text-fuchsia-300 hover:text-fuchsia-200 flex items-center gap-1">
                         📞 {arr.telefono}
                       </a>
-                      <a href={`mailto:${arr.email}`} className="text-purple-300 hover:text-purple-200 truncate block">
+                      <a href={`mailto:${arr.email}`} className="text-cyan-300 hover:text-cyan-200 truncate block">
                         ✉️ {arr.email}
                       </a>
                     </div>
@@ -406,8 +412,8 @@ const Arrendatarios = () => {
                 <div className="flex gap-2 mt-4 pt-4 border-t border-gray-600/50">
                   <button
                     onClick={() => handleEdit(arr)}
-                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg
-                             font-medium shadow-lg hover:shadow-violet-500/50 transition-all duration-300
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-fuchsia-600 to-cyan-600 text-white rounded-lg
+                             font-medium shadow-lg hover:shadow-fuchsia-500/50 transition-all duration-300
                              active:scale-95 text-sm"
                   >
                     <span className="flex items-center justify-center gap-2">
@@ -436,7 +442,9 @@ const Arrendatarios = () => {
 
             {filteredArrendatarios.length === 0 && (
               <div className="py-16 text-center">
-                <div className="text-6xl mb-4">👥</div>
+                <div className="mb-4 inline-flex p-4 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-400">
+                  <ArrendatarioIcon className="w-12 h-12" />
+                </div>
                 <p className="text-gray-400 text-lg">
                   {searchTerm ? "No se encontraron arrendatarios" : "No hay arrendatarios registrados"}
                 </p>
@@ -451,7 +459,7 @@ const Arrendatarios = () => {
         {/* Stats Footer */}
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-violet-400">{arrendatarios.length}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-fuchsia-400">{arrendatarios.length}</p>
             <p className="text-xs sm:text-sm text-gray-400">Total</p>
           </div>
           <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 text-center">
@@ -467,7 +475,7 @@ const Arrendatarios = () => {
             <p className="text-xs sm:text-sm text-gray-400">Sin contrato activo</p>
           </div>
           <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-purple-400">
+            <p className="text-2xl sm:text-3xl font-bold text-cyan-400">
               {arrendatarios.filter(a => a.email).length}
             </p>
             <p className="text-xs sm:text-sm text-gray-400">Con Email</p>
@@ -480,10 +488,16 @@ const Arrendatarios = () => {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl max-w-lg w-full 
                         border border-gray-700/50 overflow-hidden my-8">
-            <div className="relative bg-gradient-to-r from-violet-600/20 to-purple-600/20 border-b border-gray-700/50 p-4 sm:p-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 opacity-10"></div>
+            <div className="relative bg-gradient-to-r from-fuchsia-600/20 to-cyan-600/20 border-b border-gray-700/50 p-4 sm:p-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-600 to-cyan-600 opacity-10"></div>
               <h2 className="relative text-xl sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
-                <span className="text-2xl sm:text-3xl">{editingId ? "✏️" : "👤"}</span>
+                <span className="inline-flex p-2 rounded-xl bg-fuchsia-500/15 border border-fuchsia-500/25 text-fuchsia-300">
+                  {editingId ? (
+                    <span className="text-2xl sm:text-3xl leading-none">✏️</span>
+                  ) : (
+                    <ArrendatarioIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+                  )}
+                </span>
                 <span className="leading-tight">{editingId ? "Editar Arrendatario" : "Nuevo Arrendatario"}</span>
               </h2>
             </div>
@@ -491,7 +505,10 @@ const Arrendatarios = () => {
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                  👤 Nombre Completo
+                  <span className="inline-flex items-center gap-1.5">
+                    <ArrendatarioIcon className="w-4 h-4 text-fuchsia-400" />
+                    Nombre Completo
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -499,7 +516,7 @@ const Arrendatarios = () => {
                   value={formData.nombre_completo}
                   onChange={(e) => setFormData({ ...formData, nombre_completo: e.target.value })}
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 
+                           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500/50 
                            transition-all duration-300"
                   required
                 />
@@ -515,7 +532,7 @@ const Arrendatarios = () => {
                   value={formData.documento_identidad}
                   onChange={(e) => setFormData({ ...formData, documento_identidad: e.target.value })}
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 
+                           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500/50 
                            transition-all duration-300"
                   required
                 />
@@ -532,7 +549,7 @@ const Arrendatarios = () => {
                     value={formData.telefono}
                     onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 
+                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500/50 
                              transition-all duration-300"
                     required
                   />
@@ -547,7 +564,7 @@ const Arrendatarios = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl text-white text-sm
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 
+                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500/50 
                              transition-all duration-300"
                     required
                   />
@@ -558,8 +575,8 @@ const Arrendatarios = () => {
               <div className="flex flex-col sm:flex-row gap-3 pt-2 sm:pt-4">
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl
-                           font-semibold shadow-lg hover:shadow-violet-500/50 transition-all duration-300
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-fuchsia-600 to-cyan-600 text-white rounded-xl
+                           font-semibold shadow-lg hover:shadow-fuchsia-500/50 transition-all duration-300
                            hover:scale-105 active:scale-95 text-sm sm:text-base"
                 >
                   <span className="flex items-center justify-center gap-2">

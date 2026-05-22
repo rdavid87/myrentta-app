@@ -380,7 +380,7 @@ const Apartamentos = () => {
         </div>
 
         {/* Stats Footer */}
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 text-center">
             <p className="text-2xl sm:text-3xl font-bold text-blue-400">{apartamentos.length}</p>
             <p className="text-xs sm:text-sm text-gray-400">Total</p>
@@ -396,12 +396,6 @@ const Apartamentos = () => {
               {apartamentos.filter(a => a.estado !== "disponible").length}
             </p>
             <p className="text-xs sm:text-sm text-gray-400">Arrendados</p>
-          </div>
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-blue-400">
-              {[...new Set(apartamentos.map(a => a.ciudad))].length}
-            </p>
-            <p className="text-xs sm:text-sm text-gray-400">Ciudades</p>
           </div>
         </div>
       </div>
