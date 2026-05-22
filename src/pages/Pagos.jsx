@@ -561,8 +561,8 @@ const Pagos = () => {
                 </h1>
                 <p className="text-sm sm:text-base text-gray-400 max-w-xl">
                   Registra y confirma pagos.{" "}
-                  <Link to="/configuraciones" className="text-teal-300/90 hover:text-teal-200 underline-offset-2 hover:underline">
-                    Ayuda sobre cuotas automáticas (Configuración)
+                  <Link to="/ayuda" className="text-teal-300/90 hover:text-teal-200 underline-offset-2 hover:underline">
+                    Contactar soporte (Ayuda)
                   </Link>
                   .
                 </p>
@@ -859,7 +859,7 @@ const Pagos = () => {
                 </p>
                 <p className="text-gray-500 text-sm mt-2">
                   {pagos.length === 0 
-                    ? "Usa Registrar pago o revisa en Configuración cómo se generan las cuotas al crear contratos."
+                    ? "Usa Registrar pago o contacta a soporte desde Ayuda si necesitas asistencia."
                     : "Intenta con otros términos de búsqueda o filtros"}
                 </p>
               </div>
@@ -1021,7 +1021,7 @@ const Pagos = () => {
                 </p>
                 <p className="text-gray-500 text-sm mt-2">
                   {pagos.length === 0 
-                    ? "Usa Registrar pago o revisa la ayuda en Configuración."
+                    ? "Usa Registrar pago o escríbenos desde Ayuda si necesitas soporte."
                     : "Intenta con otros términos de búsqueda o filtros"}
                 </p>
               </div>

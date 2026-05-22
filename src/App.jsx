@@ -10,7 +10,7 @@ import Apartamentos from "./pages/Apartamentos"
 import Arrendatarios from "./pages/Arrendatarios"
 import Contratos from "./pages/Contratos"
 import Pagos from "./pages/Pagos"
-import Configuraciones from "./pages/Configuraciones"
+import Ayuda from "./pages/Ayuda"
 import PrivateRoute from "./components/PrivateRoute"
 import Layout from "./components/Layout"
 
@@ -39,7 +39,8 @@ function App() {
             <Route path="/arrendatarios" element={<Arrendatarios />} />
             <Route path="/contratos" element={<Contratos />} />
             <Route path="/pagos" element={<Pagos />} />
-            <Route path="/configuraciones" element={<Configuraciones />} />
+            <Route path="/ayuda" element={<Ayuda />} />
+            <Route path="/configuraciones" element={<Navigate to="/ayuda" replace />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
