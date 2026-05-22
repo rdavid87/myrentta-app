@@ -84,7 +84,7 @@ const Arrendatarios = () => {
     const activeContracts = getActiveContracts(tenantId)
     if (activeContracts.length === 0) {
       return (
-        <span className="px-3 py-1 bg-gray-600/30 text-gray-400 border border-gray-600/30 rounded-full text-xs">
+        <span className="inline-flex items-center px-3 py-1 bg-gray-600/30 text-gray-400 border border-gray-600/30 rounded-full text-xs leading-snug whitespace-normal">
           Sin contrato activo
         </span>
       )
@@ -94,7 +94,7 @@ const Arrendatarios = () => {
         {activeContracts.map((contract) => (
           <span
             key={contract.id}
-            className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold"
+            className="inline-flex items-center px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-semibold leading-snug break-words"
             title={`Contrato #${contract.id}`}
           >
             🏠 {getApartmentLabel(contract)}
@@ -373,22 +373,22 @@ const Arrendatarios = () => {
                 className="bg-gray-700/30 border border-gray-600/50 rounded-xl p-4
                          hover:border-violet-500/50 transition-all duration-300"
               >
-                <div className="flex gap-4">
+                <div className="flex gap-3 sm:gap-4">
                   {/* Avatar */}
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white text-base sm:text-lg font-bold flex-shrink-0">
                     {getInitials(arr.nombre_completo)}
                   </div>
                   
                   {/* Contenido */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-white font-semibold text-lg truncate">{arr.nombre_completo}</h3>
-                      <div className="flex-shrink-0 max-w-[55%]">
-                        {renderActiveContracts(arr.id)}
-                      </div>
+                    <h3 className="text-white font-semibold text-sm leading-snug break-words">
+                      {arr.nombre_completo}
+                    </h3>
+                    <div className="mt-2">
+                      {renderActiveContracts(arr.id)}
                     </div>
                     
-                    <div className="space-y-1.5 text-sm">
+                    <div className="space-y-1.5 text-sm mt-3">
                       <p className="text-gray-400 font-mono">
                         🪪 {arr.documento_identidad}
                       </p>
