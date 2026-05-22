@@ -38,15 +38,19 @@ const contractPaymentsHref = (contractId) => `/pagos?contrato=${contractId}`
 const ViewPaymentsLink = ({ contractId, className = "" }) => (
   <Link
     to={contractPaymentsHref(contractId)}
-    className={`inline-flex items-center justify-center gap-1.5 font-semibold text-white
+    title="Ver pagos del contrato"
+    aria-label="Ver pagos del contrato"
+    className={`inline-flex items-center justify-center gap-1 lg:gap-1.5 font-semibold text-white min-w-0
       bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-500/25
       hover:shadow-emerald-400/40 hover:brightness-110 active:scale-[0.98] transition-all duration-200
       ${className}`}
   >
-    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    <svg className="w-4 h-4 lg:w-3.5 lg:h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
     </svg>
-    Ver pagos
+    <span className="lg:hidden leading-none text-[11px] sm:text-xs">pagos</span>
+    <span className="hidden lg:inline">Ver pagos</span>
   </Link>
 )
 
@@ -956,12 +960,12 @@ const Contratos = () => {
                         </button>
                         <ViewPaymentsLink
                           contractId={contrato.id}
-                          className="min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs text-center"
+                          className="min-h-[40px] px-1.5 py-2 rounded-xl text-center"
                         />
                         <button
                           type="button"
                           onClick={(e) => openMoreMenu(e, contrato)}
-                          className={`min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-center border backdrop-blur-md
+                          className={`min-h-[40px] px-1.5 py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-center border backdrop-blur-md
                             transition-all active:scale-[0.98]
                             ${actionsMenu?.contrato?.id === contrato.id
                               ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
@@ -986,12 +990,12 @@ const Contratos = () => {
                         )}
                         <ViewPaymentsLink
                           contractId={contrato.id}
-                          className="min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs text-center"
+                          className="min-h-[40px] px-1.5 py-2 rounded-xl text-center"
                         />
                         <button
                           type="button"
                           onClick={(e) => openMoreMenu(e, contrato)}
-                          className={`min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-center border backdrop-blur-md
+                          className={`min-h-[40px] px-1.5 py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-center border backdrop-blur-md
                             transition-all active:scale-[0.98]
                             ${actionsMenu?.contrato?.id === contrato.id
                               ? "border-cyan-400/50 bg-cyan-500/20 text-cyan-100"
