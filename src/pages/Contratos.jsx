@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { createPortal } from "react-dom"
 import api from "../services/api"
+import ArrendatarioIcon from "../components/ArrendatarioIcon"
 
 const resolveApartamentoNombre = (apt = {}) => {
   const directCandidates = [apt.name, apt.nombre]
@@ -978,11 +979,12 @@ const Contratos = () => {
 
       {/* Modal de Crear Contrato */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm overflow-y-auto overscroll-contain">
+          <div className="flex min-h-full items-start justify-center p-4 py-6 sm:py-10">
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full 
-                        border border-gray-700/50 overflow-hidden my-8">
+                        border border-gray-700/50 overflow-hidden flex flex-col max-h-[calc(100dvh-3rem)]">
             {/* Header del modal con gradiente */}
-            <div className="relative bg-gradient-to-r from-amber-600/20 to-yellow-600/20 border-b border-gray-700/50 p-4 sm:p-6">
+            <div className="relative shrink-0 bg-gradient-to-r from-amber-600/20 to-yellow-600/20 border-b border-gray-700/50 p-4 sm:p-6">
               <div className="absolute inset-0 bg-gradient-to-r from-amber-600 to-yellow-600 opacity-10"></div>
               <h2 className="relative text-xl sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
                 <span className="text-2xl sm:text-3xl">{contratoToRenew ? "🔄" : "📝"}</span>
@@ -996,11 +998,14 @@ const Contratos = () => {
             </div>
 
             {/* Formulario */}
-            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1 min-h-0">
               {/* Arrendatario */}
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-                  👤 Arrendatario
+                  <span className="inline-flex items-center gap-1.5">
+                    <ArrendatarioIcon className="w-4 h-4 text-fuchsia-400" />
+                    Arrendatario
+                  </span>
                 </label>
                 <select
                   value={formData.arrendatario_id}
@@ -1161,9 +1166,6 @@ const Contratos = () => {
                       Cobro a Mes Vencido (Fin de Mes)
                     </option>
                   </select>
-                  <p className="text-xs text-gray-500 mt-1.5">
-                    Moras, recordatorios y generación automática de pagos usan esta misma regla.
-                  </p>
                 </div>
               </div>
 
@@ -1189,6 +1191,7 @@ const Contratos = () => {
                 </button>
               </div>
             </form>
+          </div>
           </div>
         </div>
       )}
@@ -1274,10 +1277,11 @@ const Contratos = () => {
 
       {/* Modal Editar Contrato (activo) */}
       {showEditModal && contratoToEdit && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm overflow-y-auto overscroll-contain">
+          <div className="flex min-h-full items-start justify-center p-4 py-6 sm:py-10">
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl max-w-lg w-full 
-                        border border-gray-700/50 overflow-hidden my-8">
-            <div className="relative bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border-b border-gray-700/50 p-4 sm:p-6">
+                        border border-gray-700/50 overflow-hidden flex flex-col max-h-[calc(100dvh-3rem)]">
+            <div className="relative shrink-0 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border-b border-gray-700/50 p-4 sm:p-6">
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 opacity-10"></div>
               <h2 className="relative text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                 <span className="text-2xl">✏️</span>
@@ -1288,7 +1292,7 @@ const Contratos = () => {
               </p>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4">
+            <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0">
               <p className="text-xs text-gray-500 bg-gray-800/40 rounded-lg px-3 py-2 border border-gray-600/40">
                 Puedes corregir fechas, canon, días extra y modo de cobro (anticipado o fin de mes). Para cambiar arrendatario o apartamento, elimina este contrato y crea uno nuevo.
               </p>
@@ -1395,6 +1399,7 @@ const Contratos = () => {
                 </button>
               </div>
             </form>
+          </div>
           </div>
         </div>
       )}

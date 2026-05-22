@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import api from "../services/api"
+import ArrendatarioIcon from "../components/ArrendatarioIcon"
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -169,19 +170,21 @@ const Dashboard = () => {
 
           {/* Total Arrendatarios */}
           <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-violet-600 to-purple-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-violet-500/20 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-600 to-cyan-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
+            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-fuchsia-500/20 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Arrendatarios</p>
                   <p className="text-3xl sm:text-4xl font-bold text-white mt-2">{stats.totalArrendatarios}</p>
                   <div className="mt-2 text-xs">
-                    <span className="px-2 py-1 bg-violet-500/20 text-violet-300 rounded-lg">
+                    <span className="px-2 py-1 bg-fuchsia-500/20 text-fuchsia-300 rounded-lg">
                       {stats.contratosActivos} con contrato activo
                     </span>
                   </div>
                 </div>
-                <div className="text-4xl sm:text-5xl opacity-80">👥</div>
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-cyan-500/20 border border-fuchsia-500/30 text-fuchsia-300">
+                  <ArrendatarioIcon className="w-10 h-10 sm:w-12 sm:h-12" />
+                </div>
               </div>
             </div>
           </div>
