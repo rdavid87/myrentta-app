@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import api from "../services/api"
 import ArrendatarioIcon from "../components/ArrendatarioIcon"
+import { formatPaymentPeriodForList } from "../utils/periodoCuota"
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -39,7 +40,7 @@ const Dashboard = () => {
 
       // Calcular estadísticas
       const disponibles = apartamentos.filter(a => a.estado === "disponible").length
-      const ocupados = apartamentos.filter(a => a.estado === "arrendado").length
+      const arrendados = apartamentos.filter(a => a.estado !== "disponible").length
       const contratosActivos = contratos.filter(c => c.estado === "activo").length
       
       // Contratos por vencer (próximos 30 días)
@@ -52,11 +53,17 @@ const Dashboard = () => {
         return fechaFin >= hoy && fechaFin <= en30Dias
       }).length
 
-      // Pagos del mes actual
+      // Ingresos del mes calendario actual (por fecha en que se recibió el pago, no por período de arriendo)
       const mesActual = hoy.getMonth() + 1
       const anioActual = hoy.getFullYear()
-      const pagosDelMes = pagos.filter(p => p.mes === mesActual && p.anio === anioActual && p.estado === "pagado")
-      const ingresosMes = pagosDelMes.reduce((sum, p) => sum + (p.valor || 0), 0)
+      const pagoRecibidoEnMesActual = (p) => {
+        if (p.estado !== "pagado" || !p.fecha_pago) return false
+        const fechaStr = String(p.fecha_pago).slice(0, 10)
+        const [anioStr, mesStr] = fechaStr.split("-")
+        return Number(mesStr) === mesActual && Number(anioStr) === anioActual
+      }
+      const pagosDelMes = pagos.filter(pagoRecibidoEnMesActual)
+      const ingresosMes = pagosDelMes.reduce((sum, p) => sum + (Number(p.valor) || 0), 0)
 
       // Pagos en mora
       const enMora = pagos.filter(p => p.estado === "en_mora" || p.estado === "pendiente")
@@ -65,7 +72,7 @@ const Dashboard = () => {
       setStats({
         totalApartamentos: apartamentos.length,
         apartamentosDisponibles: disponibles,
-        apartamentosOcupados: ocupados,
+        apartamentosOcupados: arrendados,
         totalArrendatarios: arrendatarios.length,
         contratosActivos,
         contratosPorVencer: porVencer,
@@ -107,11 +114,6 @@ const Dashboard = () => {
     if (!dateString) return "-"
     const date = new Date(dateString)
     return date.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
-  }
-
-  const getNombreMes = (mes) => {
-    const meses = ["", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-    return meses[mes] || mes
   }
 
   if (loading) {
@@ -159,7 +161,7 @@ const Dashboard = () => {
                       {stats.apartamentosDisponibles} disponibles
                     </span>
                     <span className="px-2 py-1 bg-amber-500/20 text-amber-300 rounded-lg">
-                      {stats.apartamentosOcupados} ocupados
+                      {stats.apartamentosOcupados} arrendados
                     </span>
                   </div>
                 </div>
@@ -279,7 +281,7 @@ const Dashboard = () => {
                 ></div>
               </div>
               <div className="mt-2 flex justify-between text-xs text-gray-400">
-                <span>{stats.apartamentosOcupados} ocupados</span>
+                <span>{stats.apartamentosOcupados} arrendados</span>
                 <span>{stats.apartamentosDisponibles} disponibles</span>
               </div>
             </div>
@@ -315,7 +317,7 @@ const Dashboard = () => {
                         </div>
                         <div>
                           <p className="text-white font-medium text-sm">{pago.arrendatario_nombre || "Arrendatario"}</p>
-                          <p className="text-gray-400 text-xs">{getNombreMes(pago.mes)} {pago.anio}</p>
+                          <p className="text-teal-300/90 text-xs">{formatPaymentPeriodForList(pago)}</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -360,7 +362,7 @@ const Dashboard = () => {
                         </div>
                         <div>
                           <p className="text-white font-medium text-sm">{pago.arrendatario_nombre || "Arrendatario"}</p>
-                          <p className="text-gray-400 text-xs">{getNombreMes(pago.mes)} {pago.anio}</p>
+                          <p className="text-teal-300/90 text-xs">{formatPaymentPeriodForList(pago)}</p>
                         </div>
                       </div>
                       <div className="text-right">
