@@ -168,17 +168,28 @@ const Layout = () => {
                     key={path}
                     to={path}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 ${isActive
-                        ? `bg-gradient-to-r ${color} text-white shadow-lg`
-                        : "text-gray-300 bg-gray-800/50 hover:bg-gray-700/50"
-                      }`}
+                    className={`flex items-center gap-4 p-3.5 rounded-2xl border transition-all duration-300 ${
+                      isActive
+                        ? `bg-gradient-to-r ${color} text-white shadow-lg border-white/10`
+                        : "text-gray-200 bg-gray-800/60 border-gray-700/50 hover:bg-gray-700/60 hover:border-gray-600/60"
+                    }`}
                   >
-                    <span className="w-6 h-6">{icon}</span>
-                    <span className="text-lg font-medium">{label}</span>
-                    {isActive && (
-                      <svg className="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span
+                      className={`flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 ${
+                        isActive
+                          ? "bg-white/20 text-white border border-white/25 shadow-inner"
+                          : `bg-gradient-to-br ${color} text-white shadow-md border border-white/10`
+                      }`}
+                    >
+                      <span className="w-5 h-5 [&>svg]:w-5 [&>svg]:h-5">{icon}</span>
+                    </span>
+                    <span className="text-base font-medium flex-1">{label}</span>
+                    {isActive ? (
+                      <svg className="w-5 h-5 flex-shrink-0 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                       </svg>
+                    ) : (
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 bg-gradient-to-br ${color} opacity-80`} aria-hidden />
                     )}
                   </Link>
                 )
