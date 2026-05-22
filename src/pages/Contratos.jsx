@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { Link } from "react-router-dom"
 import { createPortal } from "react-dom"
 import api from "../services/api"
 import ArrendatarioIcon from "../components/ArrendatarioIcon"
@@ -31,6 +32,23 @@ const normalizeApartamento = (apt = {}) => {
 
 const getApartamentoDisplayName = (apt = {}) =>
   apt.nombre?.trim() || `Sin nombre (ID ${apt.id ?? "?"})`
+
+const contractPaymentsHref = (contractId) => `/pagos?contrato=${contractId}`
+
+const ViewPaymentsLink = ({ contractId, className = "" }) => (
+  <Link
+    to={contractPaymentsHref(contractId)}
+    className={`inline-flex items-center justify-center gap-1.5 font-semibold text-white
+      bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg shadow-emerald-500/25
+      hover:shadow-emerald-400/40 hover:brightness-110 active:scale-[0.98] transition-all duration-200
+      ${className}`}
+  >
+    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    </svg>
+    Ver pagos
+  </Link>
+)
 
 const Contratos = () => {
   const [contratos, setContratos] = useState([])
@@ -527,6 +545,26 @@ const Contratos = () => {
                       className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm text-rose-200
                                hover:bg-rose-600/20 hover:ring-1 hover:ring-rose-400/30 transition-all"
                       onClick={() => {
+                        handleFinalizar(actionsMenu.contrato.id)
+                        closeActionsMenu()
+                      }}
+                    >
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/20 text-rose-300">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </span>
+                      <span>
+                        <span className="block font-medium">Finalizar</span>
+                        <span className="block text-[11px] text-gray-500">Cierra el contrato activo</span>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm text-rose-200
+                               hover:bg-rose-600/20 hover:ring-1 hover:ring-rose-400/30 transition-all"
+                      onClick={() => {
                         handleDelete(actionsMenu.contrato)
                         closeActionsMenu()
                       }}
@@ -544,16 +582,34 @@ const Contratos = () => {
                   </>
                 )}
                 {actionsMenu.contrato.estado === "finalizado" && (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm text-rose-200
-                             hover:bg-rose-600/20 hover:ring-1 hover:ring-rose-400/30 transition-all"
-                    onClick={() => {
-                      handleDelete(actionsMenu.contrato)
-                      closeActionsMenu()
-                    }}
-                  >
+                  <>
+                    <Link
+                      to={contractPaymentsHref(actionsMenu.contrato.id)}
+                      role="menuitem"
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm text-emerald-100
+                               hover:bg-emerald-500/15 hover:ring-1 hover:ring-emerald-400/20 transition-all"
+                      onClick={closeActionsMenu}
+                    >
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-300">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                      </span>
+                      <span>
+                        <span className="block font-medium">Ver pagos</span>
+                        <span className="block text-[11px] text-gray-500">Historial de cobros del contrato</span>
+                      </span>
+                    </Link>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-sm text-rose-200
+                               hover:bg-rose-600/20 hover:ring-1 hover:ring-rose-400/30 transition-all"
+                      onClick={() => {
+                        handleDelete(actionsMenu.contrato)
+                        closeActionsMenu()
+                      }}
+                    >
                     <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/20 text-rose-300">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -561,6 +617,7 @@ const Contratos = () => {
                     </span>
                     <span className="font-medium">Eliminar contrato</span>
                   </button>
+                  </>
                 )}
               </div>
             </div>
@@ -732,26 +789,15 @@ const Contratos = () => {
                               type="button"
                               onClick={() => openEditModal(contrato)}
                               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white
-                                       bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25
-                                       hover:shadow-emerald-400/40 hover:brightness-110 active:scale-[0.98] transition-all duration-200"
+                                       bg-gradient-to-r from-amber-500 to-orange-600 shadow-lg shadow-amber-500/25
+                                       hover:shadow-amber-400/40 hover:brightness-110 active:scale-[0.98] transition-all duration-200"
                             >
                               <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
                               Editar
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => handleFinalizar(contrato.id)}
-                              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white
-                                       bg-gradient-to-r from-rose-500 to-red-600 shadow-lg shadow-rose-500/25
-                                       hover:shadow-rose-400/35 hover:brightness-110 active:scale-[0.98] transition-all duration-200"
-                            >
-                              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              Finalizar
-                            </button>
+                            <ViewPaymentsLink contractId={contrato.id} className="px-3 py-2 rounded-xl text-xs" />
                             <button
                               type="button"
                               onClick={(e) => openMoreMenu(e, contrato)}
@@ -784,6 +830,7 @@ const Contratos = () => {
                                 Renovar
                               </button>
                             )}
+                            <ViewPaymentsLink contractId={contrato.id} className="px-3 py-2 rounded-xl text-xs" />
                             <button
                               type="button"
                               onClick={(e) => openMoreMenu(e, contrato)}
@@ -892,8 +939,8 @@ const Contratos = () => {
                       contrato.estado === "activo"
                         ? "grid-cols-3"
                         : tieneContratoActivoMismoAptoMismoArrendatario(contrato)
-                          ? "grid-cols-1"
-                          : "grid-cols-2"
+                          ? "grid-cols-2"
+                          : "grid-cols-3"
                     }`}
                   >
                     {contrato.estado === "activo" && (
@@ -902,20 +949,15 @@ const Contratos = () => {
                           type="button"
                           onClick={() => openEditModal(contrato)}
                           className="min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-white text-center
-                                   bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20
+                                   bg-gradient-to-r from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20
                                    hover:brightness-110 active:scale-[0.98] transition-all"
                         >
                           Editar
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleFinalizar(contrato.id)}
-                          className="min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs font-semibold text-white text-center
-                                   bg-gradient-to-r from-rose-500 to-red-600 shadow-lg shadow-rose-500/20
-                                   hover:brightness-110 active:scale-[0.98] transition-all"
-                        >
-                          Finalizar
-                        </button>
+                        <ViewPaymentsLink
+                          contractId={contrato.id}
+                          className="min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs text-center"
+                        />
                         <button
                           type="button"
                           onClick={(e) => openMoreMenu(e, contrato)}
@@ -942,6 +984,10 @@ const Contratos = () => {
                             Renovar
                           </button>
                         )}
+                        <ViewPaymentsLink
+                          contractId={contrato.id}
+                          className="min-h-[40px] px-2 py-2 rounded-xl text-[11px] sm:text-xs text-center"
+                        />
                         <button
                           type="button"
                           onClick={(e) => openMoreMenu(e, contrato)}
