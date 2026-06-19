@@ -90,3 +90,79 @@
     @apply bg-background text-foreground;
   }
 }
+
+        .logo-container-responsive {
+            width: 90%;            /* Se adapta al ancho de pantallas móviles */
+            max-width: 340px;      /* Límite de tamaño en pantallas de escritorio */
+            min-width: 200px;      /* Evita que se comprima demasiado */
+            aspect-ratio: 3 / 1.25; /* Mantiene la proporción perfecta siempre */
+            padding: 50px;
+            box-sizing: border-box;
+          
+            
+            /* Centrado interno */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            /* Obligatorio para que el logo escuche el tamaño de este contenedor */
+            container-type: inline-size; 
+        }
+
+        /* LOGO AUTOREGULABLE */
+        .logo-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            user-select: none;
+        }
+
+        /* Texto Principal */
+        .brand-text {
+            font-size: 14.5cqw;    /* Escala según el ancho del contenedor */
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1;
+            letter-spacing: -0.03em;
+        }
+
+        /* La "M" principal */
+        .brand-text span.accent-m {
+            color: #0891b2;
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Línea superior protectora */
+        .brand-text span.accent-m::before {
+            content: '';
+            position: absolute;
+            top: -0.08em; 
+            left: 5%;
+            width: 90%;
+            height: 0.08em; 
+            background-color: #0891b2;
+            border-radius: 0.04em;
+        }
+
+        /* Resto del texto */
+        .brand-text span.light-text {
+            color: #e5e7eb;
+            font-weight: 300;
+            letter-spacing: 0;
+        }
+
+        /* Lema */
+        .brand-sub {
+            font-size: 3.5cqw;     /* Escala proporcionalmente con el texto */
+            font-weight: 600;
+            color: #0891b2; 
+            text-transform: uppercase;
+            letter-spacing: 0.18em; 
+            margin-top: 4%; 
+            margin-bottom: 0;
+            width: 100%;
+        }
