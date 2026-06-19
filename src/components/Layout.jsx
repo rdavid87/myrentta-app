@@ -60,15 +60,11 @@ const Layout = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <div className="flex items-center gap-3">
-              <img
-                src="/logo-myrentta.jpeg"
-                alt="MyRentta"
-                className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-cyan-500/30"
-              />
-              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                MyRentta
-              </h1>
+            <div className="logo-container-responsive">
+              <div className="logo-wrapper">
+                <h1 class="brand-text"><span class="accent-m">M</span>y<span class="light-text">Rentta</span></h1>
+                <p class="brand-sub">in safe hands</p>
+              </div>
             </div>
 
             {/* User section - Desktop */}
