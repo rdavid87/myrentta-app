@@ -36,45 +36,45 @@ manifest: {
                url: "url",
              },
            },
-           screenshots: [
-            {
-              src: "screenshots/screen-wide.png",
-              sizes: "1024x1024",
-              type: "image/png",
-              form_factor: "wide",
-            },
-            {
-              src: "screenshots/screen-narrow.png",
-              sizes: "512x512",
-              type: "image/png",
-            },
-          ],
-          shortcuts: [
-            {
-              name: "Dashboard",
-              url: "/myrentta-app/",
-              description: "Ver resumen de arrendamientos",
-              icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
-            },
-            {
-              name: "Pagos",
-              url: "/myrentta-app/pagos",
-              description: "Gestión de pagos",
-              icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
-            },
-            {
-              name: "Apartamentos",
-              url: "/myrentta-app/apartamentos",
-              description: "Ver apartamentos",
-              icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
-            },
-            {
-              name: "Arrendatarios",
-              url: "/myrentta-app/arrendatarios",
-              description: "Ver arrendatarios",
-              icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
-            },
-          ],
+screenshots: [
+             {
+               src: "screenshots/screen-wide.png",
+               sizes: "2826x2048",
+               type: "image/png",
+               form_factor: "wide",
+             },
+             {
+               src: "screenshots/screen-narrow.png",
+               sizes: "1024x1024",
+               type: "image/png",
+             },
+           ],
+shortcuts: [
+             {
+               name: "Dashboard",
+               url: "/myrentta-app/",
+               description: "Ver resumen de arrendamientos",
+               icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
+             },
+             {
+               name: "Pagos",
+               url: "/myrentta-app/pagos",
+               description: "Gestión de pagos",
+               icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
+             },
+             {
+               name: "Apartamentos",
+               url: "/myrentta-app/apartamentos",
+               description: "Ver apartamentos",
+               icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
+             },
+             {
+               name: "Arrendatarios",
+               url: "/myrentta-app/arrendatarios",
+               description: "Ver arrendatarios",
+               icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
+             },
+           ],
           icons: [
            {
              src: "android/launchericon-192x192.png",
