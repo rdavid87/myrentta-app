@@ -12,19 +12,59 @@ VitePWA({
        filename: "pwabuilder-sw.js",
        strategies: "injectManifest",
        registerType: "autoUpdate",
-       manifest: {
-         name: "MyRentta",
-         short_name: "MyRentta",
-         description: "Administra sus bienes raices desde una aplicación.",
-         theme_color: "#1aa3e1",
-         background_color: "#111827",
-         display: "standalone",
-         orientation: "portrait",
-         scope: "/myrentta-app/",
-         start_url: "/myrentta-app/",
-         lang: "es",
-         categories: ["business", "finance", "productivity"],
-         icons: [
+manifest: {
+          id: "https://myrentta.com/myrentta-app",
+          name: "MyRentta",
+          short_name: "MyRentta",
+          description: "Administra sus bienes raices desde una aplicación.",
+          theme_color: "#1aa3e1",
+          background_color: "#111827",
+          display: "standalone",
+          orientation: "portrait",
+          scope: "/myrentta-app/",
+          start_url: "/myrentta-app/",
+          lang: "es",
+          categories: ["business", "finance", "productivity"],
+          screenshots: [
+            {
+              src: "screenshots/screen-wide.png",
+              sizes: "1024x1024",
+              type: "image/png",
+              form_factor: "wide",
+            },
+            {
+              src: "screenshots/screen-narrow.png",
+              sizes: "512x512",
+              type: "image/png",
+            },
+          ],
+          shortcuts: [
+            {
+              name: "Dashboard",
+              url: "/myrentta-app/",
+              description: "Ver resumen de arrendamientos",
+              icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
+            },
+            {
+              name: "Pagos",
+              url: "/myrentta-app/pagos",
+              description: "Gestión de pagos",
+              icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
+            },
+            {
+              name: "Apartamentos",
+              url: "/myrentta-app/apartamentos",
+              description: "Ver apartamentos",
+              icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
+            },
+            {
+              name: "Arrendatarios",
+              url: "/myrentta-app/arrendatarios",
+              description: "Ver arrendatarios",
+              icons: [{ src: "android/launchericon-192x192.png", sizes: "192x192" }],
+            },
+          ],
+          icons: [
            {
              src: "android/launchericon-192x192.png",
              sizes: "192x192",
