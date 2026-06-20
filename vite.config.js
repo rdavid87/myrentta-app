@@ -218,11 +218,11 @@ manifest: {
            },
          ],
        },
-       injectRegister: "script",
-       workbox: {
-         globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
-       },
-     }),
+injectRegister: "script",
+        workbox: {
+          globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+        },
+      }),
   ],
   resolve: {
     alias: {
