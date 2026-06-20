@@ -11,6 +11,7 @@ import Arrendatarios from "./pages/Arrendatarios"
 import Contratos from "./pages/Contratos"
 import Pagos from "./pages/Pagos"
 import Ayuda from "./pages/Ayuda"
+import ShareTarget from "./pages/ShareTarget"
 import PrivateRoute from "./components/PrivateRoute"
 import Layout from "./components/Layout"
 
@@ -25,6 +26,7 @@ function App() {
           <Route path="/validate-otp" element={<ValidateOTP />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/share" element={<ShareTarget />} />
 
           {/* Protected routes */}
           <Route

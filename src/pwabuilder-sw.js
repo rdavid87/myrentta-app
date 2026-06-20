@@ -1,10 +1,10 @@
-// This is the "Offline page" service worker
+// This is the service worker with the combined offline experience (Offline page + Offline copy of pages)
+
+const CACHE = "pwabuilder-offline-page";
+
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.6.0/workbox-sw.js');
 
-const CACHE = "pwabuilder-page";
-const offlineFallbackPage = "/myrentta-app/index.html";
-
-workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
+const offlineFallbackPage = "/myrentta-app/";
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
@@ -22,6 +22,15 @@ self.addEventListener('install', async (event) => {
 if (workbox.navigationPreload.isSupported()) {
   workbox.navigationPreload.enable();
 }
+
+workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
+
+workbox.routing.registerRoute(
+  new RegExp('.*'),
+  new workbox.strategies.StaleWhileRevalidate({
+    cacheName: CACHE
+  })
+);
 
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
