@@ -45,7 +45,7 @@ const Ayuda = () => {
         </div>
 
         <div className="group relative">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-500 rounded-3xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-500" />
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-500 rounded-3xl blur opacity-25 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none" />
           <article className="relative bg-gray-800/60 backdrop-blur-md border border-gray-700/60 rounded-3xl shadow-2xl overflow-hidden">
             <div className="h-1.5 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400" />
 

@@ -56,14 +56,14 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-gray-900/80 border-b border-gray-700/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+      <header className="sticky top-0 z-50 bg-gray-900/80 border-b border-gray-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
+          <div className="flex justify-between items-center h-16 overflow-visible">
             {/* Logo */}
-            <div className="logo-container-responsive">
+            <div className="flex-shrink-0 overflow-visible">
               <div className="logo-wrapper">
-                <h1 class="brand-text"><span class="accent-m">M</span>y<span class="light-text">Rentta</span></h1>
-                <p class="brand-sub">in safe hands</p>
+                <h1 className="brand-text"><span className="accent-m">M</span>y<span className="light-text">Rentta</span></h1>
+                <p className="brand-sub">in safe hands</p>
               </div>
             </div>
 
@@ -109,8 +109,8 @@ const Layout = () => {
       </header>
 
       {/* Navigation - Desktop */}
-      <nav className="hidden sm:block sticky top-16 z-40 backdrop-blur-xl bg-gray-800/50 border-b border-gray-700/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="hidden sm:block sticky top-16 z-40 bg-gray-800/50 border-b border-gray-700/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
           <div className="flex items-center gap-1 py-2 overflow-x-auto scrollbar-hide">
             {navItems.map(({ path, label, icon, color }) => {
               const isActive = location.pathname === path
@@ -127,9 +127,9 @@ const Layout = () => {
                     {icon}
                   </span>
                   <span>{label}</span>
-                  {isActive && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  )}
+{isActive && (
+                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                   )}
                 </Link>
               )
             })}
