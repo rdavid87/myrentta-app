@@ -41,7 +41,7 @@ const Layout = () => {
   }
 
   const userNavItems = [
-    { path: "/dashboard", label: "Dashboard", icon: icons.dashboard, color: "from-cyan-500 to-blue-500" },
+    { path: "/dashboard", label: "Inicio", icon: icons.dashboard, color: "from-cyan-500 to-blue-500" },
     { path: "/apartamentos", label: "Apartamentos", icon: icons.apartamentos, color: "from-blue-500 to-blue-600" },
     { path: "/arrendatarios", label: "Arrendatarios", icon: icons.arrendatarios, color: "from-fuchsia-500 to-cyan-500" },
     { path: "/contratos", label: "Contratos", icon: icons.contratos, color: "from-amber-500 to-yellow-500" },

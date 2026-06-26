@@ -1,6 +1,30 @@
-import { useState } from "react"
+"use client"
+
+import React, { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import api from "../services/api"
+import {
+  Box,
+  TextField,
+  IconButton,
+  InputAdornment,
+  Button,
+  Typography,
+  Alert,
+  CircularProgress,
+  Paper,
+  Grid
+} from '@mui/material'
+import {
+  Person as PersonIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  Lock as LockIcon,
+  Visibility,
+  VisibilityOff,
+  AssignmentTurnedIn as CheckCircleIcon,
+} from '@mui/icons-material'
+
 
 const Register = () => {
   const navigate = useNavigate()
@@ -45,7 +69,7 @@ const Register = () => {
         phone: "+57"+form.phone,
         password: form.password,
       })
-      
+
       setUserLogin(form.user_login)
       setSuccess(true)
     } catch (err) {
@@ -57,230 +81,443 @@ const Register = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
-        <div className="relative w-full max-w-md text-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl blur-xl opacity-20"></div>
-          <div className="relative bg-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-2xl">
-            <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/30">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-3">¡Registro exitoso!</h2>
-            <p className="text-gray-400 mb-6">
-              Se ha enviado un código de verificación a tu número de teléfono. Por favor, ingrésalo para activar tu cuenta.
-            </p>
-            <Link
-              to={userLogin ? `/validate-otp?user_login=${encodeURIComponent(userLogin)}` : "/login?registered=true"}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-semibold hover:shadow-cyan-500/30 hover:shadow-lg transition-all duration-300 hover:scale-105"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              Verificar cuenta
-            </Link>
-          </div>
-        </div>
-      </div>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
+          p: 2,
+        }}
+      >
+        <Paper
+          elevation={24}
+          sx={{
+            maxWidth: 480,
+            width: '100%',
+            p: { xs: 4, sm: 6 },
+            borderRadius: 4,
+            textAlign: 'center',
+            border: '1px solid rgba(55, 65, 81, 0.5)',
+            background: 'rgba(17, 24, 39, 0.8)',
+            backdropFilter: 'blur(24px)',
+          }}
+        >
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              borderRadius: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 4,
+              boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
+            }}
+          >
+            <CheckCircleIcon sx={{ fontSize: 40, color: 'white' }} />
+          </Box>
+
+          <Typography variant="h4" sx={{ fontWeight: 700, color: 'white', mb: 2 }}>
+            ¡Registro exitoso!
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', mb: 5, maxWidth: 320, mx: 'auto' }}>
+            Se ha enviado un código de verificación a tu número de teléfono. Por favor, ingrésalo para activar tu cuenta.
+          </Typography>
+
+          <Button
+            component={Link}
+            to={userLogin ? `/validate-otp?user_login=${encodeURIComponent(userLogin)}` : "/login?registered=true"}
+            variant="contained"
+            size="large"
+            startIcon={<CheckCircleIcon />}
+            sx={{
+              background: 'linear-gradient(135deg, #0891b2 0%, #2563eb 100%)',
+              color: 'white',
+              px: 4,
+              py: 1.5,
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #0e7490 0%, #1d4ed8 100%)',
+              },
+            }}
+          >
+            Verificar cuenta
+          </Button>
+
+          <Box mt={4}>
+            <Typography variant="caption" sx={{ color: 'rgba(107, 114, 128, 1)' }}>
+              © 2026 Todos los derechos reservados
+            </Typography>
+          </Box>
+        </Paper>
+      </Box>
     )
   }
 
+  const inputSx = {
+    '& .MuiOutlinedInput-root': {
+      color: 'text.primary',
+      height: 52,
+      bgcolor: 'transparent',
+      '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
+      '&:hover fieldset': { borderColor: 'primary.main' },
+      '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+      '& input::placeholder': { color: 'text.secondary', opacity: 0.7 },
+    },
+    '& .MuiInputLabel-root': {
+      color: 'text.secondary',
+      '&.Mui-focused': { color: 'primary.main' },
+    },
+    '& .MuiInputAdornment-root': {
+      color: 'text.secondary',
+    },
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse" style={{ animationDelay: "2s" }}></div>
-      </div>
+    <Box
+              sx={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
+              }}
+            >
+          <Paper
+                  elevation={24}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    width: { xs: '100%', md: 1100 },
+                    maxWidth: '100%',
+                    minHeight: { xs: 'auto', md: 650 },
+                    overflow: 'hidden',
+                    bgcolor: 'background.paper',
+                  }}
+                >
+            {/* Panel Izquierdo - Solo branding */}
+            <Box
+                      sx={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        p: { xs: 4, md: 8 },
+                        bgcolor: 'background.paper',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          left: -120,
+                          bottom: -120,
+                          width: 350,
+                          height: 350,
+                          background: 'rgba(8, 145, 178, 0.05)',
+                          transform: 'rotate(45deg)',
+                          pointerEvents: 'none',
+                        },
+                      }}
+                    >
+                      <Box className="logo-container-responsive">
+                        <Box className="logo-wrapper">
+                          <Typography variant="h3" className="brand-text" sx={{ fontSize: { xs: 32, md: 42 } }}>
+                            <span className="accent-m">M</span>y<span className="light-text">Rentta</span>
+                          </Typography>
+                          <Typography className="brand-sub" sx={{ mb: 6 }}>
+                            in safe hands
+                          </Typography>
+                        </Box>
+                      </Box>
+            
+                      
+                      
+                    </Box>
 
-      <div className="relative w-full max-w-md">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl blur-xl opacity-20"></div>
+        {/* Panel Derecho - Formulario */}
+        <Box
+                          sx={{
+                            flex: 1,
+                            background: 'linear-gradient(135deg, #1565c0, #1976d2, #1e88e5)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            p: { xs: 3, sm: 6, md: 8 },
+                            position: 'relative',
+                            overflow: 'hidden',
+                            
+                          }}
+                        >
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              maxWidth: 420,
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+            }}
+          >
 
-        <div className="relative bg-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/30 mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+            <Typography variant="h4" sx={{ color: 'white', fontWeight: 700, fontSize: { xs: 32, sm: 42 } }}>
               Crear cuenta
-            </h1>
-            <p className="text-gray-400 mt-2 text-sm">Regístrate para empezar a usar MyRentta</p>
-          </div>
+            </Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.75)', mb: 1 }}>
+              Regístrate para empezar a usar MyRentta
+            </Typography>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Alertas */}
             {error && (
-              <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{error}</span>
-              </div>
+              <Alert severity="error" sx={{ borderRadius: 2, bgcolor: 'rgba(244,63,94,0.2)', color: 'white', '& .MuiAlert-icon': { color: 'white' } }}>
+                {error}
+              </Alert>
             )}
 
-            {/* Full name */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-300">Nombres completos <span className="text-rose-400">*</span></label>
-              <input
-                name="full_name"
-                value={form.full_name}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                placeholder="Juan Pérez García"
-              />
-            </div>
+            <TextField
+              fullWidth
+              required
+              label="Nombres completos"
+              name="full_name"
+              value={form.full_name}
+              onChange={handleChange}
+              placeholder="Juan Pérez García"
+              variant="filled"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-            {/* ID number */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-300">Número de identificación o usuario <span className="text-rose-400">*</span></label>
-              <input
-                name="user_login"
-                value={form.user_login}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                placeholder="1234567890"
-              />
-            </div>
+            <TextField
+              fullWidth
+              required
+              label="Número de identificación o usuario"
+              name="user_login"
+              value={form.user_login}
+              onChange={handleChange}
+              placeholder="1234567890"
+              variant="filled"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-            {/* Phone */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-300">Número de teléfono <span className="text-rose-400">*</span></label>
-              <input
-                name="phone"
-                type="tel"
-                value={form.phone}
-                onChange={handleChangeMobile}
-                required
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                placeholder="3001234567"
-              />
-            </div>
+            <TextField
+              fullWidth
+              required
+              label="Número de teléfono"
+              name="phone"
+              value={form.phone}
+              onChange={handleChangeMobile}
+              placeholder="3001234567"
+              variant="filled"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PhoneIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-            {/* Email (optional) */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-300">
-                Correo electrónico <span className="text-gray-500 text-xs">(opcional)</span>
-              </label>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                placeholder="correo@ejemplo.com"
-              />
-            </div>
+            <TextField
+              fullWidth
+              label="Correo electrónico"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="correo@ejemplo.com"
+              variant="filled"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-            {/* Password */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-300">Contraseña <span className="text-rose-400">*</span></label>
-              <div className="relative">
-                <input
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                  minLength={6}
-                  className="w-full px-4 pr-12 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                  placeholder="Mínimo 6 caracteres"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
-                >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
+            <TextField
+              fullWidth
+              required
+              label="Contraseña"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Mínimo 6 caracteres"
+              variant="filled"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                      size="small"
+                    >
+                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-            {/* Confirm password */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-300">Confirmar contraseña <span className="text-rose-400">*</span></label>
-              <input
-                name="confirmPassword"
-                type={showPassword ? "text" : "password"}
-                value={form.confirmPassword}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
-                placeholder="Repite tu contraseña"
-              />
-            </div>
+            <TextField
+              fullWidth
+              required
+              label="Confirmar contraseña"
+              name="confirmPassword"
+              type={showPassword ? 'text' : 'password'}
+              value={form.confirmPassword}
+              onChange={handleChange}
+              placeholder="Repite tu contraseña"
+              variant="filled"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-            <div className="pt-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-              <p className="text-amber-400/80 text-xs flex items-start gap-2">
-                <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <Alert severity="warning">
+              <Typography variant="caption" sx={{ color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
                 Tu cuenta quedará pendiente de activación. El administrador la habilitará luego de confirmar tu pago.
-              </p>
-            </div>
+              </Typography>
+            </Alert>
 
-            <div className="flex gap-3 pt-1">
-              <button
+
+              <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Button
                 type="button"
                 onClick={() => navigate("/login")}
                 disabled={loading}
-                className="flex-1 py-3 sm:py-4 bg-gray-700/60 hover:bg-gray-700 border border-gray-600/50 text-gray-300 hover:text-white rounded-xl
-                         font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
-                         disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                variant="outlined"
+                fullWidth
+                sx={{
+                  borderColor: 'rgba(255,255,255,0.3)',
+                  color: 'white',
+                  py: 1.5,
+                  fontWeight: 600,
+                  '&:hover': {
+                    borderColor: 'white',
+                    color: 'white',
+                    bgcolor: 'rgba(255,255,255,0.05)',
+                  },
+                  '&.Mui-disabled': {
+                    borderColor: 'rgba(255,255,255,0.2)',
+                    color: 'rgba(255,255,255,0.4)',
+                  },
+                }}
               >
                 Cancelar
-              </button>
-
-              <button
+              </Button>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+               <Button
                 type="submit"
+                fullWidth
+                variant="contained"
                 disabled={loading}
-                className="group relative flex-1 py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl
-                         font-semibold shadow-lg hover:shadow-emerald-500/40 transition-all duration-300
-                         hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                <span className="flex items-center justify-center gap-2">
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Registrando...
-                    </>
+                size="large"
+                startIcon={
+                  loading ? (
+                    <CircularProgress size={20} color="inherit" sx={{ opacity: 0.9 }} />
                   ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                      </svg>
-                      Crear cuenta
-                    </>
-                  )}
-                </span>
-              </button>
-            </div>
-          </form>
+                    <LockIcon fontSize="small" />
+                  )
+                }
+                sx={{
+                  background: 'linear-gradient(90deg, #6366f1, #67e8f9)',
+                  color: 'white',
+                  py: 1.5,
+                  fontWeight: 700,
+                  letterSpacing: '0.5px',
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #4f46e5, #22d3ee)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 10px 25px rgba(99, 102, 241, 0.35)',
+                  },
+                  transition: 'all 0.3s ease',
+                  '&.Mui-disabled': {
+                    background: 'linear-gradient(90deg, #6366f1, #67e8f9)',
+                    color: 'rgba(255,255,255,0.6)',
+                  },
+                }}
+              >
+                {loading ? 'Registrando...' : 'Crear cuenta'}
+              </Button>
+            </Grid>
+            
+          </Grid>
+              
 
-          <div className="mt-6 pt-6 border-t border-gray-700/50 text-center">
-            <p className="text-gray-400 text-sm">
-              ¿Ya tienes cuenta?{" "}
-              <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+             
+    
+
+            <Typography sx={{ color: 'rgba(255,255,255,0.8)', textAlign: 'center', mt: 2 }}>
+              ¿Ya tienes cuenta?{' '}
+              <Button
+                component={Link}
+                to="/login"
+                sx={{
+                  color: 'white',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  '&:hover': {
+                    color: 'rgba(255,255,255,0.85)',
+                    bgcolor: 'rgba(255,255,255,0.08)',
+                    textDecoration: 'underline',
+                  },
+                }}
+              >
                 Inicia sesión
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+              </Button>
+            </Typography>
+
+            <Typography
+              sx={{
+                color: 'rgba(255,255,255,0.45)',
+                textAlign: 'center',
+                mt: 4,
+                fontSize: '0.75rem',
+              }}
+            >
+              © 2026 Todos los derechos reservados
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   )
 }
 

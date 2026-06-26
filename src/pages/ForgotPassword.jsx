@@ -1,6 +1,23 @@
-import { useState } from "react"
+"use client"
+
+import React, { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import api from "../services/api"
+import {
+  Box,
+  TextField,
+  IconButton,
+  InputAdornment,
+  Button,
+  Typography,
+  Alert,
+  CircularProgress,
+  Paper,
+} from '@mui/material'
+import {
+  Person as PersonIcon,
+  LockReset as LockResetIcon,
+} from '@mui/icons-material'
 
 const ForgotPassword = () => {
   const navigate = useNavigate()
@@ -24,104 +41,220 @@ const ForgotPassword = () => {
     }
   }
 
+  const inputSx = {
+    '& .MuiOutlinedInput-root': {
+      color: 'text.primary',
+      height: 52,
+      bgcolor: 'transparent',
+      '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
+      '&:hover fieldset': { borderColor: 'primary.main' },
+      '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+      '& input::placeholder': { color: 'text.secondary', opacity: 0.7 },
+    },
+    '& .MuiInputLabel-root': {
+      color: 'text.secondary',
+      '&.Mui-focused': { color: 'primary.main' },
+    },
+    '& .MuiInputAdornment-root': {
+      color: 'text.secondary',
+    },
+    '& .MuiIconButton-root': {
+      color: 'text.secondary',
+    },
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: "2s" }}></div>
-      </div>
+    <Box
+          sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
+          }}
+        >
+      <Paper
+              elevation={24}
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                width: { xs: '100%', md: 1100 },
+                maxWidth: '100%',
+                minHeight: { xs: 'auto', md: 650 },
+                overflow: 'hidden',
+                bgcolor: 'background.paper',
+              }}
+            >
+        {/* Panel Izquierdo - Solo branding */}
+        <Box
+                  sx={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    p: { xs: 4, md: 8 },
+                    bgcolor: 'background.paper',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      left: -120,
+                      bottom: -120,
+                      width: 350,
+                      height: 350,
+                      background: 'rgba(8, 145, 178, 0.05)',
+                      transform: 'rotate(45deg)',
+                      pointerEvents: 'none',
+                    },
+                  }}
+                >
+                  <Box className="logo-container-responsive">
+                    <Box className="logo-wrapper">
+                      <Typography variant="h3" className="brand-text" sx={{ fontSize: { xs: 32, md: 42 } }}>
+                        <span className="accent-m">M</span>y<span className="light-text">Rentta</span>
+                      </Typography>
+                      <Typography className="brand-sub" sx={{ mb: 6 }}>
+                        in safe hands
+                      </Typography>
+                    </Box>
+                  </Box>
+        
+                  
+                  
+                </Box>
 
-      <div className="relative w-full max-w-md">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-3xl blur-xl opacity-20"></div>
+        {/* Panel Derecho - Formulario */}
+        <Box
+                  sx={{
+                    flex: 1,
+                    background: 'linear-gradient(135deg, #1565c0, #1976d2, #1e88e5)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    p: { xs: 3, sm: 6, md: 8 },
+                    position: 'relative',
+                    overflow: 'hidden',
+                    
+                  }}
+                >
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              maxWidth: 420,
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2.5,
+            }}
+          >
 
-        <div className="relative bg-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl shadow-lg shadow-cyan-500/30 mb-4">
-              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+
+            <Typography variant="h4" sx={{ color: 'white', fontWeight: 700, fontSize: { xs: 32, sm: 42 } }}>
               Recuperar contraseña
-            </h1>
-            <p className="text-gray-400 mt-2 text-sm sm:text-base">
+            </Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.75)', mb: 1 }}>
               Ingresa tu correo o número de cédula y te enviaremos un código de verificación
-            </p>
-          </div>
+            </Typography>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Alertas */}
             {error && (
-              <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{error}</span>
-              </div>
+              <Alert severity="error" sx={{ borderRadius: 2, bgcolor: 'rgba(244,63,94,0.2)', color: 'white', '& .MuiAlert-icon': { color: 'white' } }}>
+                {error}
+              </Alert>
             )}
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">
-                Correo o Número de identificación
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 sm:py-4 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white
-                           placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50
-                           transition-all duration-300"
-                  placeholder="correo@ejemplo.com o número de cédula"
-                  required
-                />
-              </div>
-            </div>
+            <TextField
+              fullWidth
+              label="Correo o Número de identificación"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              required={true}
+              placeholder="correo@ejemplo.com o número de cédula"
+              variant="filled"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-            <button
+            <Button
               type="submit"
+              fullWidth
+              variant="contained"
               disabled={loading}
-              className="group relative w-full py-3 sm:py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl
-                       font-semibold shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
-                       hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <span className="relative flex items-center justify-center gap-2">
-                {loading ? (
-                  <>
-                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Enviando código...
-                  </>
+              size="large"
+              startIcon={
+                loading ? (
+                  <CircularProgress size={20} color="inherit" sx={{ opacity: 0.9 }} />
                 ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
-                    Enviar código de verificación
-                  </>
-                )}
-              </span>
-            </button>
-          </form>
+                  <LockResetIcon fontSize="small" />
+                )
+              }
+              sx={{
+                background: 'linear-gradient(90deg, #6366f1, #67e8f9)',
+                color: 'white',
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 700,
+                letterSpacing: '0.5px',
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #4f46e5, #22d3ee)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 10px 25px rgba(99, 102, 241, 0.35)',
+                },
+                transition: 'all 0.3s ease',
+                '&.Mui-disabled': {
+                  background: 'linear-gradient(90deg, #6366f1, #67e8f9)',
+                  color: 'rgba(255,255,255,0.6)',
+                },
+              }}
+            >
+              {loading ? 'Enviando código...' : 'Enviar código de verificación'}
+            </Button>
 
-          <div className="mt-6 pt-6 border-t border-gray-700/50 text-center">
-            <p className="text-gray-400 text-sm">
-              ¿Recordaste tu contraseña?{" "}
-              <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+            <Typography sx={{ color: 'rgba(255,255,255,0.8)', textAlign: 'center', mt: 1 }}>
+              ¿Recordaste tu contraseña?{' '}
+              <Button
+                component={Link}
+                to="/login"
+                sx={{
+                  color: 'white',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  '&:hover': {
+                    color: 'rgba(255,255,255,0.85)',
+                    bgcolor: 'rgba(255,255,255,0.08)',
+                    textDecoration: 'underline',
+                  },
+                }}
+              >
                 Iniciar sesión
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+              </Button>
+            </Typography>
+
+            <Typography
+              sx={{
+                color: 'rgba(255,255,255,0.45)',
+                textAlign: 'center',
+                mt: 4,
+                fontSize: '0.75rem',
+              }}
+            >
+              © 2026 Todos los derechos reservados
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   )
 }
 

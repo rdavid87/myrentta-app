@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import api from "../services/api"
 import ArrendatarioIcon from "../components/ArrendatarioIcon"
+import MetricCard from "../components/utils/MetricCard"
 import { formatPaymentPeriodForList } from "../utils/periodoCuota"
 import {
   contratoVenceEnVentana,
@@ -25,6 +26,7 @@ const Dashboard = () => {
   const [recentPayments, setRecentPayments] = useState([])
   const [upcomingPayments, setUpcomingPayments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [revenueProgress, setRevenueProgress] = useState(0)
 
   useEffect(() => {
     fetchAllData()
@@ -100,6 +102,11 @@ const Dashboard = () => {
         .slice(0, 5)
       setUpcomingPayments(pendientes)
 
+      // Calcular progreso de ingresos basado en el número de pagos del mes vs total de apartamentos ocupados
+      const maxExpected = Math.max(arrendados, 1)
+      const progress = Math.min((pagosDelMes.length / maxExpected) * 100, 100)
+      setRevenueProgress(progress)
+
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
     } finally {
@@ -126,7 +133,7 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-500 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Cargando dashboard...</p>
+          <p className="mt-4 text-gray-400">Cargando...</p>
         </div>
       </div>
     )
@@ -135,105 +142,58 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8 relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl blur-xl opacity-20 pointer-events-none"></div>
-          <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-2xl">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2 flex items-center gap-3">
-              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Dashboard
-            </h1>
-            <p className="text-sm sm:text-base text-gray-400">
-              Resumen general del sistema de administración de apartamentos
-            </p>
-          </div>
-        </div>
-
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {/* Total Apartamentos */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-emerald-500/20 transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Apartamentos</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-white mt-2">{stats.totalApartamentos}</p>
-                  <div className="mt-2 flex gap-2 text-xs">
-                    <span className="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg">
-                      {stats.apartamentosDisponibles} disponibles
-                    </span>
-                    <span className="px-2 py-1 bg-amber-500/20 text-amber-300 rounded-lg">
-                      {stats.apartamentosOcupados} arrendados
-                    </span>
-                  </div>
-                </div>
-                <div className="text-4xl sm:text-5xl opacity-80">🏢</div>
-              </div>
-            </div>
+        <div className="group relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6 sm:mb-8">
+          {/* Ingresos del Mes - Diseño nuevo */}
+          <div className="flex items-center justify-between">
+            <MetricCard
+              title="Ingresos del Mes"
+              value={formatCurrency(stats.ingresosMes)}
+              icon={<span className="text-2xl">💰</span>}
+              iconColor="emerald"
+              badges={[`${stats.pagosDelMes} pagos recibidos`]}
+            />
           </div>
 
-          {/* Total Arrendatarios */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-600 to-cyan-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-fuchsia-500/20 transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Arrendatarios</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-white mt-2">{stats.totalArrendatarios}</p>
-                  <div className="mt-2 text-xs">
-                    <span className="px-2 py-1 bg-fuchsia-500/20 text-fuchsia-300 rounded-lg">
-                      {stats.contratosActivos} con contrato activo
-                    </span>
-                  </div>
-                </div>
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-cyan-500/20 border border-fuchsia-500/30 text-fuchsia-300">
-                  <ArrendatarioIcon className="w-10 h-10 sm:w-12 sm:h-12" />
-                </div>
-              </div>
-            </div>
+          {/* Total Apartamentos - Diseño nuevo */}
+          <div className="flex items-center justify-between">
+            <MetricCard
+              title="Apartamentos"
+              value={stats.totalApartamentos}
+              icon={<span className="text-2xl">🏢</span>}
+              iconColor="indigo"
+              badges={[
+                `${stats.apartamentosDisponibles} disponibles`,
+                `${stats.apartamentosOcupados} arrendados`,
+              ]}
+            />
           </div>
 
-          {/* Ingresos del Mes */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-cyan-500/20 transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Ingresos del Mes</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-white mt-2">{formatCurrency(stats.ingresosMes)}</p>
-                  <div className="mt-2 text-xs">
-                    <span className="px-2 py-1 bg-cyan-500/20 text-cyan-300 rounded-lg">
-                      {stats.pagosDelMes} pagos recibidos
-                    </span>
-                  </div>
-                </div>
-                <div className="text-4xl sm:text-5xl opacity-80">💰</div>
-              </div>
-            </div>
+          {/* Total Arrendatarios - Diseño nuevo */}
+          <div className="flex items-center justify-between">
+            <MetricCard
+              title="Arrendatarios"
+              value={stats.totalArrendatarios}
+              icon={<ArrendatarioIcon className="w-5 h-5" />}
+              iconColor="fuchsia"
+              badges={[`${stats.contratosActivos} con contrato activo`]}
+            />
           </div>
 
-          {/* En Mora */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-rose-600 to-red-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-rose-500/20 transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Pagos Pendientes</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-white mt-2">{stats.pagosEnMora}</p>
-                  <div className="mt-2 text-xs">
-                    <span className="px-2 py-1 bg-rose-500/20 text-rose-300 rounded-lg">
-                      {formatCurrency(stats.totalMora)} por cobrar
-                    </span>
-                  </div>
-                </div>
-                <div className="text-4xl sm:text-5xl opacity-80">⚠️</div>
-              </div>
-            </div>
+
+          {/* En Mora - Diseño nuevo */}
+          <div className="flex items-center justify-between">
+            <MetricCard
+              title="Pagos Pendientes"
+              value={stats.pagosEnMora}
+              icon={<span className="text-2xl">⚠️</span>}
+              iconColor="rose"
+              badges={[`${formatCurrency(stats.totalMora)} por cobrar`]}
+            />
           </div>
         </div>
+                </div>
 
         {/* Segunda fila de stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
