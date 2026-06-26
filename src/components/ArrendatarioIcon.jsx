@@ -1,6 +1,13 @@
 /** Icono SVG futurista para arrendatarios (ficha / identidad digital) */
-const ArrendatarioIcon = ({ className = "w-5 h-5" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+const ArrendatarioIcon = ({ className = "", fontSize = "inherit" }) => (
+  <svg 
+    className={className} 
+    style={{ fontSize }}
+    fill="none" 
+    stroke="currentColor" 
+    viewBox="0 0 24 24" 
+    aria-hidden="true"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
