@@ -33,6 +33,7 @@ import {
 } from "@mui/icons-material"
 import PercentIcon from '@mui/icons-material/Percent';
 import MoneyOffCsredIcon from '@mui/icons-material/MoneyOffCsred';
+import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 
 
 const Dashboard = () => {
@@ -381,7 +382,6 @@ const Dashboard = () => {
               <Box sx={{ p: 2 }}>
                 {upcomingPayments.length === 0 ? (
                   <Box sx={{ textAlign: "center", py: 4 }}>
-                    <Box sx={{ fontSize: "2.5rem", mb: 1 }}>🎉</Box>
                     <Typography color="text.secondary">No hay pagos pendientes</Typography>
                   </Box>
                 ) : (

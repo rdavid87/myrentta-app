@@ -289,7 +289,7 @@ const Layout = () => {
             </Box>
             <Tooltip title="Cerrar sesión">
               <IconButton onClick={logout} >
-                <LogoutIcon color="inherit" />
+                <LogoutIcon color="error" />
               </IconButton>
             </Tooltip>
           </Box>

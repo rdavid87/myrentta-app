@@ -176,12 +176,14 @@ const ForgotPassword = () => {
               placeholder="correo@ejemplo.com o número de cédula"
               variant="filled"
               sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 

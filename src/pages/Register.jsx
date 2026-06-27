@@ -290,12 +290,14 @@ const Register = () => {
               placeholder="Juan Pérez García"
               variant="filled"
               sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -309,12 +311,14 @@ const Register = () => {
               placeholder="1234567890"
               variant="filled"
               sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -328,12 +332,14 @@ const Register = () => {
               placeholder="3001234567"
               variant="filled"
               sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PhoneIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -347,12 +353,14 @@ const Register = () => {
               placeholder="correo@ejemplo.com"
               variant="filled"
               sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -367,23 +375,25 @@ const Register = () => {
               placeholder="Mínimo 6 caracteres"
               variant="filled"
               sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      size="small"
-                    >
-                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        size="small"
+                      >
+                        {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -398,12 +408,14 @@ const Register = () => {
               placeholder="Repite tu contraseña"
               variant="filled"
               sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
