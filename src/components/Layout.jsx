@@ -30,22 +30,25 @@ import HelpIcon from "@mui/icons-material/Help"
 import Avatar from "@mui/material/Avatar"
 import Button from "@mui/material/Button"
 import useMediaQuery from "@mui/material/useMediaQuery"
+import Tooltip from '@mui/material/Tooltip';
 
 const drawerWidth = 256
 
-const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
-  ({ theme }) => ({
+const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" && prop !== "isDesktop" })(
+  ({ theme, isDesktop }) => ({
     flexGrow: 1,
     padding: theme.spacing(3),
     transition: theme.transitions.create("margin", {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    marginLeft: `-${drawerWidth}px`,
+    ...(isDesktop && {
+      marginLeft: `-${drawerWidth}px`,
+    }),
     minHeight: "100vh",
     variants: [
       {
-        props: ({ open }) => open,
+        props: ({ open, isDesktop }) => open && isDesktop,
         style: {
           transition: theme.transitions.create("margin", {
             easing: theme.transitions.easing.easeOut,
@@ -284,20 +287,11 @@ const Layout = () => {
                 {user?.full_name || "Usuario"}
               </Typography>
             </Box>
-            <Button
-              variant="contained"
-              color="error"
-              size="small"
-              onClick={logout}
-              startIcon={<LogoutIcon />}
-              sx={{
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 500,
-              }}
-            >
-              Salir
-            </Button>
+            <Tooltip title="Cerrar sesión">
+              <IconButton onClick={logout} >
+                <LogoutIcon color="inherit" />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Toolbar>
       </AppBar>
@@ -404,7 +398,7 @@ const Layout = () => {
         </Drawer>
       )}
 
-      <Main open={open}>
+      <Main open={open} isDesktop={isDesktop}>
         <DrawerHeader />
         <Outlet />
         <Box

@@ -31,7 +31,7 @@ import {
   Schedule as ScheduleIcon,
   PeopleTwoTone as PeopleTwoToneIcon,
 } from "@mui/icons-material"
-
+import PercentIcon from '@mui/icons-material/Percent';
 import MoneyOffCsredIcon from '@mui/icons-material/MoneyOffCsred';
 
 
@@ -188,19 +188,13 @@ const Dashboard = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        p: { xs: 2, sm: 3, lg: 4 },
       }}
     >
       <Box sx={{ maxWidth: "xl", mx: "auto" }}>
-        <Box
-          sx={{
-            width: '100%',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))',
-            gap: 2,
-          }}
-        >
-          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+
+        {/* Card */}
+        <Grid container spacing={2} sx={{ mt: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <MetricCard
             title="Ingresos del Mes"
             value={formatCurrency(stats.ingresosMes)}
@@ -208,7 +202,7 @@ const Dashboard = () => {
             icon={<AttachMoneyIcon />}
           />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <MetricCard
             title="Apartamentos"
             value={stats.totalApartamentos}
@@ -219,7 +213,7 @@ const Dashboard = () => {
             ]}
           />
         </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <MetricCard
             title="Arrendatarios"
             value={stats.totalArrendatarios}
@@ -227,7 +221,7 @@ const Dashboard = () => {
             badges={[`${stats.contratosActivos} con contrato activo`]}
           />
           </Grid>  
-          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <MetricCard
               title="Pagos Pendientes"
               value={stats.pagosEnMora}
@@ -235,182 +229,29 @@ const Dashboard = () => {
               badges={[`${formatCurrency(stats.totalMora)} por cobrar`]}
             />
           </Grid>
-
-
-        </Box>
-
-
-
-        {/* Segunda fila de stats */}
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          {/* Contratos */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Paper
-              elevation={0}
-              sx={{
-                position: "relative",
-                borderRadius: 3,
-                overflow: "hidden",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  inset: 0,
-                  background: `linear-gradient(90deg, ${alpha(theme.palette.warning.main, 0.2)}, ${alpha(theme.palette.warning.light, 0.2)})`,
-                  borderRadius: 3,
-                  filter: "blur(20px)",
-                  opacity: 0.2,
-                  zIndex: 0,
-                },
-              }}
-            >
-              <Card
-                sx={{
-                  bgcolor: "background.paper",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 3,
-                  position: "relative",
-                  zIndex: 1,
-                }}
-              >
-                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: "text.secondary",
-                          textTransform: "uppercase",
-                          letterSpacing: 1,
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        Contratos Activos
-                      </Typography>
-                      <Typography variant="h3" sx={{ color: "text.primary", mt: 1, fontWeight: 700 }}>
-                        {stats.contratosActivos}
-                      </Typography>
-                    </Box>
-                    <Typography variant="h2" sx={{ opacity: 0.8 }}>
-                      📋
-                    </Typography>
-                  </Box>
-                  {stats.contratosPorVencer > 0 && (
-                    <Box
-                      sx={{
-                        mt: 2,
-                        p: 2,
-                        bgcolor: alpha(theme.palette.warning.main, 0.1),
-                        border: "1px solid",
-                        borderColor: alpha(theme.palette.warning.main, 0.3),
-                        borderRadius: 2,
-                      }}
-                    >
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: theme.palette.warning.light,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <span style={{ fontSize: "1.25rem" }}>⏰</span>
-                        Hay contratos que vencen antes del {stats.fechaLimitePorVencer}
-                      </Typography>
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
-            </Paper>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <MetricCard
+              title="Contratos Activos"
+              value={stats.contratosActivos}
+              icon={<DescriptionIcon />}
+              badges={[` `]}
+            />
           </Grid>
-
-          {/* Ocupación */}
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Paper
-              elevation={0}
-              sx={{
-                position: "relative",
-                borderRadius: 3,
-                overflow: "hidden",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  inset: 0,
-                  background: `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.3)}, ${alpha(theme.palette.secondary.main, 0.3)})`,
-                  filter: "blur(20px)",
-                  opacity: 0.2,
-                  zIndex: 0,
-                },
-              }}
-            >
-              <Card
-                sx={{
-                  bgcolor: "background.paper",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 3,
-                  position: "relative",
-                  zIndex: 1,
-                }}
-              >
-                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: "text.secondary",
-                          textTransform: "uppercase",
-                          letterSpacing: 1,
-                          fontSize: "0.75rem",
-                        }}
-                      >
-                        Tasa de Ocupación
-                      </Typography>
-                      <Typography variant="h3" sx={{ color: "text.primary", mt: 1, fontWeight: 700 }}>
-                        {stats.totalApartamentos > 0
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <MetricCard
+              title="Tasa de Ocupación"
+              value={`${stats.totalApartamentos > 0
                           ? Math.round((stats.apartamentosOcupados / stats.totalApartamentos) * 100)
-                          : 0}%
-                      </Typography>
-                    </Box>
-                    <Typography variant="h2" sx={{ opacity: 0.8 }}>
-                      📈
-                    </Typography>
-                  </Box>
-                  {/* Progress bar */}
-                  <LinearProgress
-                    variant="determinate"
-                    value={stats.totalApartamentos > 0
-                      ? (stats.apartamentosOcupados / stats.totalApartamentos) * 100
-                      : 0}
-                    sx={{
-                      height: 12,
-                      borderRadius: 6,
-                      bgcolor: theme.palette.grey[800],
-                      background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      mt: 1,
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.75rem",
-                      color: "text.secondary",
-                    }}
-                  >
-                    <span>{stats.apartamentosOcupados} arrendados</span>
-                    <span>{stats.apartamentosDisponibles} disponibles</span>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Paper>
+                          : 0}%`}
+              icon={<PercentIcon />}
+              badges={[` `]}
+            />
           </Grid>
+
         </Grid>
 
         {/* Tablas de pagos */}
-        <Grid container spacing={2}>
+        <Grid container spacing={2} sx={{ mt: 3 }}>
           {/* Últimos pagos recibidos */}
           <Grid size={{ xs: 12, lg: 6 }}>
             <Card
@@ -418,7 +259,7 @@ const Dashboard = () => {
                 bgcolor: "background.paper",
                 border: "1px solid",
                 borderColor: "divider",
-                borderRadius: 3,
+                borderRadius: 1,
                 overflow: "hidden",
               }}
             >
@@ -511,7 +352,7 @@ const Dashboard = () => {
                 bgcolor: "background.paper",
                 border: "1px solid",
                 borderColor: "divider",
-                borderRadius: 3,
+                borderRadius: 1,
                 overflow: "hidden",
               }}
             >
@@ -628,7 +469,7 @@ const Dashboard = () => {
               position: "absolute",
               inset: 0,
               background: `linear-gradient(90deg, ${alpha(theme.palette.grey[700], 0.3)}, ${alpha(theme.palette.background.default, 0.3)})`,
-              borderRadius: 3,
+              borderRadius: 1,
               filter: "blur(30px)",
               opacity: 0.1,
               zIndex: 0,
@@ -641,7 +482,7 @@ const Dashboard = () => {
               bgcolor: alpha(theme.palette.background.paper, 0.3),
               border: "1px solid",
               borderColor: "divider",
-              borderRadius: 3,
+              borderRadius: 1,
               p: { xs: 2, sm: 3 },
             }}
           >
