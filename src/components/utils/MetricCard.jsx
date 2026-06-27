@@ -1,85 +1,94 @@
 import React from "react"
+import { Card, CardContent, Typography, Box, Chip } from "@mui/material"
+import { alpha, useTheme } from "@mui/material/styles"
+import TrendingUpIcon from "@mui/icons-material/TrendingUp"
 
 const MetricCard = ({
-  title,
   value,
-  icon,
-  iconColor = "emerald",
-  trend,
-  trendText,
-  progressWidth,
-  badges,
+  title,
+  color = "#0891b2",
+  badges = [],
+  icon = TrendingUpIcon,
+  iconColor = "#0891b2",
 }) => {
-  const colorClasses = {
-    emerald: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
-    amber: "bg-amber-500/10 border-amber-500/20 text-amber-400",
-    cyan: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400",
-    rose: "bg-rose-500/10 border-rose-500/20 text-rose-400",
-    fuchsia: "bg-fuchsia-500/10 border-fuchsia-500/20 text-fuchsia-400",
-    indigo: "bg-indigo-500/10 border-indigo-500/20 text-indigo-400",
-  }
-  const color = colorClasses[iconColor] || colorClasses.emerald
+
 
   return (
-    <div className="w-full max-w-sm bg-gray-800/50 backdrop-blur-sm border border-gray-800/40 rounded-2xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden">
-      {/* Bloque Superior: Texto e Icono */}
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          {/* Título de la Métrica */}
-          <span className="text-xs font-medium text-gray-400 tracking-wide block mb-1">
-            {title}
-          </span>
-          {/* Valor Principal */}
-          <span className="text-2xl font-bold text-white tracking-tight">{value}</span>
-          {/* Badges opcionales */}
-          {badges && badges.length > 0 && (
-            <div className="mt-2 flex gap-2 text-xs flex-wrap">
-              {badges.map((badge, idx) => (
-                <span
-                  key={idx}
-                  className={`px-2 py-1 rounded-lg ${
-                    idx === 0
-                      ? "bg-emerald-500/20 text-emerald-300"
-                      : "bg-amber-500/20 text-amber-300"
-                  }`}
-                >
-                  {badge}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+    <Card
+      elevation={0}
+      sx={{
+        borderRadius: 1,
+        border: `1px solid ${alpha(color, 0.2)}`,
+        overflow: "hidden",
+        boxShadow: "0 4px 18px rgba(0,0,0,.08)",
+      }}
+    >
+      <CardContent sx={{ height: '100%' }}>
+        <Box
+          sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}
+        >
+          <Box>
+            <Typography
+              variant="h5"
+              fontWeight={700}
+              sx={{ color }}
+            >
+              {value}
+            </Typography>
 
-        {/* Contenedor del Icono */}
-        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${color}`}>
-          {icon}
-        </div>
-      </div>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              fontWeight={600}
+              mt={1}
+            >
+              {title}
+            </Typography>
+          </Box>
 
-      {/* Bloque Central: Tendencia y Comparativa */}
-      {trend && trendText && (
-        <div className="flex items-center gap-1.5 text-xs mb-5">
-          {/* Icono de tendencia (Flecha hacia arriba) */}
-          <span className="text-emerald-400 text-sm font-bold">↗</span>
-          {/* Porcentaje */}
-          <span className="font-semibold text-emerald-400">{trend}</span>
-          {/* Texto secundario */}
-          <span className="text-gray-500">{trendText}</span>
-        </div>
-      )}
+          <Box
+            sx={{
+              width: 42,
+              height: 42,
+              borderRadius: "50%",
+              border: `2px solid ${color}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {React.cloneElement(icon, {
+              sx: { color: iconColor, fontSize: 24 },
+            })}
+          </Box>
+        </Box>
+      </CardContent>
 
-      {/* Bloque Inferior: Barra de Progreso Acoplada */}
-      {progressWidth !== undefined && (
-        <div className="w-full h-1.5 bg-gray-800/50 rounded-full overflow-hidden">
-          {/* Relleno de la barra (Ancho variable según el valor) */}
-          <div
-            className="h-full bg-emerald-500 rounded-full shadow-[0_0_12px_rgba(16,185,129,0.3)] transition-all duration-500"
-            style={{ width: `${progressWidth}%` }}
-          ></div>
-        </div>
-      )}
-    </div>
-  )
+      <Box
+        sx={{
+          bgcolor: color,
+          color: "white",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          px: 3,
+          py: 1.25,
+        }}
+      >
+        <Typography component="div" variant="body2" sx={{ display: "flex", gap: 0.5, alignItems: "center", flexWrap: "wrap" }}>
+          {badges.map((badge, index) => (
+            <Chip
+              key={index}
+              label={badge}
+              size="small"
+              sx={{ bgcolor: alpha(color, 0.2), color: "text.primary", mr: 0.5 }}
+            />
+          ))}
+        </Typography>
+
+      </Box>
+    </Card>
+  );
 }
 
 export default MetricCard
