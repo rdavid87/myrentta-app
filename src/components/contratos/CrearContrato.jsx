@@ -14,7 +14,6 @@ import {
   Box,
   Alert,
 } from "@mui/material"
-import ArrendatarioIcon from "../ArrendatarioIcon"
 
 const CrearContrato = ({
   open,
@@ -93,7 +92,7 @@ const CrearContrato = ({
             {/* Arrendatario */}
             <FormControl size="small" fullWidth>
               <InputLabel sx={{ color: "#9ca3af" }}>
-                <ArrendatarioIcon className="w-4 h-4 text-fuchsia-400" /> Arrendatario
+                Arrendatario
               </InputLabel>
               <Select
                 value={formData.arrendatario_id}
