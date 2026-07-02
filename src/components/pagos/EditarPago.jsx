@@ -59,8 +59,7 @@ const EditarPago = ({ open, onClose, pagoToEdit, editFormData, onEditFormChange,
         }
       }}
     >
-      }}
-    >
+         
       <DialogTitle sx={{ 
         color: "text.primary", 
         fontWeight: 700, 
