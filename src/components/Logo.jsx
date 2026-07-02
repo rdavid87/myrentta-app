@@ -12,10 +12,10 @@ const Logo = () => {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center" }}>
-        <Box component="span" sx={{ color: "#06b6d4", fontWeight: 700, fontSize: "1.25rem" }}>
+        <Box component="span" sx={{ color: "primary.main", fontWeight: 700, fontSize: "1.25rem" }}>
           My
         </Box>
-        <Box component="span" sx={{ color: "#94a3b8", fontWeight: 700, fontSize: "1.25rem" }}>
+        <Box component="span" sx={{ color: "text.secondary", fontWeight: 700, fontSize: "1.25rem" }}>
           Rentta
         </Box>
       </Box>

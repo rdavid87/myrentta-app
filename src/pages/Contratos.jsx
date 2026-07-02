@@ -47,6 +47,7 @@ import {
   Schedule as ExtendIcon,
   CheckCircle as FinalizeIcon,
 } from "@mui/icons-material"
+import DescriptionIcon from "@mui/icons-material/Description"
 
 const resolveApartamentoNombre = (apt = {}) => {
   const directCandidates = [apt.name, apt.nombre]
@@ -467,8 +468,9 @@ const Contratos = () => {
       <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "background.paper" }}>
         <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2 }}>
           <Box>
-            <Typography variant="h3" component="h1" sx={{ fontWeight: "bold", mb: 1 }}>
-              📋 Contratos de Arrendamiento
+            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+              <DescriptionIcon x={{ mr: 1, verticalAlign: "middle" }} />
+              Contratos de Arrendamiento
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Gestiona los contratos de renta de apartamentos
@@ -572,10 +574,10 @@ const Contratos = () => {
                     </TableCell>
                      <TableCell>
                       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, color: "#e5e7eb" }}>
+                        <Typography variant="caption" color="text.secondary">
                           Inicio: {formatDate(contrato.fecha_inicio)}
                         </Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 500, color: "#e5e7eb" }}>
+                        <Typography variant="caption" color="text.secondary">
                           Fin: {formatDate(contrato.fecha_fin)}
                         </Typography>
                       </Box>

@@ -246,7 +246,7 @@ const Arrendatarios = () => {
       <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "background.paper" }}>
         <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2 }}>
           <Box>
-            <Typography variant="h3" component="h1" sx={{ fontWeight: "bold", mb: 1 }}>
+            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
               <BadgeIcon sx={{ mr: 1, verticalAlign: "middle", color: "secondary.main" }} />
               Arrendatarios
             </Typography>

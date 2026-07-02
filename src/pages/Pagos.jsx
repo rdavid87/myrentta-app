@@ -44,6 +44,7 @@ import {
   Delete as DeleteIcon,
   PictureAsPdf as PdfIcon,
 } from "@mui/icons-material"
+import PaymentIcon from "@mui/icons-material/Payment"
 
 const METODOS_COBRO_CONFIRMADOS = new Set(["efectivo", "transferencia", "cheque"])
 
@@ -589,8 +590,9 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
       <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "background.paper" }}>
         <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2 }}>
           <Box>
-            <Typography variant="h3" component="h1" sx={{ fontWeight: "bold", mb: 1 }}>
-              💳 Gestión de Pagos
+            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+              <PaymentIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+              Gestión de Pagos
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Registra y confirma pagos.{" "}
