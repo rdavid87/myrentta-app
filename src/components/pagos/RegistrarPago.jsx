@@ -44,12 +44,14 @@ const RegistrarPago = ({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 1,
+      slotProps={{
+        paper: {
+          sx: {
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 1,
+          }
         }
       }}
     >

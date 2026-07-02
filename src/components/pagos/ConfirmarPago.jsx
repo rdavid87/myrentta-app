@@ -35,15 +35,17 @@ const ConfirmarPago = ({ open, onClose, pagoToConfirm, confirmarData, onConfirma
       onClose={onClose}
       maxWidth="xs"
       fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 1,
-          display: "flex",
-          flexDirection: "column",
-          maxHeight: "95vh",
+      slotProps={{
+        paper: {
+          sx: {
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 1,
+            display: "flex",
+            flexDirection: "column",
+            maxHeight: "95vh",
+          }
         }
       }}
     >
@@ -67,9 +69,9 @@ const ConfirmarPago = ({ open, onClose, pagoToConfirm, confirmarData, onConfirma
             sx={{
               p: 2,
               borderRadius: 1,
-              bgcolor: alpha(theme.palette.grey[800], 0.5),
+              bgcolor: "background.default",
               border: "1px solid",
-              borderColor: alpha(theme.palette.grey[700], 0.3),
+              borderColor: "divider",
             }}
           >
             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>

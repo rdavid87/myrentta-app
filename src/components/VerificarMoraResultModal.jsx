@@ -43,12 +43,14 @@ export default function VerificarMoraResultModal({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: "background.paper",
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 2,
+      slotProps={{
+        paper: {
+          sx: {
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2,
+          }
         }
       }}
     >

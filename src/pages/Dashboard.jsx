@@ -235,7 +235,6 @@ const Dashboard = () => {
               title="Contratos Activos"
               value={stats.contratosActivos}
               icon={<DescriptionIcon />}
-              badges={[` `]}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -245,7 +244,7 @@ const Dashboard = () => {
                           ? Math.round((stats.apartamentosOcupados / stats.totalApartamentos) * 100)
                           : 0}%`}
               icon={<PercentIcon />}
-              badges={[` `]}
+              
             />
           </Grid>
 
