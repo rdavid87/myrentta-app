@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import { useTheme } from "@mui/material/styles"
 import {
   Box,
   TextField,
@@ -21,6 +22,7 @@ import {
   VisibilityOff,
   Login as LoginIcon,
 } from '@mui/icons-material'
+import Logo from "@/components/Logo"
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("")
@@ -32,6 +34,7 @@ const Login = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const theme = useTheme()
 
   React.useEffect(() => {
     if (location.state?.message) {
@@ -60,8 +63,9 @@ const Login = () => {
     '& .MuiOutlinedInput-root': {
       color: 'text.primary',
       height: 52,
-      bgcolor: 'transparent',
-      '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
+      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+      borderRadius: '8px',
+      '& fieldset': { borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' },
       '&:hover fieldset': { borderColor: 'primary.main' },
       '&.Mui-focused fieldset': { borderColor: 'primary.main' },
       '& input::placeholder': { color: 'text.secondary', opacity: 0.7 },
@@ -85,7 +89,9 @@ const Login = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
+        background: theme.palette.mode === 'dark' 
+          ? 'linear-gradient(135deg, #1e293b, #0f172a)' 
+          : 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
       }}
     >
       <Paper
@@ -98,9 +104,9 @@ const Login = () => {
           minHeight: { xs: 'auto', md: 650 },
           overflow: 'hidden',
           bgcolor: 'background.paper',
+          borderRadius: '12px',
         }}
       >
-        {/* Panel Izquierdo - Solo branding */}
         <Box
           sx={{
             flex: 1,
@@ -119,32 +125,25 @@ const Login = () => {
               bottom: -120,
               width: 350,
               height: 350,
-              background: 'rgba(8, 145, 178, 0.05)',
+              background: theme.palette.mode === 'dark' 
+                ? 'rgba(8, 145, 178, 0.08)' 
+                : 'rgba(8, 145, 178, 0.05)',
               transform: 'rotate(45deg)',
               pointerEvents: 'none',
             },
           }}
         >
           <Box className="logo-container-responsive">
-            <Box className="logo-wrapper">
-              <Typography variant="h3" className="brand-text" sx={{ fontSize: { xs: 32, md: 42 } }}>
-                <span className="accent-m">M</span>y<span className="light-text">Rentta</span>
-              </Typography>
-              <Typography className="brand-sub" sx={{ mb: 6 }}>
-                in safe hands
-              </Typography>
-            </Box>
+            <Logo />
           </Box>
-
-          
-          
         </Box>
 
-        {/* Panel Derecho - Login */}
         <Box
           sx={{
             flex: 1,
-            background: 'linear-gradient(135deg, #1565c0, #1976d2, #1e88e5)',
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, #0f172a, #1e293b, #334155)'
+              : 'linear-gradient(135deg, #0891b2, #0ea5e9, #38bdf8)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -152,7 +151,6 @@ const Login = () => {
             p: { xs: 3, sm: 6, md: 8 },
             position: 'relative',
             overflow: 'hidden',
-            
           }}
         >
           <Box
@@ -166,21 +164,32 @@ const Login = () => {
               gap: 2.5,
             }}
           >
-            <Typography variant="h4" sx={{ color: 'white', fontWeight: 700, fontSize: { xs: 32, sm: 42 } }}>
-              Bienvenido
-            </Typography>
-            <Typography sx={{ color: 'rgba(255,255,255,0.75)', mb: 1 }}>
+            <Logo />
+            <Typography sx={{ 
+              color: 'rgba(255,255,255,0.85)', 
+              mb: 1,
+              fontSize: '1rem',
+            }}>
               Inicia sesión para continuar
             </Typography>
 
-            {/* Alertas */}
             {successMessage && (
-              <Alert severity="success" sx={{ borderRadius: 2, bgcolor: 'rgba(255,255,255,0.15)', color: 'white', '& .MuiAlert-icon': { color: 'white' } }}>
+              <Alert severity="success" sx={{ 
+                borderRadius: 2, 
+                bgcolor: 'rgba(255,255,255,0.15)', 
+                color: 'white', 
+                '& .MuiAlert-icon': { color: 'white' } 
+              }}>
                 {successMessage}
               </Alert>
             )}
             {error && (
-              <Alert severity="error" sx={{ borderRadius: 2, bgcolor: 'rgba(244,63,94,0.2)', color: 'white', '& .MuiAlert-icon': { color: 'white' } }}>
+              <Alert severity="error" sx={{ 
+                borderRadius: 2, 
+                bgcolor: 'rgba(239, 68, 68, 0.2)', 
+                color: 'white', 
+                '& .MuiAlert-icon': { color: 'white' } 
+              }}>
                 {error}
               </Alert>
             )}
@@ -275,6 +284,7 @@ const Login = () => {
                 fontSize: '1rem',
                 fontWeight: 700,
                 letterSpacing: '0.5px',
+                borderRadius: '8px',
                 '&:hover': {
                   background: 'linear-gradient(90deg, #4f46e5, #22d3ee)',
                   transform: 'translateY(-2px)',
@@ -290,7 +300,11 @@ const Login = () => {
               {loading ? 'Iniciando sesión...' : 'INICIAR SESIÓN'}
             </Button>
 
-            <Typography sx={{ color: 'rgba(255,255,255,0.8)', textAlign: 'center', mt: 1 }}>
+            <Typography sx={{ 
+              color: 'rgba(255,255,255,0.8)', 
+              textAlign: 'center', 
+              mt: 1 
+            }}>
               ¿No tienes cuenta?{' '}
               <Button
                 component={Link}
@@ -313,7 +327,7 @@ const Login = () => {
 
             <Typography
               sx={{
-                color: 'rgba(255,255,255,0.45)',
+                color: 'rgba(255,255,255,0.6)',
                 textAlign: 'center',
                 mt: 4,
                 fontSize: '0.75rem',
