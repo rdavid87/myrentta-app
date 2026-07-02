@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Outlet, Link, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { styled, useTheme } from "@mui/material/styles"
+import { useColorMode } from "../hooks/useMode.jsx"
 import Box from "@mui/material/Box"
 import Drawer from "@mui/material/Drawer"
 import CssBaseline from "@mui/material/CssBaseline"
@@ -16,6 +17,8 @@ import IconButton from "@mui/material/IconButton"
 import MenuIcon from "@mui/icons-material/Menu"
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
+import Brightness4Icon from "@mui/icons-material/Brightness4"
+import Brightness7Icon from "@mui/icons-material/Brightness7"
 import ListItem from "@mui/material/ListItem"
 import ListItemButton from "@mui/material/ListItemButton"
 import ListItemIcon from "@mui/material/ListItemIcon"
@@ -107,6 +110,7 @@ const Layout = () => {
   const isDesktop = useMediaQuery(theme.breakpoints.up("sm"))
   const [open, setOpen] = useState(false)
   const hoverTimeoutRef = useRef(null)
+  const { mode, toggleMode } = useColorMode()
 
   const navItems = [
     { path: "/dashboard", label: "Inicio", icon: <HomeIcon /> },
@@ -287,6 +291,11 @@ const Layout = () => {
                 {user?.full_name || "Usuario"}
               </Typography>
             </Box>
+            <Tooltip title={mode === "dark" ? "Prender la luz" : "Apagar la luz"}>
+              <IconButton onClick={toggleMode} color="inherit">
+                {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Cerrar sesión">
               <IconButton onClick={logout} >
                 <LogoutIcon color="error" />
@@ -382,6 +391,18 @@ const Layout = () => {
                 </Typography>
               </Box>
             </Box>
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={() => {
+                toggleMode()
+                handleDrawerClose()
+              }}
+              startIcon={mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
+              sx={{ mb: 1.5 }}
+            >
+              {mode === "dark" ? "Prender la luz" : "Apagar la luz"}
+            </Button>
             <Button
               variant="contained"
               color="error"

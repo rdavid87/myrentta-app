@@ -1,8 +1,8 @@
 import { createTheme, alpha } from '@mui/material/styles';
 
-const theme = createTheme({
+const getTheme = (mode) => createTheme({
   palette: {
-    mode: 'dark',
+    mode,
     primary: {
       main: '#0891b2',
       light: '#22d3ee',
@@ -19,12 +19,12 @@ const theme = createTheme({
       dark: '#e11d48',
     },
     background: {
-      default: '#0f172a',
-      paper: 'rgba(17, 24, 39, 0.8)',
+      default: mode === 'dark' ? '#0f172a' : '#f8fafc',
+      paper: mode === 'dark' ? 'rgba(17, 24, 39, 0.8)' : 'rgba(255, 255, 255, 0.95)',
     },
     text: {
-      primary: '#f9fafb',
-      secondary: '#9ca3af',
+      primary: mode === 'dark' ? '#f9fafb' : '#111827',
+      secondary: mode === 'dark' ? '#9ca3af' : '#6b7280',
     },
   },
   shape: {
@@ -41,7 +41,7 @@ const theme = createTheme({
     },
     body2: {
       fontSize: '0.875rem',
-      color: '#9ca3af',
+      color: mode === 'dark' ? '#9ca3af' : '#6b7280',
     },
   },
   components: {
@@ -49,12 +49,12 @@ const theme = createTheme({
       styleOverrides: {
         body: {
           scrollbarWidth: 'thin',
-          scrollbarColor: '#0891b2 #0f172a',
+          scrollbarColor: '#0891b2',
           '&::-webkit-scrollbar': {
             width: '8px',
           },
           '&::-webkit-scrollbar-track': {
-            background: '#0f172a',
+            background: mode === 'dark' ? '#0f172a' : '#f1f5f9',
           },
           '&::-webkit-scrollbar-thumb': {
             backgroundColor: '#0891b2',
@@ -70,35 +70,35 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiInputBase-root': {
-            backgroundColor: 'rgba(17, 24, 39, 0.6)',
+            backgroundColor: mode === 'dark' ? 'rgba(17, 24, 39, 0.6)' : '#f3f4f6',
             borderRadius: '12px',
             transition: 'all 0.3s ease',
             '&:hover': {
-              backgroundColor: 'rgba(17, 24, 39, 0.8)',
+              backgroundColor: mode === 'dark' ? 'rgba(17, 24, 39, 0.8)' : '#e5e7eb',
             },
             '&.Mui-focused': {
-              backgroundColor: 'rgba(17, 24, 39, 0.9)',
+              backgroundColor: mode === 'dark' ? 'rgba(17, 24, 39, 0.9)' : '#ffffff',
               boxShadow: `0 0 0 2px ${alpha('#0891b2', 0.5)}`,
             },
           },
           '& .MuiFilledInput-input': {
-            color: '#f9fafb',
+            color: mode === 'dark' ? '#f9fafb' : '#111827',
           },
           '& .MuiInputLabel-root': {
-            color: '#9ca3af',
+            color: mode === 'dark' ? '#9ca3af' : '#6b7280',
             '&.Mui-focused': {
               color: '#22d3ee',
             },
           },
           '& .MuiFilledInput-underline': {
             '&:before': {
-              borderBottomColor: '#374151',
+              borderBottomColor: mode === 'dark' ? '#374151' : '#d1d5db',
             },
             '&:after': {
               borderBottomColor: '#0891b2',
             },
             '&:hover:not(.Mui-disabled):before': {
-              borderBottomColor: '#6b7280',
+              borderBottomColor: mode === 'dark' ? '#6b7280' : '#9ca3af',
             },
           },
         },
@@ -140,4 +140,4 @@ const theme = createTheme({
   },
 });
 
-export default theme;
+export default getTheme;
