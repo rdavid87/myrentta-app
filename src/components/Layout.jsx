@@ -34,6 +34,7 @@ import Avatar from "@mui/material/Avatar"
 import Button from "@mui/material/Button"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import Tooltip from '@mui/material/Tooltip';
+import Logo from "./Logo"
 
 const drawerWidth = 256
 
@@ -245,7 +246,6 @@ const Layout = () => {
       >
         <Toolbar>
           <IconButton
-            color="inherit"
             aria-label={open ? "close drawer" : "open drawer"}
             onClick={handleDrawerOpen}
             edge="start"
@@ -257,13 +257,7 @@ const Layout = () => {
             <MenuIcon />
           </IconButton>
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h6" noWrap component="div" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <span style={{ color: "#06b6d4" }}>M</span>
-              <span style={{ color: "#94a3b8" }}>yRentta</span>
-              <Typography component="span" variant="caption" sx={{ color: "text.disabled", ml: 1 }}>
-                in safe hands
-              </Typography>
-            </Typography>
+            <Logo />
           </Box>
           <Box sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center", gap: 2 }}>
             <Box
@@ -274,25 +268,27 @@ const Layout = () => {
                 px: 2,
                 py: 1,
                 borderRadius: 2,
-                bgcolor: "background.default",
               }}
             >
               <Avatar
                 sx={{
                   width: 32,
                   height: 32,
-                  fontSize: "0.875rem",
-                  bgcolor: "primary.main",
                 }}
               >
                 {user?.full_name?.charAt(0) || "U"}
               </Avatar>
-              <Typography variant="body2" color="text.secondary">
-                {user?.full_name || "Usuario"}
-              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
+                <Typography sx={{ color: "text.secondary" }}>
+                  {user?.full_name || "Usuario"}
+                </Typography>
+                <Typography sx={{ color: "text.secondary", fontSize: "0.75rem" }}>
+                  Arrendador
+                </Typography>
+              </Box>
             </Box>
             <Tooltip title={mode === "dark" ? "Prender la luz" : "Apagar la luz"}>
-              <IconButton onClick={toggleMode} color="inherit">
+              <IconButton onClick={toggleMode}>
                 {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
               </IconButton>
             </Tooltip>
@@ -314,7 +310,6 @@ const Layout = () => {
             "& .MuiDrawer-paper": {
               width: drawerWidth,
               boxSizing: "border-box",
-              bgcolor: "background.paper",
               borderRight: "1px solid",
               borderColor: "divider",
             },
@@ -369,24 +364,21 @@ const Layout = () => {
                 px: 1,
                 py: 1,
                 borderRadius: 2,
-                bgcolor: "background.default",
               }}
             >
               <Avatar
                 sx={{
                   width: 40,
                   height: 40,
-                  fontSize: "1rem",
-                  bgcolor: "primary.main",
                 }}
               >
                 {user?.full_name?.charAt(0) || "U"}
               </Avatar>
               <Box>
-                <Typography variant="body2" color="text.primary" fontWeight={500}>
+                <Typography>
                   {user?.full_name || "Usuario"}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography>
                   Arrendador
                 </Typography>
               </Box>

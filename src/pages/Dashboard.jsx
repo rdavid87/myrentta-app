@@ -254,7 +254,7 @@ const Dashboard = () => {
         {/* Tablas de pagos */}
         <Grid container spacing={2} sx={{ mt: 3 }}>
           {/* Últimos pagos recibidos */}
-          <Grid size={{ xs: 12, lg: 6 }}>
+          <Grid size={{ xs: 12, md: 6, lg: 6 }}>
             <Card
               sx={{
                 bgcolor: "background.paper",
@@ -347,7 +347,7 @@ const Dashboard = () => {
           </Grid>
 
           {/* Pagos pendientes */}
-          <Grid size={{ xs: 12, lg: 6 }}>
+          <Grid size={{ xs: 12, md: 6, lg: 6 }}>
             <Card
               sx={{
                 bgcolor: "background.paper",
