@@ -3,7 +3,7 @@
 import React, { useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import { useTheme } from "@mui/material/styles"
+import { useColorMode } from "../hooks/useMode.jsx"
 import {
   Box,
   TextField,
@@ -14,6 +14,7 @@ import {
   Alert,
   CircularProgress,
   Paper,
+  Tooltip,
 } from '@mui/material'
 import {
   Person as PersonIcon,
@@ -21,6 +22,8 @@ import {
   Visibility,
   VisibilityOff,
   Login as LoginIcon,
+  Brightness4,
+  Brightness7,
 } from '@mui/icons-material'
 import Logo from "@/components/Logo"
 
@@ -34,7 +37,7 @@ const Login = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const theme = useTheme()
+  const { mode, toggleMode } = useColorMode()
 
   React.useEffect(() => {
     if (location.state?.message) {
@@ -60,25 +63,24 @@ const Login = () => {
   }
 
   const inputSx = {
-    '& .MuiOutlinedInput-root': {
+    '& .MuiFilledInput-root': {
       color: 'text.primary',
-      height: 52,
-      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+      backgroundColor: 'rgba(255,255,255,0.12)',
       borderRadius: '8px',
-      '& fieldset': { borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)' },
-      '&:hover fieldset': { borderColor: 'primary.main' },
-      '&.Mui-focused fieldset': { borderColor: 'primary.main' },
-      '& input::placeholder': { color: 'text.secondary', opacity: 0.7 },
+      '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
+      '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.4)' },
+      '&.Mui-focused fieldset': { borderColor: 'primary.contrastText' },
+      '& input::placeholder': { color: 'rgba(255,255,255,0.6)', opacity: 0.8 },
     },
     '& .MuiInputLabel-root': {
-      color: 'text.secondary',
-      '&.Mui-focused': { color: 'primary.main' },
+      color: 'rgba(255,255,255,0.8)',
+      '&.Mui-focused': { color: 'primary.contrastText' },
     },
     '& .MuiInputAdornment-root': {
-      color: 'text.secondary',
+      color: 'rgba(255,255,255,0.8)',
     },
     '& .MuiIconButton-root': {
-      color: 'text.secondary',
+      color: 'rgba(255,255,255,0.8)',
     },
   }
 
@@ -89,9 +91,7 @@ const Login = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: theme.palette.mode === 'dark' 
-          ? 'linear-gradient(135deg, #1e293b, #0f172a)' 
-          : 'linear-gradient(135deg, #f0f9ff, #e0f2fe)',
+        background: 'background.default',
       }}
     >
       <Paper
@@ -118,32 +118,34 @@ const Login = () => {
             bgcolor: 'background.paper',
             position: 'relative',
             overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              left: -120,
-              bottom: -120,
-              width: 350,
-              height: 350,
-              background: theme.palette.mode === 'dark' 
-                ? 'rgba(8, 145, 178, 0.08)' 
-                : 'rgba(8, 145, 178, 0.05)',
-              transform: 'rotate(45deg)',
-              pointerEvents: 'none',
-            },
           }}
         >
           <Box className="logo-container-responsive">
             <Logo />
           </Box>
+          <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
+            <IconButton
+              onClick={toggleMode}
+              sx={{
+                mt: 3,
+                color: 'text.secondary',
+                border: '1px solid',
+                borderColor: 'divider',
+                '&:hover': {
+                  color: 'primary.main',
+                  borderColor: 'primary.main',
+                },
+              }}
+            >
+              {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <Box
           sx={{
             flex: 1,
-            background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, #0f172a, #1e293b, #334155)'
-              : 'linear-gradient(135deg, #0891b2, #0ea5e9, #38bdf8)',
+            background: 'primary.main',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -166,7 +168,7 @@ const Login = () => {
           >
             <Logo size="xlarge" />
             <Typography sx={{ 
-              color: 'rgba(255,255,255,0.85)', 
+              color: 'primary.contrastText', 
               mb: 1,
               fontSize: '1rem',
             }}>
@@ -176,9 +178,9 @@ const Login = () => {
             {successMessage && (
               <Alert severity="success" sx={{ 
                 borderRadius: 2, 
-                bgcolor: 'rgba(255,255,255,0.15)', 
-                color: 'white', 
-                '& .MuiAlert-icon': { color: 'white' } 
+                bgcolor: 'rgba(255,255,255,0.2)', 
+                color: 'primary.contrastText',
+                '& .MuiAlert-icon': { color: 'primary.contrastText' } 
               }}>
                 {successMessage}
               </Alert>
@@ -186,9 +188,9 @@ const Login = () => {
             {error && (
               <Alert severity="error" sx={{ 
                 borderRadius: 2, 
-                bgcolor: 'rgba(239, 68, 68, 0.2)', 
-                color: 'white', 
-                '& .MuiAlert-icon': { color: 'white' } 
+                bgcolor: 'error.main', 
+                color: 'primary.contrastText',
+                '& .MuiAlert-icon': { color: 'primary.contrastText' } 
               }}>
                 {error}
               </Alert>
@@ -249,12 +251,12 @@ const Login = () => {
                 component={Link}
                 to="/forgot-password"
                 sx={{
-                  color: 'rgba(255,255,255,0.9)',
+                  color: 'primary.contrastText',
                   textTransform: 'none',
                   fontSize: '0.875rem',
                   textDecoration: 'none',
                   '&:hover': {
-                    color: 'white',
+                    color: 'primary.contrastText',
                     bgcolor: 'rgba(255,255,255,0.08)',
                     textDecoration: 'underline',
                   },
@@ -278,30 +280,19 @@ const Login = () => {
                 )
               }
               sx={{
-                background: 'linear-gradient(90deg, #6366f1, #67e8f9)',
-                color: 'white',
                 py: 1.5,
                 fontSize: '1rem',
                 fontWeight: 700,
                 letterSpacing: '0.5px',
                 borderRadius: '8px',
-                '&:hover': {
-                  background: 'linear-gradient(90deg, #4f46e5, #22d3ee)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 10px 25px rgba(99, 102, 241, 0.35)',
-                },
                 transition: 'all 0.3s ease',
-                '&.Mui-disabled': {
-                  background: 'linear-gradient(90deg, #6366f1, #67e8f9)',
-                  color: 'rgba(255,255,255,0.6)',
-                },
               }}
             >
               {loading ? 'Iniciando sesión...' : 'INICIAR SESIÓN'}
             </Button>
 
             <Typography sx={{ 
-              color: 'rgba(255,255,255,0.8)', 
+              color: 'primary.contrastText', 
               textAlign: 'center', 
               mt: 1 
             }}>
@@ -310,12 +301,12 @@ const Login = () => {
                 component={Link}
                 to="/register"
                 sx={{
-                  color: 'white',
+                  color: 'primary.contrastText',
                   textTransform: 'none',
                   fontWeight: 600,
                   textDecoration: 'none',
                   '&:hover': {
-                    color: 'rgba(255,255,255,0.85)',
+                    color: 'primary.contrastText',
                     bgcolor: 'rgba(255,255,255,0.08)',
                     textDecoration: 'underline',
                   },
@@ -327,7 +318,7 @@ const Login = () => {
 
             <Typography
               sx={{
-                color: 'rgba(255,255,255,0.6)',
+                color: 'primary.contrastText',
                 textAlign: 'center',
                 mt: 4,
                 fontSize: '0.75rem',
