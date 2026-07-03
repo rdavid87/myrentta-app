@@ -123,52 +123,89 @@ const Login = () => {
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', md: 'row' },
-          width: { xs: '100%', md: 1100 },
+          width: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 48px)', md: 1100 },
           maxWidth: '100%',
           minHeight: { xs: 'auto', md: 650 },
+          maxHeight: { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 48px)', md: 'auto' },
           overflow: 'hidden',
           bgcolor: 'background.paper',
-          borderRadius: '12px',
+          borderRadius: { xs: '8px', sm: '12px' },
           zIndex: 1,
           position: 'relative',
+          mx: { xs: 2, sm: 3, md: 'auto' },
+          my: { xs: 2, sm: 3, md: 0 },
           p: { xs: 2, sm: 3, md: 4 },
         }}
       >
+        {/* Sección decorativa - solo visible en md+ */}
         <Box
           sx={{
+            display: { xs: 'none', md: 'flex' },
             flex: 1,
             background: 'primary.main',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: 8,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+              zIndex: 0,
+            },
+          }}
+        >
+          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, mb: 2 }}>
+              Bienvenido
+            </Typography>
+            <Typography variant="h5" sx={{ color: 'text.primary', opacity: 0.9, maxWidth: 400 }}>
+              Accede a tu cuenta para gestionar tus propiedades y administrar tus alquileres de manera eficiente y segura.
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box
+          sx={{
+            flex: { xs: 'none', md: 1 },
+            background: { xs: 'primary.main', md: 'transparent' },
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
             p: { xs: 3, sm: 6, md: 8 },
             position: 'relative',
-            overflow: 'hidden',
           }}
         >
           <Box
             component="form"
             onSubmit={handleSubmit}
             sx={{
-              maxWidth: 420,
+              maxWidth: { xs: '100%', sm: 380, md: 420 },
               width: '100%',
               display: 'flex',
               flexDirection: 'column',
-              gap: 2.5,
+              gap: { xs: 2, sm: 2.5 },
             }}
           >
             {/* Centrar el Logo */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2, alignItems: 'center', flexDirection: 'column' }}>
-              <Logo size="xlarge" />
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: { xs: 1.5, sm: 2 }, alignItems: 'center', flexDirection: 'column' }}>
+              <Logo size="large" />
             </Box>
-            <Typography sx={{ color: 'text.secondary', mt: 1, fontWeight: 700 }}>
+            <Typography sx={{ color: { xs: 'primary.contrastText', md: 'text.secondary' }, mt: 1, fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
               Inicia sesión para continuar
             </Typography>
             {successMessage && (
               <Alert severity="success" sx={{ 
                 borderRadius: 2, 
                 bgcolor: 'success.main',
+                fontSize: { xs: '0.85rem', sm: '0.875rem' },
               }}>
                 {successMessage}
               </Alert>
@@ -176,7 +213,8 @@ const Login = () => {
             {error && (
               <Alert severity="error" sx={{ 
                 borderRadius: 2, 
-                bgcolor: 'error.main', 
+                bgcolor: 'error.main',
+                fontSize: { xs: '0.85rem', sm: '0.875rem' },
               }}>
                 {error}
               </Alert>
@@ -189,7 +227,6 @@ const Login = () => {
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="correo@ejemplo.com o número de cédula"
               variant="filled"
-              sx={{}}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -209,7 +246,6 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               variant="filled"
-              sx={{}}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -237,8 +273,9 @@ const Login = () => {
                 component={Link}
                 to="/forgot-password"
                 sx={{
-                  color: 'primary.contrastText',
+                  color: { xs: 'primary.contrastText', md: 'primary.main' },
                   textTransform: 'none',
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 }}
               >
                 ¿Olvidaste tu contraseña?
@@ -250,7 +287,6 @@ const Login = () => {
               fullWidth
               variant="contained"
               disabled={loading}
-              size="large"
               startIcon={
                 loading ? (
                   <CircularProgress size={20} color="inherit" sx={{ opacity: 0.9 }} />
@@ -259,8 +295,8 @@ const Login = () => {
                 )
               }
               sx={{
-                py: 1.5,
-                fontSize: '1rem',
+                py: { xs: 1.2, sm: 1.5 },
+                fontSize: { xs: '0.9rem', sm: '1rem' },
                 fontWeight: 700,
                 letterSpacing: '0.5px',
                 borderRadius: '8px',
@@ -271,18 +307,20 @@ const Login = () => {
             </Button>
 
             <Typography sx={{ 
-              color: 'primary.contrastText', 
+              color: { xs: 'primary.contrastText', md: 'text.secondary' }, 
               textAlign: 'center', 
-              mt: 1 
+              mt: 1,
+              fontSize: { xs: '0.85rem', sm: '0.875rem' }
             }}>
               ¿No tienes cuenta?{' '}
               <Button
                 component={Link}
                 to="/register"
                 sx={{
-                  color: 'primary.contrastText',
+                  color: { xs: 'primary.contrastText', md: 'primary.main' },
                   textTransform: 'none',
                   fontWeight: 600,
+                  fontSize: 'inherit',
                 }}
               >
                 Regístrate aquí
@@ -291,10 +329,10 @@ const Login = () => {
 
             <Typography
               sx={{
-                color: 'primary.contrastText',
+                color: { xs: 'primary.contrastText', md: 'text.disabled' },
                 textAlign: 'center',
-                mt: 4,
-                fontSize: '0.75rem',
+                mt: { xs: 3, sm: 4 },
+                fontSize: { xs: '0.7rem', sm: '0.75rem' },
               }}
             >
               © 2026 Todos los derechos reservados
