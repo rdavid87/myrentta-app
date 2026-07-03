@@ -1,13 +1,46 @@
-import { useState, useEffect } from "react"
+"use client"
+
+import React, { useState, useEffect } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import api from "../services/api"
+import {
+  Box,
+  TextField,
+  IconButton,
+  InputAdornment,
+  Button,
+  Typography,
+  Alert,
+  CircularProgress,
+  Paper,
+  Tooltip,
+} from '@mui/material'
+import {
+  Lock as LockIcon,
+  Visibility,
+  VisibilityOff,
+  Brightness4,
+  Brightness7,
+} from '@mui/icons-material'
+import { useColorMode } from "../hooks/useMode.jsx"
 
 const ResetPassword = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const userLogin = searchParams.get("user_login")
+  const [backgroundUrl, setBackgroundUrl] = React.useState(import.meta.env.BASE_URL + 'images/background.png')
 
-  const [step, setStep] = useState(1) // 1: OTP, 2: nueva contraseña
+  React.useEffect(() => {
+    const checkWebPSupport = () => {
+      const canvas = document.createElement('canvas')
+      if (canvas.toDataURL('image/webp').indexOf('webp') > -1) {
+        setBackgroundUrl(import.meta.env.BASE_URL + 'images/background.webp')
+      }
+    }
+    checkWebPSupport()
+  }, [])
+
+  const [step, setStep] = useState(1)
   const [otp, setOtp] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -17,6 +50,7 @@ const ResetPassword = () => {
   const [successMessage, setSuccessMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
+  const { mode, toggleMode } = useColorMode()
 
   useEffect(() => {
     if (!userLogin) navigate("/forgot-password")
@@ -91,272 +125,433 @@ const ResetPassword = () => {
   if (!userLogin) return null
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse" style={{ animationDelay: "2s" }}></div>
-      </div>
-
-      <div className="relative w-full max-w-md">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-3xl blur-xl opacity-20"></div>
-
-        <div className="relative bg-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
-
-          {/* Indicador de pasos */}
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all duration-300
-              ${step >= 1 ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
-              1
-            </div>
-            <div className={`h-0.5 w-12 transition-all duration-300 ${step >= 2 ? "bg-cyan-500" : "bg-gray-700"}`}></div>
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all duration-300
-              ${step >= 2 ? "bg-cyan-500 text-white" : "bg-gray-700 text-gray-400"}`}>
-              2
-            </div>
-          </div>
-
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl shadow-lg mb-4 transition-all duration-300
-              ${step === 1
-                ? "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-cyan-500/30"
-                : "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/30"}`}>
-              {step === 1 ? (
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              ) : (
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
-              )}
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              {step === 1 ? "Código de verificación" : "Nueva contraseña"}
-            </h1>
-            <p className="text-gray-400 mt-2 text-sm">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundImage: `url('${backgroundUrl}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 0,
+        },
+      }}
+    >
+      <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
+        <IconButton
+          onClick={toggleMode}
+          sx={{
+            position: 'absolute',
+            top: 24,
+            right: 24,
+            zIndex: 10,
+            color: 'text.secondary',
+            border: '1px solid',
+            borderColor: 'divider',
+            '&:hover': {
+              color: 'primary.main',
+              borderColor: 'primary.main',
+            },
+          }}
+        >
+          {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+        </IconButton>
+      </Tooltip>
+      <Paper
+        elevation={24}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          width: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 48px)', md: 1100 },
+          maxWidth: '100%',
+          minHeight: { xs: 'auto', md: 650 },
+          maxHeight: { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 48px)', md: 'auto' },
+          overflow: 'hidden',
+          bgcolor: 'background.paper',
+          borderRadius: { xs: '8px', sm: '12px' },
+          zIndex: 1,
+          position: 'relative',
+          mx: { xs: 2, sm: 3, md: 'auto' },
+          my: { xs: 2, sm: 3, md: 0 },
+          p: { xs: 2, sm: 3, md: 4 },
+        }}
+      >
+        <Box
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            flex: 1,
+            background: 'primary.main',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: 8,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+              zIndex: 0,
+            },
+          }}
+        >
+          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, mb: 2 }}>
+              {step === 1 ? "Código de" : "Nueva"}
+            </Typography>
+            <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, mb: 2 }}>
+              {step === 1 ? "verificación" : "contraseña"}
+            </Typography>
+            <Typography variant="h5" sx={{ color: 'text.secondary', opacity: 0.9, maxWidth: 400 }}>
               {step === 1
                 ? "Se envió un código a tu teléfono y correo electrónico"
                 : "Elige una contraseña segura para tu cuenta"}
-            </p>
-          </div>
+            </Typography>
+          </Box>
+        </Box>
 
-          {/* Mensajes */}
-          {successMessage && (
-            <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm mb-5">
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{successMessage}</span>
-            </div>
-          )}
+        <Box
+          sx={{
+            flex: { xs: 'none', md: 1 },
+            background: { xs: 'primary.main', md: 'transparent' },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: { xs: 3, sm: 6, md: 8 },
+            position: 'relative',
+          }}
+        >
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              maxWidth: { xs: '100%', sm: 380, md: 420 },
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: { xs: 2, sm: 2.5 },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 3 }}>
+              <Box sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                bgcolor: step >= 1 ? 'primary.main' : 'rgba(55, 65, 81, 0.5)',
+                color: step >= 1 ? 'primary.contrastText' : 'text.secondary',
+              }}>
+                1
+              </Box>
+              <Box sx={{
+                height: '2px',
+                width: '24px',
+                bgcolor: step >= 2 ? 'primary.main' : 'rgba(55, 65, 81, 0.5)',
+              }} />
+              <Box sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                bgcolor: step >= 2 ? 'primary.main' : 'rgba(55, 65, 81, 0.5)',
+                color: step >= 2 ? 'primary.contrastText' : 'text.secondary',
+              }}>
+                2
+              </Box>
+            </Box>
 
-          {error && (
-            <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm mb-5">
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{error}</span>
-            </div>
-          )}
+            <Typography sx={{ color: { xs: 'primary.contrastText', md: 'text.secondary' }, mt: 1, fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+              {step === 1 ? "Código de verificación" : "Nueva contraseña"}
+            </Typography>
+            <Typography sx={{ mb: 1, fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
+              {step === 1
+                ? "Se envió un código a tu teléfono y correo electrónico"
+                : "Elige una contraseña segura para tu cuenta"}
+            </Typography>
 
-          {/* PASO 1: OTP */}
-          {step === 1 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-300">
-                  Código de verificación <span className="text-rose-400">*</span>
-                </label>
-                <input
-                  type="text"
+            {successMessage && (
+              <Alert severity="success" sx={{ borderRadius: 2, bgcolor: 'rgba(16, 185, 129, 0.15)', color: 'success.main' }}>
+                {successMessage}
+              </Alert>
+            )}
+
+            {error && (
+              <Alert severity="error" sx={{ borderRadius: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            {step === 1 && (
+              <>
+                <TextField
+                  fullWidth
+                  required
+                  label="Código de verificación"
                   value={otp}
                   onChange={handleOtpChange}
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                  className="w-full px-4 py-4 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white text-center text-2xl tracking-[0.5em] font-mono placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
+                  inputProps={{ maxLength: 6, autoComplete: 'one-time-code' }}
                   placeholder="------"
+                  variant="filled"
+                  sx={{
+                    '& input': {
+                      textAlign: 'center',
+                      fontSize: '1.5rem',
+                      letterSpacing: '0.5em',
+                      fontFamily: 'monospace',
+                    },
+                  }}
                 />
-                <p className="text-gray-500 text-xs text-center">
+
+                <Typography sx={{
+                  color: { xs: 'primary.contrastText', md: 'text.secondary' },
+                  textAlign: 'center',
+                  mt: 1,
+                  fontSize: { xs: '0.8rem', sm: '0.85rem' },
+                }}>
                   Ingresa los 6 dígitos del código enviado
-                </p>
-              </div>
+                </Typography>
 
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate("/forgot-password")}
-                  className="flex-1 py-3 sm:py-4 bg-gray-700/60 hover:bg-gray-700 border border-gray-600/50 text-gray-300 hover:text-white rounded-xl
-                           font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  Atrás
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNextStep}
-                  disabled={otp.length !== 6}
-                  className="group relative flex-1 py-3 sm:py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl
-                           font-semibold shadow-lg hover:shadow-cyan-500/40 transition-all duration-300
-                           hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  Continuar
-                </button>
-              </div>
+                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                  <Button
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
+                    disabled={loading}
+                    variant="contained"
+                    sx={{
+                      flex: 1,
+                      py: { xs: 1.2, sm: 1.5 },
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      fontWeight: 700,
+                      letterSpacing: '0.5px',
+                      borderRadius: '8px',
+                      transition: 'all 0.3s ease',
+                      bgcolor: 'rgba(55, 65, 81, 0.6)',
+                      '&:hover': {
+                        bgcolor: 'rgba(55, 65, 81, 0.8)',
+                      },
+                    }}
+                  >
+                    Atrás
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleNextStep}
+                    disabled={otp.length !== 6}
+                    variant="contained"
+                    sx={{
+                      flex: 1,
+                      py: { xs: 1.2, sm: 1.5 },
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      fontWeight: 700,
+                      letterSpacing: '0.5px',
+                      borderRadius: '8px',
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
+                    Continuar
+                  </Button>
+                </Box>
 
-              <div className="text-center pt-1">
-                <p className="text-gray-400 text-sm">
-                  ¿No recibiste el código?{" "}
-                  <button
+                <Typography sx={{
+                  color: { xs: 'primary.contrastText', md: 'text.secondary' },
+                  textAlign: 'center',
+                  mt: 1,
+                  fontSize: { xs: '0.85rem', sm: '0.875rem' }
+                }}>
+                  ¿No recibiste el código?{' '}
+                  <Button
                     type="button"
                     onClick={handleResend}
                     disabled={resendLoading}
-                    className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors disabled:opacity-50"
+                    sx={{
+                      color: { xs: 'primary.contrastText', md: 'primary.main' },
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      fontSize: 'inherit',
+                      minWidth: 0,
+                      p: 0,
+                    }}
                   >
                     {resendLoading ? "Enviando..." : "Reenviar código"}
-                  </button>
-                </p>
-              </div>
-            </div>
-          )}
+                  </Button>
+                </Typography>
+              </>
+            )}
 
-          {/* PASO 2: Nueva contraseña */}
-          {step === 2 && (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-300">
-                  Nueva contraseña <span className="text-rose-400">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-12 pr-12 py-3 sm:py-4 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white
-                             placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-300"
-                    placeholder="Mínimo 6 caracteres"
-                    required
-                    minLength={6}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
-                  >
-                    {showPassword ? (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              </div>
+            {step === 2 && (
+              <>
+                <TextField
+                  fullWidth
+                  required
+                  label="Nueva contraseña"
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  variant="filled"
+                  sx={{}}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LockIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                            size="small"
+                          >
+                            {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
 
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-300">
-                  Confirmar contraseña <span className="text-rose-400">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  </div>
-                  <input
-                    type={showConfirm ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`w-full pl-12 pr-12 py-3 sm:py-4 bg-gray-900/50 border rounded-xl text-white
-                             placeholder-gray-500 focus:outline-none focus:ring-2 transition-all duration-300
-                             ${confirmPassword && newPassword !== confirmPassword
-                               ? "border-rose-500/50 focus:ring-rose-500/50 focus:border-rose-500/50"
-                               : "border-gray-600/50 focus:ring-cyan-500/50 focus:border-cyan-500/50"}`}
-                    placeholder="Repite la contraseña"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
-                  >
-                    {showConfirm ? (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
+                <TextField
+                  fullWidth
+                  required
+                  label="Confirmar contraseña"
+                  type={showConfirm ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repite la contraseña"
+                  variant="filled"
+                  sx={{}}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LockIcon fontSize="small" />
+                        </InputAdornment>
+                      ),
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowConfirm(!showConfirm)}
+                            edge="end"
+                            size="small"
+                          >
+                            {showConfirm ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+
                 {confirmPassword && newPassword !== confirmPassword && (
-                  <p className="text-rose-400 text-xs">Las contraseñas no coinciden</p>
+                  <Typography sx={{ color: 'error.main', fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                    Las contraseñas no coinciden
+                  </Typography>
                 )}
-              </div>
 
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => { setStep(1); setError("") }}
-                  disabled={loading}
-                  className="flex-1 py-3 sm:py-4 bg-gray-700/60 hover:bg-gray-700 border border-gray-600/50 text-gray-300 hover:text-white rounded-xl
-                           font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
-                           disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Atrás
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading || !newPassword || !confirmPassword}
-                  className="group relative flex-1 py-3 sm:py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl
-                           font-semibold shadow-lg hover:shadow-emerald-500/40 transition-all duration-300
-                           hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="relative flex items-center justify-center gap-2">
-                    {loading ? (
-                      <>
-                        <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Actualizando...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Actualizar contraseña
-                      </>
-                    )}
-                  </span>
-                </button>
-              </div>
-            </form>
-          )}
+                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                  <Button
+                    type="button"
+                    onClick={() => { setStep(1); setError("") }}
+                    disabled={loading}
+                    variant="contained"
+                    sx={{
+                      flex: 1,
+                      py: { xs: 1.2, sm: 1.5 },
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      fontWeight: 700,
+                      letterSpacing: '0.5px',
+                      borderRadius: '8px',
+                      transition: 'all 0.3s ease',
+                      bgcolor: 'rgba(55, 65, 81, 0.6)',
+                      '&:hover': {
+                        bgcolor: 'rgba(55, 65, 81, 0.8)',
+                      },
+                    }}
+                  >
+                    Atrás
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={loading || !newPassword || !confirmPassword}
+                    variant="contained"
+                    startIcon={
+                      loading ? (
+                        <CircularProgress size={20} color="inherit" sx={{ opacity: 0.9 }} />
+                      ) : (
+                        <LockIcon fontSize="small" />
+                      )
+                    }
+                    sx={{
+                      flex: 1,
+                      py: { xs: 1.2, sm: 1.5 },
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      fontWeight: 700,
+                      letterSpacing: '0.5px',
+                      borderRadius: '8px',
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
+                    {loading ? 'Actualizando...' : 'Actualizar contraseña'}
+                  </Button>
+                </Box>
+              </>
+            )}
 
-          <div className="mt-6 pt-6 border-t border-gray-700/50 text-center">
-            <p className="text-gray-400 text-sm">
-              ¿Algo salió mal?{" "}
-              <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+            <Typography sx={{ mt: 2, fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+              ¿Algo salió mal?{' '}
+              <Button
+                component={Link}
+                to="/login"
+                sx={{
+                  color: { xs: 'primary.contrastText', md: 'primary.main' },
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: 'inherit',
+                }}
+              >
                 Volver al inicio
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+              </Button>
+            </Typography>
+
+            <Typography
+              sx={{
+                textAlign: 'center',
+                mt: { xs: 2, sm: 3 },
+                fontSize: { xs: '0.65rem', sm: '0.7rem' },
+              }}
+            >
+              © 2026 Todos los derechos reservados
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   )
 }
 

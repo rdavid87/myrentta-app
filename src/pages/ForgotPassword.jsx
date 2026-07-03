@@ -13,17 +13,22 @@ import {
   Alert,
   CircularProgress,
   Paper,
+  Tooltip,
 } from '@mui/material'
 import {
   Person as PersonIcon,
   LockReset as LockResetIcon,
+  Brightness4,
+  Brightness7,
 } from '@mui/icons-material'
+import { useColorMode } from "../hooks/useMode.jsx"
 
 const ForgotPassword = () => {
   const navigate = useNavigate()
   const [identifier, setIdentifier] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const { mode, toggleMode } = useColorMode()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -41,141 +46,150 @@ const ForgotPassword = () => {
     }
   }
 
-  const inputSx = {
-    '& .MuiOutlinedInput-root': {
-      color: 'text.primary',
-      height: 52,
-      bgcolor: 'transparent',
-      '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
-      '&:hover fieldset': { borderColor: 'primary.main' },
-      '&.Mui-focused fieldset': { borderColor: 'primary.main' },
-      '& input::placeholder': { color: 'text.secondary', opacity: 0.7 },
-    },
-    '& .MuiInputLabel-root': {
-      color: 'text.secondary',
-      '&.Mui-focused': { color: 'primary.main' },
-    },
-    '& .MuiInputAdornment-root': {
-      color: 'text.secondary',
-    },
-    '& .MuiIconButton-root': {
-      color: 'text.secondary',
-    },
-  }
-
   return (
     <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundImage: `url('${import.meta.env.BASE_URL + 'images/background.png'}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 0,
+        },
+      }}
+    >
+      <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
+        <IconButton
+          onClick={toggleMode}
           sx={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
+            position: 'absolute',
+            top: 24,
+            right: 24,
+            zIndex: 10,
+            color: 'text.secondary',
+            border: '1px solid',
+            borderColor: 'divider',
+            '&:hover': {
+              color: 'primary.main',
+              borderColor: 'primary.main',
+            },
           }}
         >
+          {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+        </IconButton>
+      </Tooltip>
       <Paper
-              elevation={24}
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', md: 'row' },
-                width: { xs: '100%', md: 1100 },
-                maxWidth: '100%',
-                minHeight: { xs: 'auto', md: 650 },
-                overflow: 'hidden',
-                bgcolor: 'background.paper',
-              }}
-            >
-        {/* Panel Izquierdo - Solo branding */}
+        elevation={24}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          width: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 48px)', md: 1100 },
+          maxWidth: '100%',
+          minHeight: { xs: 'auto', md: 650 },
+          maxHeight: { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 48px)', md: 'auto' },
+          overflow: 'hidden',
+          bgcolor: 'background.paper',
+          borderRadius: { xs: '8px', sm: '12px' },
+          zIndex: 1,
+          position: 'relative',
+          mx: { xs: 2, sm: 3, md: 'auto' },
+          my: { xs: 2, sm: 3, md: 0 },
+          p: { xs: 2, sm: 3, md: 4 },
+        }}
+      >
         <Box
-                  sx={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    p: { xs: 4, md: 8 },
-                    bgcolor: 'background.paper',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      left: -120,
-                      bottom: -120,
-                      width: 350,
-                      height: 350,
-                      background: 'rgba(8, 145, 178, 0.05)',
-                      transform: 'rotate(45deg)',
-                      pointerEvents: 'none',
-                    },
-                  }}
-                >
-                  <Box className="logo-container-responsive">
-                    <Box className="logo-wrapper">
-                      <Typography variant="h3" className="brand-text" sx={{ fontSize: { xs: 32, md: 42 } }}>
-                        <span className="accent-m">M</span>y<span className="light-text">Rentta</span>
-                      </Typography>
-                      <Typography className="brand-sub" sx={{ mb: 6 }}>
-                        in safe hands
-                      </Typography>
-                    </Box>
-                  </Box>
-        
-                  
-                  
-                </Box>
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            flex: 1,
+            background: 'primary.main',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: 8,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+              zIndex: 0,
+            },
+          }}
+        >
+          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: { xs: 1.5, sm: 2 }, alignItems: 'center', flexDirection: 'row' }}>
+              <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, mb: 2 }}>
+                ¿Olvidaste tu contraseña?
+              </Typography>
+            </Box>
+            <Typography variant="h5" sx={{ color: 'text.secondary', opacity: 0.9, maxWidth: 400 }}>
+              Ingresa tu correo o número de cédula y te enviaremos un código de verificación para restablecer tu contraseña.
+            </Typography>
+          </Box>
+        </Box>
 
-        {/* Panel Derecho - Formulario */}
         <Box
-                  sx={{
-                    flex: 1,
-                    background: 'linear-gradient(135deg, #1565c0, #1976d2, #1e88e5)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    p: { xs: 3, sm: 6, md: 8 },
-                    position: 'relative',
-                    overflow: 'hidden',
-                    
-                  }}
-                >
+          sx={{
+            flex: { xs: 'none', md: 1 },
+            background: { xs: 'primary.main', md: 'transparent' },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: { xs: 3, sm: 6, md: 8 },
+            position: 'relative',
+          }}
+        >
           <Box
             component="form"
             onSubmit={handleSubmit}
             sx={{
-              maxWidth: 420,
+              maxWidth: { xs: '100%', sm: 380, md: 420 },
               width: '100%',
               display: 'flex',
               flexDirection: 'column',
-              gap: 2.5,
+              gap: { xs: 2, sm: 2.5 },
             }}
           >
 
-
-            <Typography variant="h4" sx={{ color: 'white', fontWeight: 700, fontSize: { xs: 32, sm: 42 } }}>
+            <Typography sx={{ color: { xs: 'primary.contrastText', md: 'text.secondary' }, mt: 1, fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
               Recuperar contraseña
             </Typography>
-            <Typography sx={{ color: 'rgba(255,255,255,0.75)', mb: 1 }}>
+            <Typography sx={{ mb: 1, fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
               Ingresa tu correo o número de cédula y te enviaremos un código de verificación
             </Typography>
 
-            {/* Alertas */}
             {error && (
-              <Alert severity="error" sx={{ borderRadius: 2, bgcolor: 'rgba(244,63,94,0.2)', color: 'white', '& .MuiAlert-icon': { color: 'white' } }}>
+              <Alert severity="error" sx={{ borderRadius: 2 }}>
                 {error}
               </Alert>
             )}
 
             <TextField
               fullWidth
+              required
               label="Correo o Número de identificación"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              required={true}
               placeholder="correo@ejemplo.com o número de cédula"
               variant="filled"
-              sx={inputSx}
+              sx={{}}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -192,7 +206,6 @@ const ForgotPassword = () => {
               fullWidth
               variant="contained"
               disabled={loading}
-              size="large"
               startIcon={
                 loading ? (
                   <CircularProgress size={20} color="inherit" sx={{ opacity: 0.9 }} />
@@ -201,42 +214,32 @@ const ForgotPassword = () => {
                 )
               }
               sx={{
-                background: 'linear-gradient(90deg, #6366f1, #67e8f9)',
-                color: 'white',
-                py: 1.5,
-                fontSize: '1rem',
+                py: { xs: 1.2, sm: 1.5 },
+                fontSize: { xs: '0.9rem', sm: '1rem' },
                 fontWeight: 700,
                 letterSpacing: '0.5px',
-                '&:hover': {
-                  background: 'linear-gradient(90deg, #4f46e5, #22d3ee)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 10px 25px rgba(99, 102, 241, 0.35)',
-                },
+                borderRadius: '8px',
                 transition: 'all 0.3s ease',
-                '&.Mui-disabled': {
-                  background: 'linear-gradient(90deg, #6366f1, #67e8f9)',
-                  color: 'rgba(255,255,255,0.6)',
-                },
               }}
             >
               {loading ? 'Enviando código...' : 'Enviar código de verificación'}
             </Button>
 
-            <Typography sx={{ color: 'rgba(255,255,255,0.8)', textAlign: 'center', mt: 1 }}>
+            <Typography sx={{
+              color: { xs: 'primary.contrastText', md: 'text.secondary' },
+              textAlign: 'center',
+              mt: 1,
+              fontSize: { xs: '0.85rem', sm: '0.875rem' }
+            }}>
               ¿Recordaste tu contraseña?{' '}
               <Button
                 component={Link}
                 to="/login"
                 sx={{
-                  color: 'white',
+                  color: { xs: 'primary.contrastText', md: 'primary.main' },
                   textTransform: 'none',
                   fontWeight: 600,
-                  textDecoration: 'none',
-                  '&:hover': {
-                    color: 'rgba(255,255,255,0.85)',
-                    bgcolor: 'rgba(255,255,255,0.08)',
-                    textDecoration: 'underline',
-                  },
+                  fontSize: 'inherit',
                 }}
               >
                 Iniciar sesión
@@ -245,10 +248,9 @@ const ForgotPassword = () => {
 
             <Typography
               sx={{
-                color: 'rgba(255,255,255,0.45)',
                 textAlign: 'center',
-                mt: 4,
-                fontSize: '0.75rem',
+                mt: { xs: 2, sm: 3 },
+                fontSize: { xs: '0.65rem', sm: '0.7rem' },
               }}
             >
               © 2026 Todos los derechos reservados
