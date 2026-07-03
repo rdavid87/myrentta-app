@@ -69,14 +69,36 @@ const Login = () => {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'background.default',
+        position: 'relative',
       }}
     >
+      <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
+        <IconButton
+          onClick={toggleMode}
+          sx={{
+            position: 'absolute',
+            top: 24,
+            right: 24,
+            zIndex: 10,
+            color: 'text.secondary',
+            border: '1px solid',
+            borderColor: 'divider',
+            '&:hover': {
+              color: 'primary.main',
+              borderColor: 'primary.main',
+            },
+          }}
+        >
+          {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+        </IconButton>
+      </Tooltip>
       <Paper
         elevation={24}
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', md: 'row' },
-          width: { xs: '100%', md: 1100 },
+          width: { xs: '100%', md: 800 },
+          p: { xs: 2, md: 4 },
           maxWidth: '100%',
           minHeight: { xs: 'auto', md: 650 },
           overflow: 'hidden',
@@ -84,26 +106,6 @@ const Login = () => {
           borderRadius: '12px',
         }}
       >
-
-        <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
-            <IconButton
-              onClick={toggleMode}
-              sx={{
-                mt: 3,
-                color: 'text.secondary',
-                border: '1px solid',
-                borderColor: 'divider',
-                '&:hover': {
-                  color: 'primary.main',
-                  borderColor: 'primary.main',
-                },
-              }}
-            >
-              {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
-            </IconButton>
-          </Tooltip>
-
-
         <Box
           sx={{
             flex: 1,
@@ -130,23 +132,23 @@ const Login = () => {
           >
             {/* Centrar el Logo */}
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2, alignItems: 'center', flexDirection: 'column' }}>
-            <Logo size="xlarge" />
+              <Logo size="xlarge" />
             </Box>
             <Typography sx={{ color: 'text.secondary', mt: 1, fontWeight: 700 }}>
               Inicia sesión para continuar
             </Typography>
             {successMessage && (
-              <Alert severity="success" sx={{ 
-                borderRadius: 2, 
+              <Alert severity="success" sx={{
+                borderRadius: 2,
                 bgcolor: 'success.main',
               }}>
                 {successMessage}
               </Alert>
             )}
             {error && (
-              <Alert severity="error" sx={{ 
-                borderRadius: 2, 
-                bgcolor: 'error.main', 
+              <Alert severity="error" sx={{
+                borderRadius: 2,
+                bgcolor: 'error.main',
               }}>
                 {error}
               </Alert>
@@ -207,7 +209,7 @@ const Login = () => {
                 component={Link}
                 to="/forgot-password"
                 sx={{
-                  color: 'primary.contrastText',
+                  color: 'text.primary',
                   textTransform: 'none',
                 }}
               >
@@ -240,17 +242,17 @@ const Login = () => {
               {loading ? 'Iniciando sesión...' : 'INICIAR SESIÓN'}
             </Button>
 
-            <Typography sx={{ 
-              color: 'primary.contrastText', 
-              textAlign: 'center', 
-              mt: 1 
+            <Typography sx={{
+              color: 'text.primary',
+              textAlign: 'center',
+              mt: 1
             }}>
               ¿No tienes cuenta?{' '}
               <Button
                 component={Link}
                 to="/register"
                 sx={{
-                  color: 'primary.contrastText',
+                  color: 'text.primary',
                   textTransform: 'none',
                   fontWeight: 600,
                 }}
@@ -261,7 +263,7 @@ const Login = () => {
 
             <Typography
               sx={{
-                color: 'primary.contrastText',
+                color: 'text.primary',
                 textAlign: 'center',
                 mt: 4,
                 fontSize: '0.75rem',
