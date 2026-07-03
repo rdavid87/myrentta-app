@@ -37,6 +37,19 @@ const Login = () => {
   const location = useLocation()
   const { mode, toggleMode } = useColorMode()
 
+  // Detect WebP support for background image fallback
+  const [backgroundUrl, setBackgroundUrl] = React.useState(import.meta.env.BASE_URL + 'images/background.png')
+
+  React.useEffect(() => {
+    const checkWebPSupport = () => {
+      const canvas = document.createElement('canvas')
+      if (canvas.toDataURL('image/webp').indexOf('webp') > -1) {
+        setBackgroundUrl(import.meta.env.BASE_URL + 'images/background.webp')
+      }
+    }
+    checkWebPSupport()
+  }, [])
+
   React.useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message)
@@ -68,8 +81,21 @@ const Login = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'background.default',
+        backgroundImage: `url('${backgroundUrl}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 0,
+        },
       }}
     >
       <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
@@ -97,13 +123,15 @@ const Login = () => {
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', md: 'row' },
-          width: { xs: '100%', md: 800 },
-          p: { xs: 2, md: 4 },
+          width: { xs: '100%', md: 1100 },
           maxWidth: '100%',
           minHeight: { xs: 'auto', md: 650 },
           overflow: 'hidden',
           bgcolor: 'background.paper',
           borderRadius: '12px',
+          zIndex: 1,
+          position: 'relative',
+          p: { xs: 2, sm: 3, md: 4 },
         }}
       >
         <Box
@@ -138,17 +166,17 @@ const Login = () => {
               Inicia sesión para continuar
             </Typography>
             {successMessage && (
-              <Alert severity="success" sx={{
-                borderRadius: 2,
+              <Alert severity="success" sx={{ 
+                borderRadius: 2, 
                 bgcolor: 'success.main',
               }}>
                 {successMessage}
               </Alert>
             )}
             {error && (
-              <Alert severity="error" sx={{
-                borderRadius: 2,
-                bgcolor: 'error.main',
+              <Alert severity="error" sx={{ 
+                borderRadius: 2, 
+                bgcolor: 'error.main', 
               }}>
                 {error}
               </Alert>
@@ -209,7 +237,7 @@ const Login = () => {
                 component={Link}
                 to="/forgot-password"
                 sx={{
-                  color: 'text.primary',
+                  color: 'primary.contrastText',
                   textTransform: 'none',
                 }}
               >
@@ -242,17 +270,17 @@ const Login = () => {
               {loading ? 'Iniciando sesión...' : 'INICIAR SESIÓN'}
             </Button>
 
-            <Typography sx={{
-              color: 'text.primary',
-              textAlign: 'center',
-              mt: 1
+            <Typography sx={{ 
+              color: 'primary.contrastText', 
+              textAlign: 'center', 
+              mt: 1 
             }}>
               ¿No tienes cuenta?{' '}
               <Button
                 component={Link}
                 to="/register"
                 sx={{
-                  color: 'text.primary',
+                  color: 'primary.contrastText',
                   textTransform: 'none',
                   fontWeight: 600,
                 }}
@@ -263,7 +291,7 @@ const Login = () => {
 
             <Typography
               sx={{
-                color: 'text.primary',
+                color: 'primary.contrastText',
                 textAlign: 'center',
                 mt: 4,
                 fontSize: '0.75rem',
