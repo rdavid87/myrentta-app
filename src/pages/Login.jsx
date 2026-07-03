@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
@@ -62,27 +60,6 @@ const Login = () => {
     }
   }
 
-  const inputSx = {
-    '& .MuiFilledInput-root': {
-      color: 'text.primary',
-      backgroundColor: 'rgba(255,255,255,0.12)',
-      borderRadius: '8px',
-      '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
-      '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.4)' },
-      '&.Mui-focused fieldset': { borderColor: 'primary.contrastText' },
-      '& input::placeholder': { color: 'rgba(255,255,255,0.6)', opacity: 0.8 },
-    },
-    '& .MuiInputLabel-root': {
-      color: 'rgba(255,255,255,0.8)',
-      '&.Mui-focused': { color: 'primary.contrastText' },
-    },
-    '& .MuiInputAdornment-root': {
-      color: 'rgba(255,255,255,0.8)',
-    },
-    '& .MuiIconButton-root': {
-      color: 'rgba(255,255,255,0.8)',
-    },
-  }
 
   return (
     <Box
@@ -107,23 +84,8 @@ const Login = () => {
           borderRadius: '12px',
         }}
       >
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            p: { xs: 4, md: 8 },
-            bgcolor: 'background.paper',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <Box className="logo-container-responsive">
-            <Logo />
-          </Box>
-          <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
+
+        <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
             <IconButton
               onClick={toggleMode}
               sx={{
@@ -140,7 +102,7 @@ const Login = () => {
               {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
             </IconButton>
           </Tooltip>
-        </Box>
+
 
         <Box
           sx={{
@@ -166,21 +128,17 @@ const Login = () => {
               gap: 2.5,
             }}
           >
+            {/* Centrar el Logo */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2, alignItems: 'center', flexDirection: 'column' }}>
             <Logo size="xlarge" />
-            <Typography sx={{ 
-              color: 'primary.contrastText', 
-              mb: 1,
-              fontSize: '1rem',
-            }}>
+            </Box>
+            <Typography sx={{ color: 'text.secondary', mt: 1, fontWeight: 700 }}>
               Inicia sesión para continuar
             </Typography>
-
             {successMessage && (
               <Alert severity="success" sx={{ 
                 borderRadius: 2, 
-                bgcolor: 'rgba(255,255,255,0.2)', 
-                color: 'primary.contrastText',
-                '& .MuiAlert-icon': { color: 'primary.contrastText' } 
+                bgcolor: 'success.main',
               }}>
                 {successMessage}
               </Alert>
@@ -189,8 +147,6 @@ const Login = () => {
               <Alert severity="error" sx={{ 
                 borderRadius: 2, 
                 bgcolor: 'error.main', 
-                color: 'primary.contrastText',
-                '& .MuiAlert-icon': { color: 'primary.contrastText' } 
               }}>
                 {error}
               </Alert>
@@ -203,7 +159,7 @@ const Login = () => {
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="correo@ejemplo.com o número de cédula"
               variant="filled"
-              sx={inputSx}
+              sx={{}}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -223,7 +179,7 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               variant="filled"
-              sx={inputSx}
+              sx={{}}
               slotProps={{
                 input: {
                   startAdornment: (
@@ -253,13 +209,6 @@ const Login = () => {
                 sx={{
                   color: 'primary.contrastText',
                   textTransform: 'none',
-                  fontSize: '0.875rem',
-                  textDecoration: 'none',
-                  '&:hover': {
-                    color: 'primary.contrastText',
-                    bgcolor: 'rgba(255,255,255,0.08)',
-                    textDecoration: 'underline',
-                  },
                 }}
               >
                 ¿Olvidaste tu contraseña?
@@ -304,12 +253,6 @@ const Login = () => {
                   color: 'primary.contrastText',
                   textTransform: 'none',
                   fontWeight: 600,
-                  textDecoration: 'none',
-                  '&:hover': {
-                    color: 'primary.contrastText',
-                    bgcolor: 'rgba(255,255,255,0.08)',
-                    textDecoration: 'underline',
-                  },
                 }}
               >
                 Regístrate aquí
