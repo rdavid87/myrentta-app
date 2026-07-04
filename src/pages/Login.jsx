@@ -161,9 +161,15 @@ const Login = () => {
           }}
         >
           <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            
+            <Box sx={{ position: 'relative',gap: 2,  mb: 4, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            {/* Texto de bienvenida */}
             <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, mb: 2 }}>
-              Bienvenido
+              Bienvenido a 
             </Typography>
+            {/* Logo */}
+            <Logo />
+            </Box>
             <Typography variant="h5" sx={{ color: 'text.primary', opacity: 0.9, maxWidth: 400 }}>
               Accede a tu cuenta para gestionar tus propiedades y administrar tus alquileres de manera eficiente y segura.
             </Typography>
