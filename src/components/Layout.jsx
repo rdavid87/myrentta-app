@@ -30,6 +30,7 @@ import ApartmentIcon from "@mui/icons-material/Apartment"
 import DescriptionIcon from "@mui/icons-material/Description"
 import PaymentIcon from "@mui/icons-material/Payment"
 import HelpIcon from "@mui/icons-material/Help"
+import ReceiptIcon from "@mui/icons-material/Receipt"
 import Avatar from "@mui/material/Avatar"
 import Button from "@mui/material/Button"
 import useMediaQuery from "@mui/material/useMediaQuery"
@@ -119,6 +120,7 @@ const Layout = () => {
     { path: "/arrendatarios", label: "Arrendatarios", icon: <PeopleTwoToneIcon /> },
     { path: "/contratos", label: "Contratos", icon: <DescriptionIcon /> },
     { path: "/pagos", label: "Pagos", icon: <PaymentIcon /> },
+    { path: "/suscripcion", label: "Suscripción", icon: <ReceiptIcon /> },
     { path: "/ayuda", label: "Ayuda", icon: <HelpIcon /> },
   ]
 
