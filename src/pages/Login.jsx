@@ -1,8 +1,29 @@
-"use client"
-
 import React, { useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import { useColorMode } from "../hooks/useMode.jsx"
+import {
+  Box,
+  TextField,
+  IconButton,
+  InputAdornment,
+  Button,
+  Typography,
+  Alert,
+  CircularProgress,
+  Paper,
+  Tooltip,
+} from '@mui/material'
+import {
+  Person as PersonIcon,
+  Lock as LockIcon,
+  Visibility,
+  VisibilityOff,
+  Login as LoginIcon,
+  Brightness4,
+  Brightness7,
+} from '@mui/icons-material'
+import Logo from "@/components/Logo"
 
 const Login = () => {
   const [identifier, setIdentifier] = useState("")
@@ -14,12 +35,24 @@ const Login = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const { mode, toggleMode } = useColorMode()
 
-  // Check for success message from OTP validation
+  // Detect WebP support for background image fallback
+  const [backgroundUrl, setBackgroundUrl] = React.useState(import.meta.env.BASE_URL + 'images/background.png')
+
+  React.useEffect(() => {
+    const checkWebPSupport = () => {
+      const canvas = document.createElement('canvas')
+      if (canvas.toDataURL('image/webp').indexOf('webp') > -1) {
+        setBackgroundUrl(import.meta.env.BASE_URL + 'images/background.webp')
+      }
+    }
+    checkWebPSupport()
+  }, [])
+
   React.useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message)
-      // Replace state to prevent showing message again on browser back navigation
       window.history.replaceState({}, document.title, window.location.pathname)
     }
   }, [location.state])
@@ -41,178 +74,278 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
-{/* Efectos de fondo */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" style={{ animationDelay: '4s' }}></div>
-        </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundImage: `url('${backgroundUrl}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 0,
+        },
+      }}
+    >
+      <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
+        <IconButton
+          onClick={toggleMode}
+          sx={{
+            position: 'absolute',
+            top: 24,
+            right: 24,
+            zIndex: 10,
+            color: 'text.secondary',
+            border: '1px solid',
+            borderColor: 'divider',
+            '&:hover': {
+              color: 'primary.main',
+              borderColor: 'primary.main',
+            },
+          }}
+        >
+          {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+        </IconButton>
+      </Tooltip>
+      <Paper
+        elevation={24}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          width: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 48px)', md: 1100 },
+          maxWidth: '100%',
+          minHeight: { xs: 'auto', md: 650 },
+          maxHeight: { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 48px)', md: 'auto' },
+          overflow: 'hidden',
+          bgcolor: 'background.paper',
+          borderRadius: { xs: '8px', sm: '12px' },
+          zIndex: 1,
+          position: 'relative',
+          mx: { xs: 2, sm: 3, md: 'auto' },
+          my: { xs: 2, sm: 3, md: 0 },
+          p: { xs: 2, sm: 3, md: 4 },
+        }}
+      >
+        {/* Sección decorativa - solo visible en md+ */}
+        <Box
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            flex: 1,
+            background: 'primary.main',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: 8,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+              zIndex: 0,
+            },
+          }}
+        >
+          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            
+            <Box sx={{ position: 'relative',gap: 2,  mb: 4, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+            {/* Texto de bienvenida */}
+            <Typography variant="h2" sx={{ color: 'text.primary', fontWeight: 800, mb: 2 }}>
+              Bienvenido a 
+            </Typography>
+            {/* Logo */}
+            <Logo />
+            </Box>
+            <Typography variant="h5" sx={{ color: 'text.primary', opacity: 0.9, maxWidth: 400 }}>
+              Accede a tu cuenta para gestionar tus propiedades y administrar tus alquileres de manera eficiente y segura.
+            </Typography>
+          </Box>
+        </Box>
 
-      {/* Card de Login */}
-      <div className="relative w-full max-w-md">
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-3xl blur-xl opacity-20"></div>
-
-        <div className="relative bg-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
-          {/* Logo y título */}
-          <div className="text-center mb-8">
-           {/* Logo */}
-            <div className="logo-container-responsive">
-              <div className="logo-wrapper">
-                <h1 className="brand-text"><span className="accent-m">M</span>y<span className="light-text">Rentta</span></h1>
-                <p className="brand-sub">in safe hands</p>
-              </div>
-            </div>
-            <div className="mt-4">
-            <p className="text-gray-400 mt-2 text-sm sm:text-base">Inicia sesión para continuar</p>
-</div>
-          </div>
-
-          {/* Formulario */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Success message */}
+        <Box
+          sx={{
+            flex: { xs: 'none', md: 1 },
+            background: { xs: 'primary.main', md: 'transparent' },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: { xs: 3, sm: 6, md: 8 },
+            position: 'relative',
+          }}
+        >
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              maxWidth: { xs: '100%', sm: 380, md: 420 },
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: { xs: 2, sm: 2.5 },
+            }}
+          >
+            {/* Centrar el Logo */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: { xs: 1.5, sm: 2 }, alignItems: 'center', flexDirection: 'column' }}>
+              <Logo size="large" />
+            </Box>
+            <Typography sx={{ color: { xs: 'primary.contrastText', md: 'text.secondary' }, mt: 1, fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+              Inicia sesión para continuar
+            </Typography>
             {successMessage && (
-              <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{successMessage}</span>
-              </div>
+              <Alert severity="success" sx={{ 
+                borderRadius: 2, 
+                bgcolor: 'success.main',
+                fontSize: { xs: '0.85rem', sm: '0.875rem' },
+              }}>
+                {successMessage}
+              </Alert>
             )}
-
-            {/* Error message */}
             {error && (
-              <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{error}</span>
-              </div>
+              <Alert severity="error" sx={{ 
+                borderRadius: 2, 
+                bgcolor: 'error.main',
+                fontSize: { xs: '0.85rem', sm: '0.875rem' },
+              }}>
+                {error}
+              </Alert>
             )}
 
-            {/* Correo o Cédula */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">
-                Correo o Número de identificación
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 sm:py-4 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white
-                           placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 
-                           transition-all duration-300"
-                  placeholder="correo@ejemplo.com o número de cédula"
-                  required
-                />
-              </div>
-            </div>
+            <TextField
+              fullWidth
+              label="Correo o Número de identificación"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="correo@ejemplo.com o número de cédula"
+              variant="filled"
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
 
-            {/* Password */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">
-                Contraseña
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 sm:py-4 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white
-                           placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 
-                           transition-all duration-300"
-                  placeholder="••••••••"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
-                >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
+            <TextField
+              fullWidth
+              label="Contraseña"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              variant="filled"
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        size="small"
+                      >
+                        {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
 
-            {/* Forgot password */}
-            <div className="flex justify-end -mt-2">
-              <Link to="/forgot-password" className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                component={Link}
+                to="/forgot-password"
+                sx={{
+                  color: { xs: 'primary.contrastText', md: 'primary.main' },
+                  textTransform: 'none',
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                }}
+              >
                 ¿Olvidaste tu contraseña?
-              </Link>
-            </div>
+              </Button>
+            </Box>
 
-            {/* Submit button */}
-            <button
+            <Button
               type="submit"
+              fullWidth
+              variant="contained"
               disabled={loading}
-              className="group relative w-full py-3 sm:py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl
-                       font-semibold shadow-lg hover:shadow-cyan-500/50 transition-all duration-300
-                       hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed
-                       disabled:hover:scale-100 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-0 
-                            group-hover:opacity-100 transition-opacity duration-300"></div>
-              <span className="relative flex items-center justify-center gap-2">
-                {loading ? (
-                  <>
-                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Iniciando sesión...
-                  </>
+              startIcon={
+                loading ? (
+                  <CircularProgress size={20} color="inherit" sx={{ opacity: 0.9 }} />
                 ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                    </svg>
-                    Iniciar Sesión
-                  </>
-                )}
-              </span>
-            </button>
-          </form>
+                  <LoginIcon fontSize="small" />
+                )
+              }
+              sx={{
+                py: { xs: 1.2, sm: 1.5 },
+                fontSize: { xs: '0.9rem', sm: '1rem' },
+                fontWeight: 700,
+                letterSpacing: '0.5px',
+                borderRadius: '8px',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {loading ? 'Iniciando sesión...' : 'INICIAR SESIÓN'}
+            </Button>
 
-          {/* Register link */}
-          <div className="mt-6 pt-6 border-t border-gray-700/50 text-center">
-            <p className="text-gray-400 text-sm">
-              ¿No tienes cuenta?{" "}
-              <Link to="/register" className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
+            <Typography sx={{ 
+              color: { xs: 'primary.contrastText', md: 'text.secondary' }, 
+              textAlign: 'center', 
+              mt: 1,
+              fontSize: { xs: '0.85rem', sm: '0.875rem' }
+            }}>
+              ¿No tienes cuenta?{' '}
+              <Button
+                component={Link}
+                to="/register"
+                sx={{
+                  color: { xs: 'primary.contrastText', md: 'primary.main' },
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: 'inherit',
+                }}
+              >
                 Regístrate aquí
-              </Link>
-            </p>
-          </div>
+              </Button>
+            </Typography>
 
-          {/* Footer */}
-          <div className="mt-4">
-            <p className="text-center text-gray-600 text-xs">
+            <Typography
+              sx={{
+                color: { xs: 'primary.contrastText', md: 'text.disabled' },
+                textAlign: 'center',
+                mt: { xs: 3, sm: 4 },
+                fontSize: { xs: '0.7rem', sm: '0.75rem' },
+              }}
+            >
               © 2026 Todos los derechos reservados
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   )
 }
 

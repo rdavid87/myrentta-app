@@ -1,14 +1,42 @@
 import { useState, useEffect } from "react"
 import api from "../services/api"
-import ArrendatarioIcon from "../components/ArrendatarioIcon"
+import MetricCard from "../components/utils/MetricCard"
 import { formatPaymentPeriodForList } from "../utils/periodoCuota"
 import {
   contratoVenceEnVentana,
   fechaLimiteVentanaDias,
   formatFechaUTC,
 } from "../utils/fechas"
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  LinearProgress,
+  Chip,
+  Avatar,
+  Paper,
+} from "@mui/material"
+import { alpha, useTheme } from "@mui/material/styles"
+import {
+  AttachMoney as AttachMoneyIcon,
+  Business as BusinessIcon,
+  People as PeopleIcon,
+  Warning as WarningIcon,
+  Description as DescriptionIcon,
+  TrendingUp as TrendingUpIcon,
+  CheckCircle as CheckCircleIcon,
+  Schedule as ScheduleIcon,
+  PeopleTwoTone as PeopleTwoToneIcon,
+} from "@mui/icons-material"
+import PercentIcon from '@mui/icons-material/Percent';
+import MoneyOffCsredIcon from '@mui/icons-material/MoneyOffCsred';
+import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
+
 
 const Dashboard = () => {
+  const theme = useTheme()
   const [stats, setStats] = useState({
     totalApartamentos: 0,
     apartamentosDisponibles: 0,
@@ -25,6 +53,7 @@ const Dashboard = () => {
   const [recentPayments, setRecentPayments] = useState([])
   const [upcomingPayments, setUpcomingPayments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [revenueProgress, setRevenueProgress] = useState(0)
 
   useEffect(() => {
     fetchAllData()
@@ -48,7 +77,7 @@ const Dashboard = () => {
       const disponibles = apartamentos.filter(a => a.estado === "disponible").length
       const arrendados = apartamentos.filter(a => a.estado !== "disponible").length
       const contratosActivos = contratos.filter(c => c.estado === "activo").length
-      
+
       // Contratos por vencer: fecha_fin entre hoy y hoy+30 (días calendario UTC)
       const hoy = new Date()
       const VENTANA_DIAS = 30
@@ -100,6 +129,11 @@ const Dashboard = () => {
         .slice(0, 5)
       setUpcomingPayments(pendientes)
 
+      // Calcular progreso de ingresos basado en el número de pagos del mes vs total de apartamentos ocupados
+      const maxExpected = Math.max(arrendados, 1)
+      const progress = Math.min((pagosDelMes.length / maxExpected) * 100, 100)
+      setRevenueProgress(progress)
+
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
     } finally {
@@ -123,298 +157,349 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-500 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Cargando dashboard...</p>
-        </div>
-      </div>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          background: `linear-gradient(135deg, ${theme.palette.background.default}, ${theme.palette.background.default}, ${theme.palette.background.default})`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Box sx={{ textAlign: "center" }}>
+          <Box
+            sx={{
+              animation: "spin 1s linear infinite",
+              borderRadius: "50%",
+              height: 64,
+              width: 64,
+              borderBottom: "3px solid",
+              borderColor: "primary.main",
+              mx: "auto",
+            }}
+          />
+          <Typography sx={{ mt: 2, color: "text.secondary" }}>Cargando...</Typography>
+        </Box>
+      </Box>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8 relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl blur-xl opacity-20 pointer-events-none"></div>
-          <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-2xl">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2 flex items-center gap-3">
-              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Dashboard
-            </h1>
-            <p className="text-sm sm:text-base text-gray-400">
-              Resumen general del sistema de administración de apartamentos
-            </p>
-          </div>
-        </div>
+    <Box
+      sx={{
+        minHeight: "100vh",
+      }}
+    >
+      <Box sx={{ maxWidth: "xl", mx: "auto" }}>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {/* Total Apartamentos */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-emerald-500/20 transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Apartamentos</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-white mt-2">{stats.totalApartamentos}</p>
-                  <div className="mt-2 flex gap-2 text-xs">
-                    <span className="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded-lg">
-                      {stats.apartamentosDisponibles} disponibles
-                    </span>
-                    <span className="px-2 py-1 bg-amber-500/20 text-amber-300 rounded-lg">
-                      {stats.apartamentosOcupados} arrendados
-                    </span>
-                  </div>
-                </div>
-                <div className="text-4xl sm:text-5xl opacity-80">🏢</div>
-              </div>
-            </div>
-          </div>
+        {/* Card */}
+        <Grid container spacing={2} sx={{ mt: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <MetricCard
+            title="Ingresos del Mes"
+            value={formatCurrency(stats.ingresosMes)}
+            badges={[`${stats.pagosDelMes} pagos recibidos`]}
+            icon={<AttachMoneyIcon />}
+          />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <MetricCard
+            title="Apartamentos"
+            value={stats.totalApartamentos}
+            icon={<BusinessIcon />}
+            badges={[
+              `${stats.apartamentosDisponibles} disponibles`,
+              `${stats.apartamentosOcupados} arrendados`,
+            ]}
+          />
+        </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <MetricCard
+            title="Arrendatarios"
+            value={stats.totalArrendatarios}
+            icon={<PeopleTwoToneIcon />}
+            badges={[`${stats.contratosActivos} con contrato activo`]}
+          />
+          </Grid>  
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <MetricCard
+              title="Pagos Pendientes"
+              value={stats.pagosEnMora}
+              icon={<MoneyOffCsredIcon />}
+              badges={[`${formatCurrency(stats.totalMora)} por cobrar`]}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <MetricCard
+              title="Contratos Activos"
+              value={stats.contratosActivos}
+              icon={<DescriptionIcon />}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <MetricCard
+              title="Tasa de Ocupación"
+              value={`${stats.totalApartamentos > 0
+                          ? Math.round((stats.apartamentosOcupados / stats.totalApartamentos) * 100)
+                          : 0}%`}
+              icon={<PercentIcon />}
+              
+            />
+          </Grid>
 
-          {/* Total Arrendatarios */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-600 to-cyan-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-fuchsia-500/20 transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Arrendatarios</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-white mt-2">{stats.totalArrendatarios}</p>
-                  <div className="mt-2 text-xs">
-                    <span className="px-2 py-1 bg-fuchsia-500/20 text-fuchsia-300 rounded-lg">
-                      {stats.contratosActivos} con contrato activo
-                    </span>
-                  </div>
-                </div>
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-cyan-500/20 border border-fuchsia-500/30 text-fuchsia-300">
-                  <ArrendatarioIcon className="w-10 h-10 sm:w-12 sm:h-12" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Ingresos del Mes */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-cyan-500/20 transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Ingresos del Mes</p>
-                  <p className="text-2xl sm:text-3xl font-bold text-white mt-2">{formatCurrency(stats.ingresosMes)}</p>
-                  <div className="mt-2 text-xs">
-                    <span className="px-2 py-1 bg-cyan-500/20 text-cyan-300 rounded-lg">
-                      {stats.pagosDelMes} pagos recibidos
-                    </span>
-                  </div>
-                </div>
-                <div className="text-4xl sm:text-5xl opacity-80">💰</div>
-              </div>
-            </div>
-          </div>
-
-          {/* En Mora */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-rose-600 to-red-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-rose-500/20 transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Pagos Pendientes</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-white mt-2">{stats.pagosEnMora}</p>
-                  <div className="mt-2 text-xs">
-                    <span className="px-2 py-1 bg-rose-500/20 text-rose-300 rounded-lg">
-                      {formatCurrency(stats.totalMora)} por cobrar
-                    </span>
-                  </div>
-                </div>
-                <div className="text-4xl sm:text-5xl opacity-80">⚠️</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Segunda fila de stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {/* Contratos */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Contratos Activos</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-white mt-2">{stats.contratosActivos}</p>
-                </div>
-                <div className="text-4xl sm:text-5xl opacity-80">📋</div>
-              </div>
-              {stats.contratosPorVencer > 0 && (
-                <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
-                  <p className="text-amber-300 text-sm flex items-center gap-2">
-                    <span className="text-lg">⏰</span>
-                    Hay contratos que vencen antes del {stats.fechaLimitePorVencer}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Ocupación */}
-          <div className="group relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            <div className="relative bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">Tasa de Ocupación</p>
-                  <p className="text-3xl sm:text-4xl font-bold text-white mt-2">
-                    {stats.totalApartamentos > 0 
-                      ? Math.round((stats.apartamentosOcupados / stats.totalApartamentos) * 100) 
-                      : 0}%
-                  </p>
-                </div>
-                <div className="text-4xl sm:text-5xl opacity-80">📈</div>
-              </div>
-              {/* Progress bar */}
-              <div className="w-full bg-gray-700 rounded-full h-3">
-                <div 
-                  className="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-500"
-                  style={{ 
-                    width: `${stats.totalApartamentos > 0 
-                      ? (stats.apartamentosOcupados / stats.totalApartamentos) * 100 
-                      : 0}%` 
-                  }}
-                ></div>
-              </div>
-              <div className="mt-2 flex justify-between text-xs text-gray-400">
-                <span>{stats.apartamentosOcupados} arrendados</span>
-                <span>{stats.apartamentosDisponibles} disponibles</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        </Grid>
 
         {/* Tablas de pagos */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          {/* Últimos pagos recibidos */}
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border-b border-gray-700/50 p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                <span className="text-2xl">✅</span>
+        <Grid container spacing={2} sx={{ mt: 3 }}>
+        {/* Últimos pagos recibidos */}
+        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
+          <Card
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                borderBottom: "1px solid",
+                borderColor: "divider",
+                p: { xs: 2, sm: 3 },
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "text.primary",
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <CheckCircleIcon />
                 Últimos Pagos Recibidos
-              </h2>
-            </div>
-            <div className="p-4">
+              </Typography>
+            </Box>
+            <Box sx={{ p: 2 }}>
               {recentPayments.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-2">💳</div>
-                  <p className="text-gray-400">No hay pagos registrados</p>
-                </div>
+                <Box sx={{ textAlign: "center", py: 4 }}>
+                  <Box sx={{ fontSize: "2.5rem", mb: 1 }}>💳</Box>
+                  <Typography color="text.secondary">No hay pagos registrados</Typography>
+                </Box>
               ) : (
-                <div className="space-y-3">
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                   {recentPayments.map((pago, index) => (
-                    <div 
+                    <Box
                       key={pago.id || index}
-                      className="flex items-center justify-between p-3 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        p: 2,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderLeftWidth: 4,
+                        borderLeftColor: "success.main",
+                        borderRadius: 1,
+                        transition: "background-color 0.2s",
+                        "&:hover": {
+                          bgcolor: alpha(theme.palette.background.paper, 0.6),
+                        },
+                      }}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <Avatar
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            bgcolor: alpha(theme.palette.success.main, 0.15),
+                            color: theme.palette.success.main,
+                            fontWeight: 700,
+                          }}
+                        >
                           ✓
-                        </div>
-                        <div>
-                          <p className="text-white font-medium text-sm">{pago.arrendatario_nombre || "Arrendatario"}</p>
-                          <p className="text-teal-300/90 text-xs">{formatPaymentPeriodForList(pago)}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-emerald-400 font-semibold text-sm">{formatCurrency(pago.valor)}</p>
-                        <p className="text-gray-500 text-xs">{formatDate(pago.fecha_pago)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Pagos pendientes */}
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-amber-600/20 to-orange-600/20 border-b border-gray-700/50 p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                <span className="text-2xl">⏳</span>
-                Pagos Pendientes
-              </h2>
-            </div>
-            <div className="p-4">
-              {upcomingPayments.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-2">🎉</div>
-                  <p className="text-gray-400">No hay pagos pendientes</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {upcomingPayments.map((pago, index) => (
-                    <div 
-                      key={pago.id || index}
-                      className="flex items-center justify-between p-3 bg-gray-700/30 rounded-xl hover:bg-gray-700/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          pago.estado === "en_mora" 
-                            ? "bg-rose-500/20 text-rose-400" 
-                            : "bg-amber-500/20 text-amber-400"
-                        }`}>
-                          {pago.estado === "en_mora" ? "!" : "⏱"}
-                        </div>
-                        <div>
-                          <p className="text-white font-medium text-sm">{pago.arrendatario_nombre || "Arrendatario"}</p>
-                          <p className="text-teal-300/90 text-xs">{formatPaymentPeriodForList(pago)}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className={`font-semibold text-sm ${
-                          pago.estado === "en_mora" ? "text-rose-400" : "text-amber-400"
-                        }`}>
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" sx={{ color: "text.primary", fontWeight: 500 }}>
+                            {pago.arrendatario_nombre || "Arrendatario"}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                            {formatPaymentPeriodForList(pago)}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Box sx={{ textAlign: "right" }}>
+                        <Typography variant="body2" sx={{ color: "success.main", fontWeight: 600 }}>
                           {formatCurrency(pago.valor)}
-                        </p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          pago.estado === "en_mora" 
-                            ? "bg-rose-500/20 text-rose-300" 
-                            : "bg-amber-500/20 text-amber-300"
-                        }`}>
-                          {pago.estado === "en_mora" ? "En mora" : "Pendiente"}
-                        </span>
-                      </div>
-                    </div>
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDate(pago.fecha_pago)}
+                        </Typography>
+                      </Box>
+                    </Box>
                   ))}
-                </div>
+                </Box>
               )}
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Card>
+        </Grid>
 
-        {/* Footer con información */}
-        <div className="mt-6 sm:mt-8 relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-600 to-gray-600 rounded-2xl blur-xl opacity-10"></div>
-          <div className="relative bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left">
-                <h3 className="text-lg font-semibold text-white mb-1">
+        {/* Pagos pendientes */}
+        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
+          <Card
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                borderBottom: "1px solid",
+                borderColor: "divider",
+                p: { xs: 2, sm: 3 },
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "text.primary",
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <ScheduleIcon />
+                Pagos Pendientes
+              </Typography>
+            </Box>
+            <Box sx={{ p: 2 }}>
+              {upcomingPayments.length === 0 ? (
+                <Box sx={{ textAlign: "center", py: 4 }}>
+                  <Typography color="text.secondary">No hay pagos pendientes</Typography>
+                </Box>
+              ) : (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                  {upcomingPayments.map((pago, index) => {
+                    const isMora = pago.estado === "en_mora"
+                    const semanticColor = isMora ? theme.palette.error.main : theme.palette.warning.main
+                    const label = isMora ? "En mora" : "Pendiente"
+
+                    return (
+                      <Box
+                        key={pago.id || index}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          p: 2,
+                          border: "1px solid",
+                          borderColor: "divider",
+                          borderLeftWidth: 4,
+                          borderLeftColor: semanticColor,
+                          borderRadius: 1,
+                          transition: "background-color 0.2s",
+                          "&:hover": {
+                            bgcolor: alpha(theme.palette.background.paper, 0.6),
+                          },
+                        }}
+                      >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                          <Avatar
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              bgcolor: alpha(semanticColor, 0.15),
+                              color: semanticColor,
+                              fontWeight: 700,
+                            }}
+                          >
+                            {isMora ? "!" : "⏱"}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body2" sx={{ color: "text.primary", fontWeight: 500 }}>
+                              {pago.arrendatario_nombre || "Arrendatario"}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                              {formatPaymentPeriodForList(pago)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box sx={{ textAlign: "right" }}>
+                          <Typography variant="body2" sx={{ color: semanticColor, fontWeight: 600 }}>
+                            {formatCurrency(pago.valor)}
+                          </Typography>
+                          <Chip
+                            label={label}
+                            size="small"
+                            sx={{
+                              height: 20,
+                              fontSize: "0.7rem",
+                              fontWeight: 600,
+                              bgcolor: alpha(semanticColor, 0.15),
+                              color: semanticColor,
+                              border: "1px solid",
+                              borderColor: alpha(semanticColor, 0.35),
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    )
+                  })}
+                </Box>
+              )}
+            </Box>
+          </Card>
+        </Grid>
+        </Grid>
+
+        <Box sx={{ mt: 4 }}>
+          <Paper
+            sx={{
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+              p: { xs: 2, sm: 3 },
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 2,
+              }}
+            >
+              <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
+                <Typography variant="h6" sx={{ color: "text.primary", mb: 0.5 }}>
                   🏠 Sistema de Administración de Apartamentos
-                </h3>
-                <p className="text-gray-400 text-sm">
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
                   Gestiona tus propiedades, arrendatarios, contratos y pagos de manera eficiente
-                </p>
-              </div>
-              <div className="flex gap-2 text-xs text-gray-500">
-                <span className="px-3 py-1 bg-gray-700/50 rounded-lg">
-                  Última actualización: {new Date().toLocaleString("es-CO")}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                </Typography>
+              </Box>
+              <Chip
+                label={`Última actualización: ${new Date().toLocaleString("es-CO")}`}
+                size="small"
+                sx={{
+                  bgcolor: alpha(theme.palette.background.default, 0.6),
+                  color: "text.secondary",
+                  border: "1px solid",
+                  borderColor: "divider",
+                  fontSize: "0.75rem",
+                }}
+              />
+            </Box>
+          </Paper>
+        </Box>
+      </Box>
+    </Box>
   )
 }
 

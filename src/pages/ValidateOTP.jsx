@@ -1,11 +1,36 @@
-import { useState, useEffect } from "react"
+"use client"
+
+import React, { useState, useEffect } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import api from "../services/api"
+import {
+  Box,
+  TextField,
+  IconButton,
+  InputAdornment,
+  Button,
+  Typography,
+  Alert,
+  CircularProgress,
+  Paper,
+  Grid,
+  Tooltip
+} from '@mui/material'
+import {
+  Lock as LockIcon,
+  Brightness4,
+  Brightness7,
+  ArrowBack as ArrowBackIcon,
+  CheckCircle as CheckCircleIcon
+} from '@mui/icons-material'
+import { useColorMode } from "../hooks/useMode.jsx"
+import Logo from "@/components/Logo"
 
 const ValidateOTP = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const userLogin = searchParams.get("user_login")
+  const { mode, toggleMode } = useColorMode()
 
   const [form, setForm] = useState({
     otp: "",
@@ -15,7 +40,6 @@ const ValidateOTP = () => {
   const [loading, setLoading] = useState(false)
   const [isValidUser, setIsValidUser] = useState(null)
 
-  // Check if user_login is provided
   useEffect(() => {
     if (!userLogin) {
       setIsValidUser(false)
@@ -23,6 +47,26 @@ const ValidateOTP = () => {
       setIsValidUser(true)
     }
   }, [userLogin])
+
+  // Detect WebP support for background image fallback
+  const [backgroundUrl, setBackgroundUrl] = React.useState(import.meta.env.BASE_URL + 'images/background.png')
+
+  React.useEffect(() => {
+    const checkWebPSupport = () => {
+      const canvas = document.createElement('canvas')
+      if (canvas.toDataURL('image/webp').indexOf('webp') > -1) {
+        setBackgroundUrl(import.meta.env.BASE_URL + 'images/background.webp')
+      }
+    }
+    checkWebPSupport()
+  }, [])
+
+  React.useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message)
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  }, [location.state])
 
   const handleChange = (e) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 6)
@@ -44,19 +88,16 @@ const ValidateOTP = () => {
         otp: form.otp,
         user_login: userLogin,
       })
-      console.log("API response:", response.data) // Debug log
 
-      // Only redirect on explicit success
       if (response.data?.status === "success") {
-        navigate("/login", { 
-          state: { 
-            message: "Cuenta verificada exitosamente. Por favor, inicia sesión." 
-          } 
+        navigate("/login", {
+          state: {
+            message: "Cuenta verificada exitosamente. Por favor, inicia sesión."
+          }
         })
       } else if (response.data?.message) {
-        // If API returns a message but not explicit success, treat as error
         setError(response.data.message)
-      }else{
+      } else {
         setError("Código de verificación inválido")
       }
     } catch (err) {
@@ -74,7 +115,6 @@ const ValidateOTP = () => {
         user_login: userLogin,
       })
       setSuccessMessage("Se ha enviado un nuevo código de verificación a tu teléfono")
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(""), 3000)
     } catch (err) {
       setError(err.response?.data?.error || "Error al reenviar el código de verificación")
@@ -83,186 +123,402 @@ const ValidateOTP = () => {
     }
   }
 
-  // Show error screen if no user_login
   if (isValidUser === false) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
-        <div className="relative w-full max-w-md text-center">
-          <div className="relative bg-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-2xl">
-            <div className="w-20 h-20 bg-gradient-to-br from-rose-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-rose-500/30">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-white mb-3">Error de validación</h2>
-            <p className="text-gray-400 mb-6">
-              No se proporcionó el usuario para validar el código de verificación.
-            </p>
-            <Link
-              to="/register"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-semibold hover:shadow-cyan-500/30 hover:shadow-lg transition-all duration-300 hover:scale-105"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14" />
-              </svg>
-              Ir a registro
-            </Link>
-          </div>
-        </div>
-      </div>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <Paper
+          elevation={24}
+          sx={{
+            maxWidth: 480,
+            width: '100%',
+            p: { xs: 4, sm: 6 },
+            borderRadius: 4,
+            textAlign: 'center',
+            border: '1px solid rgba(55, 65, 81, 0.5)',
+            background: 'rgba(17, 24, 39, 0.8)',
+            backdropFilter: 'blur(24px)',
+          }}
+        >
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+              borderRadius: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mx: 'auto',
+              mb: 4,
+              boxShadow: '0 10px 25px rgba(239, 68, 68, 0.3)',
+            }}
+          >
+            <ArrowBackIcon sx={{ fontSize: 40, color: 'white' }} />
+          </Box>
+
+          <Typography variant="h4" sx={{ fontWeight: 700, color: 'white', mb: 2 }}>
+            Error de validación
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', mb: 5, maxWidth: 320, mx: 'auto' }}>
+            No se proporcionó el usuario para validar el código de verificación.
+          </Typography>
+
+          <Button
+            component={Link}
+            to="/register"
+            variant="contained"
+            size="large"
+            startIcon={<ArrowBackIcon />}
+            sx={{
+              background: 'linear-gradient(135deg, #0891b2 0%, #2563eb 100%)',
+              color: 'white',
+              px: 4,
+              py: 1.5,
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #0e7490 0%, #1d4ed8 100%)',
+              },
+            }}
+          >
+            Ir a registro
+          </Button>
+
+          <Box mt={4}>
+            <Typography variant="caption" sx={{ color: 'rgba(107, 114, 128, 1)' }}>
+              © 2026 Todos los derechos reservados
+            </Typography>
+          </Box>
+        </Paper>
+      </Box>
     )
   }
 
-  // Show loading while checking user_login
   if (isValidUser === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
-        <div className="relative w-full max-w-md text-center">
-          <div className="relative bg-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 shadow-2xl">
-            <svg className="animate-spin w-10 h-10 text-cyan-500 mx-auto" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p className="text-gray-400 mt-4">Cargando...</p>
-          </div>
-        </div>
-      </div>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #dbeafe, #bfdbfe)',
+          p: 2,
+        }}
+      >
+        <Paper
+          elevation={24}
+          sx={{
+            maxWidth: 480,
+            width: '100%',
+            p: { xs: 4, sm: 6 },
+            borderRadius: 4,
+            textAlign: 'center',
+            border: '1px solid rgba(55, 65, 81, 0.5)',
+            background: 'rgba(17, 24, 39, 0.8)',
+            backdropFilter: 'blur(24px)',
+          }}
+        >
+          <CircularProgress sx={{ color: '#0891b2' }} />
+          <Typography sx={{ color: 'text.secondary', mt: 4 }}>Cargando...</Typography>
+        </Paper>
+      </Box>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse" style={{ animationDelay: "2s" }}></div>
-      </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundImage: `url('${backgroundUrl}')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 0,
+        },
+      }}
+    >
+      <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
+        <IconButton
+          onClick={toggleMode}
+          sx={{
+            position: 'absolute',
+            top: 24,
+            right: 24,
+            zIndex: 10,
+            color: 'text.secondary',
+            border: '1px solid',
+            borderColor: 'divider',
+            '&:hover': {
+              color: 'primary.main',
+              borderColor: 'primary.main',
+            },
+          }}
+        >
+          {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+        </IconButton>
+      </Tooltip>
+      <Paper
+        elevation={24}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          width: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 48px)', md: 1100 },
+          maxWidth: '100%',
+          minHeight: { xs: 'auto', md: 650 },
+          maxHeight: { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 48px)', md: 'auto' },
+          overflow: 'hidden',
+          bgcolor: 'background.paper',
+          borderRadius: { xs: '8px', sm: '12px' },
+          zIndex: 1,
+          position: 'relative',
+          mx: { xs: 2, sm: 3, md: 'auto' },
+          my: { xs: 2, sm: 3, md: 0 },
+          p: { xs: 2, sm: 3, md: 4 },
+        }}
+      >
 
-      <div className="relative w-full max-w-md">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-3xl blur-xl opacity-20"></div>
-
-        <div className="relative bg-gray-800/80 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl shadow-lg shadow-cyan-500/30 mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              Código de verificación
-            </h1>
-            <p className="text-gray-400 mt-2 text-sm">
+        {/* Panel Izquierdo - Solo branding visible en md+ */}
+        <Box
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            flex: 1,
+            background: 'primary.main',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: 8,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+              zIndex: 0,
+            },
+          }}
+        >
+          <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: { xs: 1.5, sm: 2 }, alignItems: 'center', flexDirection: 'row' }}>
+              <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 800, mb: 2 }}>
+                Código de verificación de
+              </Typography>
+              <Logo size="large" />
+            </Box>
+            <Typography variant="h5" sx={{ color: 'text.secondary', opacity: 0.9, maxWidth: 400 }}>
               Se ha enviado un código de verificación a tu telefono y correo electrónico.
-            </p>
-          </div>
+            </Typography>
+          </Box>
+        </Box>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Success message */}
+        {/* Panel Derecho - Formulario */}
+
+        <Box
+          sx={{
+            flex: { xs: 'none', md: 1 },
+            background: { xs: 'primary.main', md: 'transparent' },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: { xs: 3, sm: 6, md: 8 },
+            position: 'relative',
+          }}
+        >
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              maxWidth: { xs: '100%', sm: 380, md: 400 },
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: { xs: 2, sm: 2.5 },
+            }}
+          >
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1.5, mb: 1 }}>
+              <IconButton
+                onClick={() => navigate("/login")}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography sx={{ mt: 1, fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                Verificar cuenta
+              </Typography>
+            </Box>
+
+            <Typography sx={{ mt: 1, fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>              Código de verificación
+            </Typography>
+            <Typography sx={{ mb: { xs: 0.5, md: 1 }, fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
+              Ingresa el código de 6 dígitos enviado a tu teléfono y correo.
+            </Typography>
+
             {successMessage && (
-              <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{successMessage}</span>
-              </div>
+              <Alert severity="success" sx={{ borderRadius: 2 }}>
+                {successMessage}
+              </Alert>
             )}
 
             {error && (
-              <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>{error}</span>
-              </div>
+              <Alert severity="error" sx={{ borderRadius: 2 }}>
+                {error}
+              </Alert>
             )}
 
-            {/* OTP Input */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">
-                Digita el código de verificación <span className="text-rose-400">*</span>
-              </label>
-              <input
-                type="text"
-                name="otp"
-                value={form.otp}
-                onChange={handleChange}
-                maxLength={6}
-                required
-                className="w-full px-4 py-4 bg-gray-900/50 border border-gray-600/50 rounded-xl text-white text-center text-2xl tracking-[0.5em] font-mono placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all"
-                placeholder="------"
-                autoComplete="one-time-code"
-              />
-              <p className="text-gray-500 text-xs text-center">
-                Ingresa los 6 dígitos del código enviado.
-              </p>
-            </div>
+            <TextField
+              fullWidth
+              required
+              label="Código de verificación"
+              name="otp"
+              value={form.otp}
+              onChange={handleChange}
+              placeholder="123456"
+              variant="filled"
+              sx={{
+                '& .MuiInputBase-input': {
+                  textAlign: 'center',
+                  fontSize: '2rem',
+                  letterSpacing: '0.5em',
+                  fontFamily: 'monospace',
+                },
+                '& .MuiInputAdornment-root': {
+                  mr: { xs: 2, sm: 3 },
+                },
+              }}
+              slotProps={{
+                input: {
+                  maxLength: 6,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
 
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => navigate("/login")}
-                disabled={loading}
-                className="flex-1 py-3 sm:py-4 bg-gray-700/60 hover:bg-gray-700 border border-gray-600/50 text-gray-300 hover:text-white rounded-xl
-                         font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
-                         disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="submit"
-                disabled={loading || form.otp.length !== 6}
-                className="group relative flex-1 py-3 sm:py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl
-                         font-semibold shadow-lg hover:shadow-cyan-500/40 transition-all duration-300
-                         hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                <span className="flex items-center justify-center gap-2">
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Verificando...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                      Verificar código
-                    </>
-                  )}
-                </span>
-              </button>
-            </div>
-
-            {/* Resend OTP */}
-            <div className="text-center pt-2">
-              <p className="text-gray-400 text-sm">
-                ¿No recibiste el código?{" "}
-                <button
+            <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Button
                   type="button"
+                  onClick={() => navigate("/login")}
+                  disabled={loading}
+                  variant="outlined"
+                  color="neutral"
+                  fullWidth
+                  sx={{
+                    py: { xs: 1.2, sm: 1.5 },
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    fontWeight: 700,
+                    letterSpacing: '0.5px',
+                    borderRadius: '8px',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  Cancelar
+                </Button>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={loading || form.otp.length !== 6}
+                  startIcon={
+                    loading ? (
+                      <CircularProgress size={20} color="inherit" sx={{ opacity: 0.9 }} />
+                    ) : (
+                      <CheckCircleIcon fontSize="small" />
+                    )
+                  }
+                  sx={{
+                    py: { xs: 1.2, sm: 1.5 },
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    fontWeight: 700,
+                    letterSpacing: '0.5px',
+                    borderRadius: '8px',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  {loading ? 'Verificando...' : 'Verificar código'}
+                </Button>
+              </Grid>
+            </Grid>
+
+            <Box sx={{ textAlign: 'center', mt: { xs: 1, sm: 2 } }}>
+              <Typography sx={{ fontSize: { xs: '0.85rem', sm: '0.875rem' } }}>
+                ¿No recibiste el código?{" "}
+                <Button
                   onClick={handleResendOTP}
                   disabled={loading}
-                  className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors disabled:opacity-50"
+                  sx={{
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: 'inherit',
+                    p: 0,
+                    minWidth: 'auto',
+                  }}
                 >
                   Reenviar código
-                </button>
-              </p>
-            </div>
-          </form>
+                </Button>
+              </Typography>
+            </Box>
 
-          <div className="mt-6 pt-6 border-t border-gray-700/50 text-center">
-            <p className="text-gray-400 text-sm">
+            <Typography sx={{
+              textAlign: 'center',
+              mt: { xs: 1, sm: 2 },
+              fontSize: { xs: '0.85rem', sm: '0.875rem' }
+            }}>
               ¿Algo salió mal?{" "}
-              <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
+              <Button
+                component={Link}
+                to="/register"
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: 'inherit',
+                }}
+              >
                 Volver a registrar
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+              </Button>
+            </Typography>
+
+            <Typography
+              sx={{
+                textAlign: 'center',
+                mt: { xs: 2, sm: 3 },
+                fontSize: { xs: '0.65rem', sm: '0.7rem' },
+              }}
+            >
+              © 2026 Todos los derechos reservados
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    </Box>
   )
 }
 

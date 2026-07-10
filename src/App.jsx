@@ -1,5 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { ThemeProvider, CssBaseline } from '@mui/material'
 import { AuthProvider } from "./context/AuthContext"
+import { ColorModeProvider, useColorMode } from "./hooks/useMode.jsx"
+import { useMemo } from "react"
+import getTheme from "./theme"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import ValidateOTP from "./pages/ValidateOTP"
@@ -12,12 +16,18 @@ import Contratos from "./pages/Contratos"
 import Pagos from "./pages/Pagos"
 import Ayuda from "./pages/Ayuda"
 import ShareTarget from "./pages/ShareTarget"
+import Subscriptions from "./pages/Subscriptions"
 import PrivateRoute from "./components/PrivateRoute"
 import Layout from "./components/Layout"
 
-function App() {
+
+function AppContent() {
+  const { mode } = useColorMode();
+  const theme = useMemo(() => getTheme(mode), [mode]);
+
   return (
-    <AuthProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <Router basename="/myrentta-app">
         <Routes>
           {/* Public */}
@@ -42,12 +52,23 @@ function App() {
             <Route path="/contratos" element={<Contratos />} />
             <Route path="/pagos" element={<Pagos />} />
             <Route path="/ayuda" element={<Ayuda />} />
+            <Route path="/suscripcion" element={<Subscriptions />} />
             <Route path="/configuraciones" element={<Navigate to="/ayuda" replace />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
+    </ThemeProvider>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <ColorModeProvider>
+        <AppContent />
+      </ColorModeProvider>
     </AuthProvider>
   )
 }
