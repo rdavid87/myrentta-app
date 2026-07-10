@@ -9,10 +9,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Divider,
   Typography,
   Box,
-  Alert,
 } from "@mui/material"
 
 const CrearContrato = ({
@@ -85,155 +83,132 @@ const CrearContrato = ({
 
       <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column" }}>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            {/* Arrendatario */}
-            <FormControl size="small" fullWidth>
-              <InputLabel sx={{ color: "#9ca3af" }}>
-                Arrendatario
-              </InputLabel>
-              <Select
-                value={formData.arrendatario_id}
-                  label="Arrendatario"
-                onChange={handleChange("arrendatario_id")}
-                disabled={contratoToRenew}
-                required
-              >
-                <MenuItem value="">
-                  Seleccionar arrendatario
+          <FormControl size="small" fullWidth>
+            <InputLabel id="arrendatario-label">Arrendatario</InputLabel>
+            <Select
+              labelId="arrendatario-label"
+              label="Arrendatario"
+              value={formData.arrendatario_id}
+              onChange={handleChange("arrendatario_id")}
+              disabled={contratoToRenew}
+              required
+            >
+              <MenuItem value="">Seleccionar arrendatario</MenuItem>
+              {contratoToRenew ? (
+                <MenuItem value={contratoToRenew.arrendatario_id}>
+                  {contratoToRenew.arrendatario_nombre}
                 </MenuItem>
-                {contratoToRenew ? (
-                  <MenuItem value={contratoToRenew.arrendatario_id}>
-                    {contratoToRenew.arrendatario_nombre}
+              ) : (
+                tenants.map((tenant) => (
+                  <MenuItem key={tenant.id} value={tenant.id}>
+                    {tenant.nombre_completo} - {tenant.documento_identidad}
                   </MenuItem>
-                ) : (
-                  tenants.map((tenant) => (
-                    <MenuItem key={tenant.id} value={tenant.id}>
-                      {tenant.nombre_completo} - {tenant.documento_identidad}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
+                ))
+              )}
+            </Select>
             {!contratoToRenew && tenants.length === 0 && (
-              <Alert severity="warning">
-                <Typography variant="caption" >
-                  ⚠️ No hay arrendatarios registrados. Crea uno en la sección Arrendatarios.
-                </Typography>
-              </Alert>
+              <Typography variant="caption" color="warning" sx={{ mt: 1 }}>
+                No hay arrendatarios registrados. Crea uno en la sección Arrendatarios.
+              </Typography>
             )}
+          </FormControl>
 
-            {/* Apartamento */}
-            <FormControl size="small" fullWidth>
-              <InputLabel>🏢 Apartamento</InputLabel>
-              <Select
-                value={formData.apartamento_id}
-                label="🏢 Apartamento"
-                onChange={handleChange("apartamento_id")}
-                disabled={contratoToRenew}
-                required
-              >
-                <MenuItem value="">
-                  Seleccionar apartamento
+          <FormControl size="small" fullWidth>
+            <InputLabel id="apartamento-label">Apartamento</InputLabel>
+            <Select
+              labelId="apartamento-label"
+              label="Apartamento"
+              value={formData.apartamento_id}
+              onChange={handleChange("apartamento_id")}
+              disabled={contratoToRenew}
+              required
+            >
+              <MenuItem value="">Seleccionar apartamento</MenuItem>
+              {contratoToRenew ? (
+                <MenuItem value={contratoToRenew.apartamento_id}>
+                  {contratoToRenew.apartamento_nombre} - {contratoToRenew.apartamento_direccion}
                 </MenuItem>
-                {contratoToRenew ? (
-                  <MenuItem value={contratoToRenew.apartamento_id}>
-                    {contratoToRenew.apartamento_nombre} - {contratoToRenew.apartamento_direccion}
+              ) : (
+                apartamentos.map((apt) => (
+                  <MenuItem key={apt.id} value={apt.id}>
+                    {getApartamentoDisplayName(apt)} - {formatCurrency(apt.valor_arriendo)}
                   </MenuItem>
-                ) : (
-                  apartamentos.map((apt) => (
-                    <MenuItem key={apt.id} value={apt.id}>
-                      {getApartamentoDisplayName(apt)} - {formatCurrency(apt.valor_arriendo)}
-                    </MenuItem>
-                  ))
-                )}
+                ))
+              )}
+            </Select>
+            {!contratoToRenew && apartamentos.length === 0 && (
+              <Typography variant="caption" color="warning" sx={{ mt: 1 }}>
+                No hay apartamentos disponibles
+              </Typography>
+            )}
+          </FormControl>
+
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+            <TextField
+              label="Fecha Inicio"
+              type="date"
+              value={formData.fecha_inicio}
+              onChange={handleChange("fecha_inicio")}
+              required
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="Fecha Fin"
+              type="date"
+              value={formData.fecha_fin}
+              onChange={handleChange("fecha_fin")}
+              required
+              InputLabelProps={{ shrink: true }}
+            />
+          </Box>
+
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+            <TextField
+              label="Canon Mensual"
+              value={formData.canon_mensual}
+              onChange={handleChange("canon_mensual")}
+              required
+              placeholder="Ej: 1.500.000"
+            />
+            <TextField
+              label="Días de gracia"
+              type="number"
+              value={formData.paymentDay}
+              onChange={handleChange("paymentDay")}
+              slotProps={{ htmlInput: { min: 0, max: 90 } }}
+            />
+            <Box sx={{ gridColumn: { xs: "1 / -1", sm: "1 / -1" } }}>
+              <Typography variant="caption" color="text.secondary">
+                Indica cuántos días después del aniversario mensual se establece la fecha límite de pago.
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Por ejemplo, si el contrato inicia el 20 y pones 1, la fecha de cobro será el 21.
+              </Typography>
+            </Box>
+
+            <FormControl size="small" fullWidth>
+              <InputLabel id="modo-cobro-label">Modo de cobro del canon</InputLabel>
+              <Select
+                labelId="modo-cobro-label"
+                label="Modo de cobro del canon"
+                value={formData.modo_cobro}
+                onChange={handleChange("modo_cobro")}
+              >
+                <MenuItem value="anticipado">Cobro Anticipado (Mes Adelantado)</MenuItem>
+                <MenuItem value="fin_mes">Cobro a Mes Vencido (Fin de Mes)</MenuItem>
               </Select>
             </FormControl>
-            {!contratoToRenew && apartamentos.length === 0 && (
-              <Alert severity="warning">
-                <Typography variant="caption">
-                  ⚠️ No hay apartamentos disponibles
-                </Typography>
-              </Alert>
-            )}
-
-             {/* Fechas */}
-             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-               <TextField
-                 label="📅 Fecha Inicio"
-                 type="date"
-                 size="small"
-                 fullWidth
-                 value={formData.fecha_inicio}
-                 onChange={handleChange("fecha_inicio")}
-                 required
-                 slotProps={{ inputLabel: { shrink: true } }}
-               />
-               <TextField
-                 label="📅 Fecha Fin"
-                 type="date"
-                 size="small"
-                 fullWidth
-                 value={formData.fecha_fin}
-                 onChange={handleChange("fecha_fin")}
-                 required
-                 slotProps={{ inputLabel: { shrink: true } }}
-               />
-             </Box>
-
-             {/* Canon, días extra, modo cobro */}
-             <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-               <TextField
-                 label="💰 Canon Mensual"
-                 size="small"
-                 fullWidth
-                 value={formData.canon_mensual}
-                 onChange={handleChange("canon_mensual")}
-                 required
-                 placeholder="Ej: 1.500.000"
-               />
-               <TextField
-                 label="📆 Días de gracia para el pago"
-                 type="number"
-                 size="small"
-                 fullWidth
-                 value={formData.paymentDay}
-                 onChange={handleChange("paymentDay")}
-                 slotProps={{ htmlInput: { min: 0, max: 90 } }}
-               />
-              <Box sx={{ gridColumn: { xs: "1 / -1", sm: "1 / -1" } }}>
-                <Typography variant="caption">
-                  Indica cuántos días después del aniversario mensual se establece la fecha límite de pago.
-                </Typography>
-                <Typography variant="caption">
-                  Por ejemplo, si el contrato inicia el 20 y pones 1, la fecha de cobro será el 21.
-                </Typography>
-              </Box>
-
-              <FormControl size="small" fullWidth>
-                <InputLabel>🧾 Modo de cobro del canon</InputLabel>
-                <Select
-                  value={formData.modo_cobro}
-                  label="🧾 Modo de cobro del canon"
-                  onChange={handleChange("modo_cobro")}
-                >
-                  <MenuItem value="anticipado">
-                    Cobro Anticipado (Mes Adelantado)
-                  </MenuItem>
-                  <MenuItem value="fin_mes">
-                    Cobro a Mes Vencido (Fin de Mes)
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+          </Box>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-          <Button onClick={onClose}>
+          <Button onClick={onClose} color="neutral" variant="contained">
             Cancelar
           </Button>
           <Button
             type="submit"
             variant="contained"
-            color="warning"
+            color="success"
             disabled={isDisabled}
           >
             {contratoToRenew ? "🔄 Renovar Contrato" : "Crear Contrato"}
