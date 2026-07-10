@@ -172,13 +172,7 @@ const EditarPago = ({ open, onClose, pagoToEdit, editFormData, onEditFormChange,
         <Button
           onClick={onEditSubmit}
           variant="contained"
-          sx={{
-            bgcolor: "info.main",
-            color: "primary.contrastText",
-            "&:hover": {
-              bgcolor: "info.dark",
-            },
-          }}
+          color="info"
         >
           Guardar cambios
         </Button>

@@ -341,6 +341,7 @@ const ResetPassword = () => {
                     onClick={() => navigate("/forgot-password")}
                     disabled={loading}
                     variant="contained"
+                    color="neutral"
                     sx={{
                       flex: 1,
                       py: { xs: 1.2, sm: 1.5 },
@@ -349,10 +350,6 @@ const ResetPassword = () => {
                       letterSpacing: '0.5px',
                       borderRadius: '8px',
                       transition: 'all 0.3s ease',
-                      bgcolor: 'rgba(55, 65, 81, 0.6)',
-                      '&:hover': {
-                        bgcolor: 'rgba(55, 65, 81, 0.8)',
-                      },
                     }}
                   >
                     Atrás
@@ -480,6 +477,7 @@ const ResetPassword = () => {
                     onClick={() => { setStep(1); setError("") }}
                     disabled={loading}
                     variant="contained"
+                    color="neutral"
                     sx={{
                       flex: 1,
                       py: { xs: 1.2, sm: 1.5 },
@@ -488,10 +486,6 @@ const ResetPassword = () => {
                       letterSpacing: '0.5px',
                       borderRadius: '8px',
                       transition: 'all 0.3s ease',
-                      bgcolor: 'rgba(55, 65, 81, 0.6)',
-                      '&:hover': {
-                        bgcolor: 'rgba(55, 65, 81, 0.8)',
-                      },
                     }}
                   >
                     Atrás

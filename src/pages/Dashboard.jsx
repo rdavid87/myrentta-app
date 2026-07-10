@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
 import api from "../services/api"
-import ArrendatarioIcon from "../components/ArrendatarioIcon"
 import MetricCard from "../components/utils/MetricCard"
 import { formatPaymentPeriodForList } from "../utils/periodoCuota"
 import {

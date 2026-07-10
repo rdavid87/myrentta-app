@@ -60,35 +60,31 @@ const CrearContrato = ({
       slotProps={{
         paper: {
           sx: {
-            bgcolor: "rgba(17, 24, 39, 0.95)",
-            backdropFilter: "blur(24px)",
-            border: "1px solid rgba(75, 85, 99, 0.5)",
-            borderRadius: 3,
-            m: { xs: 1, sm: 2 },
-          },
-        },
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 1,
+          }
+        }
       }}
     >
-      <DialogTitle sx={{ pb: 0 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-              {contratoToRenew ? "🔄 Renovar Contrato" : "📝 Nuevo Contrato de Arrendamiento"}
-            </Typography>
-            {contratoToRenew && (
-              <Typography variant="body2" sx={{ color: "#9ca3af", mt: 0.25 }}>
-                Se finalizará el contrato actual y se creará uno nuevo
-              </Typography>
-            )}
-          </Box>
+      <DialogTitle sx={{ 
+        color: "text.primary", 
+        fontWeight: 700, 
+        display: "flex", 
+        alignItems: "center", 
+        gap: 1 
+      }}>
+        <Box component="span" sx={{ fontSize: "1.5rem" }}>
+          {contratoToRenew ? "🔄" : "📝"}
+        </Box>
+        <Box component="span" sx={{ fontSize: "1.25rem" }}>
+          {contratoToRenew ? "Renovar Contrato" : "Nuevo Contrato de Arrendamiento"}
         </Box>
       </DialogTitle>
 
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.08)", my: 1 }} />
-
-      <form onSubmit={handleSubmit}>
-        <DialogContent sx={{ pt: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column" }}>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {/* Arrendatario */}
             <FormControl size="small" fullWidth>
               <InputLabel sx={{ color: "#9ca3af" }}>
@@ -100,21 +96,17 @@ const CrearContrato = ({
                 onChange={handleChange("arrendatario_id")}
                 disabled={contratoToRenew}
                 required
-                sx={{
-                  bgcolor: "rgba(17,24,39,0.6)",
-                  "& .MuiSelect-select": { color: "#f9fafb" },
-                }}
               >
-                <MenuItem value="" style={{ backgroundColor: "#1f2937" }}>
+                <MenuItem value="">
                   Seleccionar arrendatario
                 </MenuItem>
                 {contratoToRenew ? (
-                  <MenuItem value={contratoToRenew.arrendatario_id} style={{ backgroundColor: "#1f2937" }}>
+                  <MenuItem value={contratoToRenew.arrendatario_id}>
                     {contratoToRenew.arrendatario_nombre}
                   </MenuItem>
                 ) : (
                   tenants.map((tenant) => (
-                    <MenuItem key={tenant.id} value={tenant.id} style={{ backgroundColor: "#1f2937" }}>
+                    <MenuItem key={tenant.id} value={tenant.id}>
                       {tenant.nombre_completo} - {tenant.documento_identidad}
                     </MenuItem>
                   ))
@@ -122,8 +114,8 @@ const CrearContrato = ({
               </Select>
             </FormControl>
             {!contratoToRenew && tenants.length === 0 && (
-              <Alert severity="warning" sx={{ bgcolor: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)" }}>
-                <Typography variant="caption" sx={{ color: "#fbbf24" }}>
+              <Alert severity="warning">
+                <Typography variant="caption" >
                   ⚠️ No hay arrendatarios registrados. Crea uno en la sección Arrendatarios.
                 </Typography>
               </Alert>
@@ -131,28 +123,24 @@ const CrearContrato = ({
 
             {/* Apartamento */}
             <FormControl size="small" fullWidth>
-              <InputLabel sx={{ color: "#9ca3af" }}>🏢 Apartamento</InputLabel>
+              <InputLabel>🏢 Apartamento</InputLabel>
               <Select
                 value={formData.apartamento_id}
                 label="🏢 Apartamento"
                 onChange={handleChange("apartamento_id")}
                 disabled={contratoToRenew}
                 required
-                sx={{
-                  bgcolor: "rgba(17,24,39,0.6)",
-                  "& .MuiSelect-select": { color: "#f9fafb" },
-                }}
               >
-                <MenuItem value="" style={{ backgroundColor: "#1f2937" }}>
+                <MenuItem value="">
                   Seleccionar apartamento
                 </MenuItem>
                 {contratoToRenew ? (
-                  <MenuItem value={contratoToRenew.apartamento_id} style={{ backgroundColor: "#1f2937" }}>
+                  <MenuItem value={contratoToRenew.apartamento_id}>
                     {contratoToRenew.apartamento_nombre} - {contratoToRenew.apartamento_direccion}
                   </MenuItem>
                 ) : (
                   apartamentos.map((apt) => (
-                    <MenuItem key={apt.id} value={apt.id} style={{ backgroundColor: "#1f2937" }}>
+                    <MenuItem key={apt.id} value={apt.id}>
                       {getApartamentoDisplayName(apt)} - {formatCurrency(apt.valor_arriendo)}
                     </MenuItem>
                   ))
@@ -160,8 +148,8 @@ const CrearContrato = ({
               </Select>
             </FormControl>
             {!contratoToRenew && apartamentos.length === 0 && (
-              <Alert severity="warning" sx={{ bgcolor: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)" }}>
-                <Typography variant="caption" sx={{ color: "#fbbf24" }}>
+              <Alert severity="warning">
+                <Typography variant="caption">
                   ⚠️ No hay apartamentos disponibles
                 </Typography>
               </Alert>
@@ -178,11 +166,6 @@ const CrearContrato = ({
                  onChange={handleChange("fecha_inicio")}
                  required
                  slotProps={{ inputLabel: { shrink: true } }}
-                 sx={{
-                   "& .MuiInputBase-root": { bgcolor: "rgba(17,24,39,0.6)" },
-                   "& .MuiInputLabel-root": { color: "#9ca3af" },
-                   "& .MuiInputBase-input": { color: "#f9fafb" },
-                 }}
                />
                <TextField
                  label="📅 Fecha Fin"
@@ -193,11 +176,6 @@ const CrearContrato = ({
                  onChange={handleChange("fecha_fin")}
                  required
                  slotProps={{ inputLabel: { shrink: true } }}
-                 sx={{
-                   "& .MuiInputBase-root": { bgcolor: "rgba(17,24,39,0.6)" },
-                   "& .MuiInputLabel-root": { color: "#9ca3af" },
-                   "& .MuiInputBase-input": { color: "#f9fafb" },
-                 }}
                />
              </Box>
 
@@ -211,11 +189,6 @@ const CrearContrato = ({
                  onChange={handleChange("canon_mensual")}
                  required
                  placeholder="Ej: 1.500.000"
-                 sx={{
-                   "& .MuiInputBase-root": { bgcolor: "rgba(17,24,39,0.6)" },
-                   "& .MuiInputLabel-root": { color: "#9ca3af" },
-                   "& .MuiInputBase-input": { color: "#f9fafb" },
-                 }}
                />
                <TextField
                  label="📆 Días de gracia para el pago"
@@ -225,85 +198,48 @@ const CrearContrato = ({
                  value={formData.paymentDay}
                  onChange={handleChange("paymentDay")}
                  slotProps={{ htmlInput: { min: 0, max: 90 } }}
-                 sx={{
-                   "& .MuiInputBase-root": { bgcolor: "rgba(17,24,39,0.6)" },
-                   "& .MuiInputLabel-root": { color: "#9ca3af" },
-                   "& .MuiInputBase-input": { color: "#f9fafb" },
-                 }}
                />
               <Box sx={{ gridColumn: { xs: "1 / -1", sm: "1 / -1" } }}>
-                <Typography variant="caption" sx={{ color: "#fbbf24", mt: 1, display: "block" }}>
+                <Typography variant="caption">
                   Indica cuántos días después del aniversario mensual se establece la fecha límite de pago.
                 </Typography>
-                <Typography variant="caption" sx={{ color: "#6b7280", mt: 0.5, display: "block" }}>
+                <Typography variant="caption">
                   Por ejemplo, si el contrato inicia el 20 y pones 1, la fecha de cobro será el 21.
                 </Typography>
               </Box>
 
               <FormControl size="small" fullWidth>
-                <InputLabel sx={{ color: "#9ca3af" }}>🧾 Modo de cobro del canon</InputLabel>
+                <InputLabel>🧾 Modo de cobro del canon</InputLabel>
                 <Select
                   value={formData.modo_cobro}
                   label="🧾 Modo de cobro del canon"
                   onChange={handleChange("modo_cobro")}
-                  sx={{
-                    bgcolor: "rgba(17,24,39,0.6)",
-                    "& .MuiSelect-select": { color: "#f9fafb" },
-                  }}
                 >
-                  <MenuItem value="anticipado" style={{ backgroundColor: "#1f2937" }}>
+                  <MenuItem value="anticipado">
                     Cobro Anticipado (Mes Adelantado)
                   </MenuItem>
-                  <MenuItem value="fin_mes" style={{ backgroundColor: "#1f2937" }}>
+                  <MenuItem value="fin_mes">
                     Cobro a Mes Vencido (Fin de Mes)
                   </MenuItem>
                 </Select>
               </FormControl>
             </Box>
-          </Box>
         </DialogContent>
 
-        <Divider sx={{ borderColor: "rgba(255,255,255,0.08)" }} />
-
-        <DialogActions sx={{ p: { xs: 2, sm: 3 } }}>
-          <Box sx={{ display: "flex", gap: 2, width: "100%" }}>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isDisabled}
-              fullWidth
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                background: "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)",
-                color: "#fff",
-                boxShadow: "0 10px 15px -3px rgba(245, 158, 11, 0.3)",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #fbbf24 0%, #f97316 100%)",
-                  boxShadow: "0 20px 25px -5px rgba(245, 158, 11, 0.4)",
-                },
-              }}
-            >
-              {contratoToRenew ? "🔄 Renovar Contrato" : "Crear Contrato"}
-            </Button>
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={onClose}
-              fullWidth
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                borderColor: "rgba(75,85,99,0.5)",
-                color: "#d1d5db",
-                "&:hover": { borderColor: "#6b7280", bgcolor: "rgba(75,85,99,0.1)" },
-              }}
-            >
-              Cancelar
-            </Button>
-          </Box>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            color="warning"
+            disabled={isDisabled}
+          >
+            {contratoToRenew ? "🔄 Renovar Contrato" : "Crear Contrato"}
+          </Button>
         </DialogActions>
-      </form>
+      </Box>
     </Dialog>
   )
 }

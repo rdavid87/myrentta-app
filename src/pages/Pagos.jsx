@@ -775,8 +775,8 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
                             <Button
                               size="small"
                               variant="contained"
+                              color="success"
                               onClick={() => openConfirmarModal(pago)}
-                              sx={{ bgcolor: "success.main" }}
                             >
                               Confirmar
                             </Button>
@@ -904,9 +904,9 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
                         <Button
                           variant="contained"
                           size="small"
+                          color="success"
                           onClick={() => openConfirmarModal(pago)}
                           fullWidth
-                          sx={{ bgcolor: "success.main" }}
                         >
                           Confirmar
                         </Button>

@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, alpha } from '@mui/material/styles';
 
 // ─── 1. PALETA MODO CLARO (LIGHT MODE) ───
 const lightPalette = {
@@ -23,11 +23,17 @@ const lightPalette = {
     primary: '#0f172a',   // Slate oscuro para máxima lectura
     secondary: '#475569', // Texto atenuado
   },
-  error: { main: '#ef4444' },
-  warning: { main: '#f97316' },
-  info: { main: '#06b6d4' },
-  success: { main: '#10b981' },
+  error: { main: '#ef4444', light: '#f87171', dark: '#b91c1c', contrastText: '#ffffff' },
+  warning: { main: '#f59e0b', light: '#fbbf24', dark: '#b45309', contrastText: '#ffffff' },
+  info: { main: '#06b6d4', light: '#22d3ee', dark: '#0e7490', contrastText: '#ffffff' },
+  success: { main: '#10b981', light: '#34d399', dark: '#059669', contrastText: '#ffffff' },
   divider: '#e2e8f0',     // Separadores sutiles
+
+  button: {
+    primary: { main: '#0891b2', light: '#399cba', dark: '#03586d', contrastText: '#ffffff' },
+    danger:  { main: '#ef4444', light: '#f87171', dark: '#b91c1c', contrastText: '#ffffff' },
+    neutral: { main: '#64748b', light: '#94a3b8', dark: '#334155', contrastText: '#ffffff' },
+  },
 };
 
 // ─── 2. PALETA MODO OSCURO (DARK MODE) ───
@@ -53,11 +59,17 @@ const darkPalette = {
     primary: '#f1f5f9',   // Blanco roto para evitar el destello lumínico
     secondary: '#94a3b8',
   },
-  error: { main: '#fca5a5' },
-  warning: { main: '#fdba74' },
-  info: { main: '#67e8f9' },
-  success: { main: '#6ee7b7' },
+  error: { main: '#ff6e6e', light: '#fca5a5', dark: '#b91c1c', contrastText: '#ffffff' },
+  warning: { main: '#f59e0b', light: '#fbbf24', dark: '#92400e', contrastText: '#ffffff' },
+  info: { main: '#67e8f9', light: '#a5f3fc', dark: '#0e7490', contrastText: '#0f172a' },
+  success: { main: '#6ee7b7', light: '#a7f3d0', dark: '#059669', contrastText: '#0f172a' },
   divider: '#334155',     // Separadores adaptados a la oscuridad
+
+  button: {
+    primary: { main: '#528b9e', light: '#7ea4b1', dark: '#2990ad', contrastText: '#ffffff' },
+    danger:  { main: '#ff6e6e', light: '#fca5a5', dark: '#b91c1c', contrastText: '#ffffff' },
+    neutral: { main: '#94a3b8', light: '#cbd5e1', dark: '#475569', contrastText: '#ffffff' },
+  },
 };
 
 // ─── 3. CONFIGURACIÓN TIPOGRÁFICA ───
@@ -139,6 +151,50 @@ export const getTheme = (mode) => {
             padding: '6px 16px',
           },
         },
+        variants: [
+          {
+            props: { variant: 'contained', color: 'danger' },
+            style: ({ theme }) => ({
+              backgroundColor: theme.palette.button.danger.main,
+              color: theme.palette.button.danger.contrastText,
+              '&:hover': {
+                backgroundColor: theme.palette.button.danger.dark,
+              },
+            }),
+          },
+          {
+            props: { variant: 'contained', color: 'neutral' },
+            style: ({ theme }) => ({
+              backgroundColor: theme.palette.button.neutral.main,
+              color: theme.palette.button.neutral.contrastText,
+              '&:hover': {
+                backgroundColor: theme.palette.button.neutral.dark,
+              },
+            }),
+          },
+          {
+            props: { variant: 'outlined', color: 'danger' },
+            style: ({ theme }) => ({
+              color: theme.palette.button.danger.main,
+              borderColor: theme.palette.button.danger.main,
+              '&:hover': {
+                borderColor: theme.palette.button.danger.dark,
+                backgroundColor: alpha(theme.palette.button.danger.main, 0.08),
+              },
+            }),
+          },
+          {
+            props: { variant: 'outlined', color: 'neutral' },
+            style: ({ theme }) => ({
+              color: theme.palette.button.neutral.main,
+              borderColor: theme.palette.button.neutral.main,
+              '&:hover': {
+                borderColor: theme.palette.button.neutral.dark,
+                backgroundColor: alpha(theme.palette.button.neutral.main, 0.08),
+              },
+            }),
+          },
+        ],
       },
       MuiDialog: {
         styleOverrides: {

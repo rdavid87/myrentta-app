@@ -162,33 +162,17 @@ const ExtenderContrato = ({
             <Button
               type="submit"
               variant="contained"
+              color="warning"
               fullWidth
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                background: "linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)",
-                color: "#fff",
-                boxShadow: "0 10px 15px -3px rgba(245, 158, 11, 0.3)",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #fbbf24 0%, #f97316 100%)",
-                  boxShadow: "0 20px 25px -5px rgba(245, 158, 11, 0.4)",
-                },
-              }}
             >
               Extender Contrato
             </Button>
             <Button
               type="button"
               variant="outlined"
+              color="neutral"
               onClick={onClose}
               fullWidth
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                borderColor: "rgba(75,85,99,0.5)",
-                color: "#d1d5db",
-                "&:hover": { borderColor: "#6b7280", bgcolor: "rgba(75,85,99,0.1)" },
-              }}
             >
               Cancelar
             </Button>

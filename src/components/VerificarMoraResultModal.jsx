@@ -198,8 +198,8 @@ export default function VerificarMoraResultModal({
             <Button
               onClick={onEnviarNotificaciones}
               variant="contained"
+              color="success"
               disabled={enviandoNotificaciones}
-              sx={{ bgcolor: "success.main" }}
             >
               {enviandoNotificaciones ? "Enviando..." : "Enviar Notificaciones"}
             </Button>

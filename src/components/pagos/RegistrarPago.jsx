@@ -188,6 +188,7 @@ const RegistrarPago = ({
           <Button
             type="submit"
             variant="contained"
+            color="success"
             disabled={contratos.length === 0}
           >
             Registrar Pago

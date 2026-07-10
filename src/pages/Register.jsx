@@ -474,7 +474,8 @@ const Register = () => {
                   type="button"
                   onClick={() => navigate("/login")}
                   disabled={loading}
-                  variant="contained"
+                  variant="outlined"
+                  color="neutral"
                   fullWidth
                   sx={{
                 py: { xs: 1.2, sm: 1.5 },

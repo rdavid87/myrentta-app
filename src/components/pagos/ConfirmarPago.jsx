@@ -152,13 +152,7 @@ const ConfirmarPago = ({ open, onClose, pagoToConfirm, confirmarData, onConfirma
           <Button
             type="submit"
             variant="contained"
-            sx={{
-              bgcolor: "success.main",
-              color: "primary.contrastText",
-              "&:hover": {
-                bgcolor: "success.dark",
-              },
-            }}
+            color="success"
           >
             ✅ Confirmar Pago
           </Button>
