@@ -12,28 +12,23 @@ import {
   Typography,
   Grid,
   Card,
-  CardContent,
-  LinearProgress,
   Chip,
   Avatar,
   Paper,
+  CircularProgress,
 } from "@mui/material"
 import { alpha, useTheme } from "@mui/material/styles"
 import {
   AttachMoney as AttachMoneyIcon,
   Business as BusinessIcon,
-  People as PeopleIcon,
-  Warning as WarningIcon,
   Description as DescriptionIcon,
-  TrendingUp as TrendingUpIcon,
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
   PeopleTwoTone as PeopleTwoToneIcon,
 } from "@mui/icons-material"
-import PercentIcon from '@mui/icons-material/Percent';
-import MoneyOffCsredIcon from '@mui/icons-material/MoneyOffCsred';
-import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
-
+import PercentIcon from "@mui/icons-material/Percent"
+import MoneyOffCsredIcon from "@mui/icons-material/MoneyOffCsred"
+import HomeWorkIcon from "@mui/icons-material/HomeWork"
 
 const Dashboard = () => {
   const theme = useTheme()
@@ -53,7 +48,6 @@ const Dashboard = () => {
   const [recentPayments, setRecentPayments] = useState([])
   const [upcomingPayments, setUpcomingPayments] = useState([])
   const [loading, setLoading] = useState(true)
-  const [revenueProgress, setRevenueProgress] = useState(0)
 
   useEffect(() => {
     fetchAllData()
@@ -73,12 +67,10 @@ const Dashboard = () => {
       const contratos = contratosRes.data || []
       const pagos = pagosRes.data || []
 
-      // Calcular estadísticas
       const disponibles = apartamentos.filter(a => a.estado === "disponible").length
       const arrendados = apartamentos.filter(a => a.estado !== "disponible").length
       const contratosActivos = contratos.filter(c => c.estado === "activo").length
 
-      // Contratos por vencer: fecha_fin entre hoy y hoy+30 (días calendario UTC)
       const hoy = new Date()
       const VENTANA_DIAS = 30
       const limitePorVencer = fechaLimiteVentanaDias(hoy, VENTANA_DIAS)
@@ -86,7 +78,6 @@ const Dashboard = () => {
         c => c.estado === "activo" && contratoVenceEnVentana(c.fecha_fin, VENTANA_DIAS, hoy)
       ).length
 
-      // Ingresos del mes calendario actual (por fecha en que se recibió el pago, no por período de arriendo)
       const mesActual = hoy.getMonth() + 1
       const anioActual = hoy.getFullYear()
       const pagoRecibidoEnMesActual = (p) => {
@@ -98,7 +89,6 @@ const Dashboard = () => {
       const pagosDelMes = pagos.filter(pagoRecibidoEnMesActual)
       const ingresosMes = pagosDelMes.reduce((sum, p) => sum + (Number(p.valor) || 0), 0)
 
-      // Pagos en mora
       const enMora = pagos.filter(p => p.estado === "en_mora" || p.estado === "pendiente")
       const totalMora = enMora.reduce((sum, p) => sum + (p.valor || 0), 0)
 
@@ -116,24 +106,16 @@ const Dashboard = () => {
         totalMora,
       })
 
-      // Últimos pagos (ordenados por fecha)
       const pagosOrdenados = [...pagos]
         .filter(p => p.estado === "pagado")
         .sort((a, b) => new Date(b.fecha_pago) - new Date(a.fecha_pago))
         .slice(0, 5)
       setRecentPayments(pagosOrdenados)
 
-      // Pagos pendientes
       const pendientes = pagos
         .filter(p => p.estado === "pendiente" || p.estado === "en_mora")
         .slice(0, 5)
       setUpcomingPayments(pendientes)
-
-      // Calcular progreso de ingresos basado en el número de pagos del mes vs total de apartamentos ocupados
-      const maxExpected = Math.max(arrendados, 1)
-      const progress = Math.min((pagosDelMes.length / maxExpected) * 100, 100)
-      setRevenueProgress(progress)
-
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
     } finally {
@@ -155,76 +137,116 @@ const Dashboard = () => {
     return date.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
   }
 
+  const sectionCardSx = (accent) => ({
+    height: "100%",
+    width: "100%",
+    maxWidth: "100%",
+    boxSizing: "border-box",
+    borderRadius: 2.5,
+    borderColor: "divider",
+    borderLeft: 4,
+    borderLeftColor: accent,
+    bgcolor: "background.default",
+    backgroundImage: (t) =>
+      `linear-gradient(135deg, ${t.palette.mode === "dark" ? "rgba(82,139,158,0.08)" : "rgba(8,145,178,0.06)"} 0%, transparent 55%)`,
+    boxShadow: "none",
+    overflow: "hidden",
+  })
+
+  const paymentRowSx = (accent) => ({
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 1.5,
+    p: { xs: 1.25, sm: 1.5 },
+    border: 1,
+    borderColor: "divider",
+    borderLeft: 4,
+    borderLeftColor: accent,
+    borderRadius: 2,
+    minWidth: 0,
+    width: "100%",
+    maxWidth: "100%",
+    boxSizing: "border-box",
+    bgcolor: (t) =>
+      t.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(15,23,42,0.03)",
+    transition: "background-color 0.15s ease",
+    "&:hover": {
+      bgcolor: alpha(theme.palette.background.paper, 0.8),
+    },
+  })
+
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          background: `linear-gradient(135deg, ${theme.palette.background.default}, ${theme.palette.background.default}, ${theme.palette.background.default})`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Box sx={{ textAlign: "center" }}>
-          <Box
-            sx={{
-              animation: "spin 1s linear infinite",
-              borderRadius: "50%",
-              height: 64,
-              width: 64,
-              borderBottom: "3px solid",
-              borderColor: "primary.main",
-              mx: "auto",
-            }}
-          />
-          <Typography sx={{ mt: 2, color: "text.secondary" }}>Cargando...</Typography>
-        </Box>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+        <CircularProgress size={64} sx={{ color: "primary.main" }} />
       </Box>
     )
   }
 
-  return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-      }}
-    >
-      <Box sx={{ maxWidth: "xl", mx: "auto" }}>
+  const ocupacion =
+    stats.totalApartamentos > 0
+      ? Math.round((stats.apartamentosOcupados / stats.totalApartamentos) * 100)
+      : 0
 
-        {/* Card */}
-        <Grid container spacing={2} sx={{ mt: 3 }}>
-                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <MetricCard
-            title="Ingresos del Mes"
-            value={formatCurrency(stats.ingresosMes)}
-            badges={[`${stats.pagosDelMes} pagos recibidos`]}
-            icon={<AttachMoneyIcon />}
-          />
+  return (
+    <Box sx={{ minHeight: "100vh", width: "100%", maxWidth: "100%", overflowX: "hidden", boxSizing: "border-box" }}>
+      <Box sx={{ maxWidth: "xl", mx: "auto", width: "100%", minWidth: 0 }}>
+        <Box sx={{ mb: { xs: 2, sm: 3 }, minWidth: 0 }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 700 }}
+          >
+            Panel general
+          </Typography>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 800, fontSize: { xs: "1.4rem", sm: "2rem" }, mt: 0.25 }}
+          >
+            Inicio
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Resumen de propiedades, contratos y pagos
+          </Typography>
+        </Box>
+
+        <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+            <MetricCard
+              title="Ingresos del Mes"
+              value={formatCurrency(stats.ingresosMes)}
+              color="warning"
+              badges={[`${stats.pagosDelMes} pagos recibidos`]}
+              icon={<AttachMoneyIcon />}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <MetricCard
-            title="Apartamentos"
-            value={stats.totalApartamentos}
-            icon={<BusinessIcon />}
-            badges={[
-              `${stats.apartamentosDisponibles} disponibles`,
-              `${stats.apartamentosOcupados} arrendados`,
-            ]}
-          />
-        </Grid>
+            <MetricCard
+              title="Apartamentos"
+              value={stats.totalApartamentos}
+              color="primary"
+              icon={<BusinessIcon />}
+              badges={[
+                `${stats.apartamentosDisponibles} disponibles`,
+                `${stats.apartamentosOcupados} arrendados`,
+              ]}
+            />
+          </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <MetricCard
-            title="Arrendatarios"
-            value={stats.totalArrendatarios}
-            icon={<PeopleTwoToneIcon />}
-            badges={[`${stats.contratosActivos} con contrato activo`]}
-          />
-          </Grid>  
+            <MetricCard
+              title="Arrendatarios"
+              value={stats.totalArrendatarios}
+              color="info"
+              icon={<PeopleTwoToneIcon />}
+              badges={[`${stats.contratosActivos} con contrato activo`]}
+            />
+          </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <MetricCard
               title="Pagos Pendientes"
               value={stats.pagosEnMora}
+              color="error"
               icon={<MoneyOffCsredIcon />}
               badges={[`${formatCurrency(stats.totalMora)} por cobrar`]}
             />
@@ -233,269 +255,289 @@ const Dashboard = () => {
             <MetricCard
               title="Contratos Activos"
               value={stats.contratosActivos}
+              color="success"
               icon={<DescriptionIcon />}
+              badges={
+                stats.contratosPorVencer > 0
+                  ? [`${stats.contratosPorVencer} por vencer`]
+                  : ["Sin vencimientos próximos"]
+              }
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 4 }}>
             <MetricCard
               title="Tasa de Ocupación"
-              value={`${stats.totalApartamentos > 0
-                          ? Math.round((stats.apartamentosOcupados / stats.totalApartamentos) * 100)
-                          : 0}%`}
+              value={`${ocupacion}%`}
+              color="secondary"
               icon={<PercentIcon />}
-              
+              badges={[`${stats.apartamentosOcupados}/${stats.totalApartamentos || 0} ocupados`]}
             />
           </Grid>
-
         </Grid>
 
-        {/* Tablas de pagos */}
-        <Grid container spacing={2} sx={{ mt: 3 }}>
-        {/* Últimos pagos recibidos */}
-        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <Card
-            sx={{
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 1,
-              overflow: "hidden",
-            }}
-          >
-            <Box
-              sx={{
-                borderBottom: "1px solid",
-                borderColor: "divider",
-                p: { xs: 2, sm: 3 },
-              }}
-            >
-              <Typography
-                variant="h6"
+        <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mt: { xs: 0.5, sm: 1 } }}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Card variant="outlined" sx={sectionCardSx("success.main")}>
+              <Box
                 sx={{
-                  color: "text.primary",
-                  fontWeight: 600,
+                  borderBottom: 1,
+                  borderColor: "divider",
+                  p: { xs: 1.5, sm: 2 },
                   display: "flex",
                   alignItems: "center",
-                  gap: 1,
+                  gap: 1.25,
+                  minWidth: 0,
                 }}
               >
-                <CheckCircleIcon />
-                Últimos Pagos Recibidos
-              </Typography>
-            </Box>
-            <Box sx={{ p: 2 }}>
-              {recentPayments.length === 0 ? (
-                <Box sx={{ textAlign: "center", py: 4 }}>
-                  <Box sx={{ fontSize: "2.5rem", mb: 1 }}>💳</Box>
-                  <Typography color="text.secondary">No hay pagos registrados</Typography>
-                </Box>
-              ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                  {recentPayments.map((pago, index) => (
-                    <Box
-                      key={pago.id || index}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        p: 2,
-                        border: "1px solid",
-                        borderColor: "divider",
-                        borderLeftWidth: 4,
-                        borderLeftColor: "success.main",
-                        borderRadius: 1,
-                        transition: "background-color 0.2s",
-                        "&:hover": {
-                          bgcolor: alpha(theme.palette.background.paper, 0.6),
-                        },
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <Avatar
-                          sx={{
-                            width: 40,
-                            height: 40,
-                            bgcolor: alpha(theme.palette.success.main, 0.15),
-                            color: theme.palette.success.main,
-                            fontWeight: 700,
-                          }}
-                        >
-                          ✓
-                        </Avatar>
-                        <Box>
-                          <Typography variant="body2" sx={{ color: "text.primary", fontWeight: 500 }}>
-                            {pago.arrendatario_nombre || "Arrendatario"}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                            {formatPaymentPeriodForList(pago)}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Box sx={{ textAlign: "right" }}>
-                        <Typography variant="body2" sx={{ color: "success.main", fontWeight: 600 }}>
-                          {formatCurrency(pago.valor)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {formatDate(pago.fecha_pago)}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          </Card>
-        </Grid>
-
-        {/* Pagos pendientes */}
-        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <Card
-            sx={{
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 1,
-              overflow: "hidden",
-            }}
-          >
-            <Box
-              sx={{
-                borderBottom: "1px solid",
-                borderColor: "divider",
-                p: { xs: 2, sm: 3 },
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  color: "text.primary",
-                  fontWeight: 600,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <ScheduleIcon />
-                Pagos Pendientes
-              </Typography>
-            </Box>
-            <Box sx={{ p: 2 }}>
-              {upcomingPayments.length === 0 ? (
-                <Box sx={{ textAlign: "center", py: 4 }}>
-                  <Typography color="text.secondary">No hay pagos pendientes</Typography>
-                </Box>
-              ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                  {upcomingPayments.map((pago, index) => {
-                    const isMora = pago.estado === "en_mora"
-                    const semanticColor = isMora ? theme.palette.error.main : theme.palette.warning.main
-                    const label = isMora ? "En mora" : "Pendiente"
-
-                    return (
-                      <Box
-                        key={pago.id || index}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          p: 2,
-                          border: "1px solid",
-                          borderColor: "divider",
-                          borderLeftWidth: 4,
-                          borderLeftColor: semanticColor,
-                          borderRadius: 1,
-                          transition: "background-color 0.2s",
-                          "&:hover": {
-                            bgcolor: alpha(theme.palette.background.paper, 0.6),
-                          },
-                        }}
-                      >
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Avatar
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    bgcolor: alpha(theme.palette.success.main, 0.18),
+                    color: "success.main",
+                    border: 1,
+                    borderColor: alpha(theme.palette.success.main, 0.35),
+                  }}
+                >
+                  <CheckCircleIcon fontSize="small" />
+                </Avatar>
+                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: "1rem", sm: "1.15rem" } }}>
+                  Últimos Pagos Recibidos
+                </Typography>
+              </Box>
+              <Box sx={{ p: { xs: 1.25, sm: 2 }, minWidth: 0 }}>
+                {recentPayments.length === 0 ? (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Typography color="text.secondary">No hay pagos registrados</Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+                    {recentPayments.map((pago, index) => (
+                      <Box key={pago.id || index} sx={paymentRowSx("success.main")}>
+                        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.25, minWidth: 0, flex: 1 }}>
                           <Avatar
                             sx={{
-                              width: 40,
-                              height: 40,
-                              bgcolor: alpha(semanticColor, 0.15),
-                              color: semanticColor,
+                              width: 36,
+                              height: 36,
+                              flexShrink: 0,
+                              bgcolor: alpha(theme.palette.success.main, 0.18),
+                              color: "success.main",
                               fontWeight: 700,
+                              fontSize: "0.85rem",
                             }}
                           >
-                            {isMora ? "!" : "⏱"}
+                            ✓
                           </Avatar>
-                          <Box>
-                            <Typography variant="body2" sx={{ color: "text.primary", fontWeight: 500 }}>
+                          <Box sx={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: "text.primary", fontWeight: 600 }}
+                              noWrap
+                            >
                               {pago.arrendatario_nombre || "Arrendatario"}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{ display: "block", wordBreak: "break-word" }}
+                            >
                               {formatPaymentPeriodForList(pago)}
+                            </Typography>
+                            <Typography variant="caption" color="text.disabled" display="block">
+                              {formatDate(pago.fecha_pago)}
                             </Typography>
                           </Box>
                         </Box>
-                        <Box sx={{ textAlign: "right" }}>
-                          <Typography variant="body2" sx={{ color: semanticColor, fontWeight: 600 }}>
-                            {formatCurrency(pago.valor)}
-                          </Typography>
-                          <Chip
-                            label={label}
-                            size="small"
-                            sx={{
-                              height: 20,
-                              fontSize: "0.7rem",
-                              fontWeight: 600,
-                              bgcolor: alpha(semanticColor, 0.15),
-                              color: semanticColor,
-                              border: "1px solid",
-                              borderColor: alpha(semanticColor, 0.35),
-                            }}
-                          />
-                        </Box>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "success.main",
+                            fontWeight: 700,
+                            flexShrink: 0,
+                            textAlign: "right",
+                          }}
+                        >
+                          {formatCurrency(pago.valor)}
+                        </Typography>
                       </Box>
-                    )
-                  })}
-                </Box>
-              )}
-            </Box>
-          </Card>
-        </Grid>
-        </Grid>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+            </Card>
+          </Grid>
 
-        <Box sx={{ mt: 4 }}>
-          <Paper
-            sx={{
-              bgcolor: "background.paper",
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 1,
-              p: { xs: 2, sm: 3 },
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 2,
-              }}
-            >
-              <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
-                <Typography variant="h6" sx={{ color: "text.primary", mb: 0.5 }}>
-                  🏠 Sistema de Administración de Apartamentos
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Gestiona tus propiedades, arrendatarios, contratos y pagos de manera eficiente
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Card variant="outlined" sx={sectionCardSx("warning.main")}>
+              <Box
+                sx={{
+                  borderBottom: 1,
+                  borderColor: "divider",
+                  p: { xs: 1.5, sm: 2 },
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.25,
+                  minWidth: 0,
+                }}
+              >
+                <Avatar
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    bgcolor: alpha(theme.palette.warning.main, 0.18),
+                    color: "warning.main",
+                    border: 1,
+                    borderColor: alpha(theme.palette.warning.main, 0.35),
+                  }}
+                >
+                  <ScheduleIcon fontSize="small" />
+                </Avatar>
+                <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: "1rem", sm: "1.15rem" } }}>
+                  Pagos Pendientes
                 </Typography>
               </Box>
-              <Chip
-                label={`Última actualización: ${new Date().toLocaleString("es-CO")}`}
-                size="small"
-                sx={{
-                  bgcolor: alpha(theme.palette.background.default, 0.6),
-                  color: "text.secondary",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  fontSize: "0.75rem",
-                }}
-              />
-            </Box>
+              <Box sx={{ p: { xs: 1.25, sm: 2 }, minWidth: 0 }}>
+                {upcomingPayments.length === 0 ? (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Typography color="text.secondary">No hay pagos pendientes</Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+                    {upcomingPayments.map((pago, index) => {
+                      const isMora = pago.estado === "en_mora"
+                      const semanticColor = isMora ? theme.palette.error.main : theme.palette.warning.main
+                      const label = isMora ? "En mora" : "Pendiente"
+
+                      return (
+                        <Box key={pago.id || index} sx={paymentRowSx(semanticColor)}>
+                          <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.25, minWidth: 0, flex: 1 }}>
+                            <Avatar
+                              sx={{
+                                width: 36,
+                                height: 36,
+                                flexShrink: 0,
+                                bgcolor: alpha(semanticColor, 0.18),
+                                color: semanticColor,
+                                fontWeight: 700,
+                              }}
+                            >
+                              {isMora ? "!" : "⏱"}
+                            </Avatar>
+                            <Box sx={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
+                              <Typography
+                                variant="body2"
+                                sx={{ color: "text.primary", fontWeight: 600 }}
+                                noWrap
+                              >
+                                {pago.arrendatario_nombre || "Arrendatario"}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{ display: "block", wordBreak: "break-word" }}
+                              >
+                                {formatPaymentPeriodForList(pago)}
+                              </Typography>
+                              <Chip
+                                label={label}
+                                size="small"
+                                sx={{
+                                  mt: 0.5,
+                                  height: 20,
+                                  fontSize: "0.7rem",
+                                  fontWeight: 600,
+                                  bgcolor: alpha(semanticColor, 0.15),
+                                  color: semanticColor,
+                                  border: "1px solid",
+                                  borderColor: alpha(semanticColor, 0.35),
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: semanticColor,
+                              fontWeight: 700,
+                              flexShrink: 0,
+                              textAlign: "right",
+                            }}
+                          >
+                            {formatCurrency(pago.valor)}
+                          </Typography>
+                        </Box>
+                      )
+                    })}
+                  </Box>
+                )}
+              </Box>
+            </Card>
+          </Grid>
+        </Grid>
+
+        <Box sx={{ mt: { xs: 2, sm: 3 } }}>
+          <Paper
+            variant="outlined"
+            sx={{
+              ...sectionCardSx("primary.main"),
+              p: { xs: 2, sm: 3 },
+              textAlign: "center",
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 48,
+                height: 48,
+                mx: "auto",
+                mb: 1.5,
+                bgcolor: alpha(theme.palette.primary.main, 0.18),
+                color: "primary.main",
+                border: 1,
+                borderColor: alpha(theme.palette.primary.main, 0.35),
+                boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, 0.08)}`,
+              }}
+            >
+              <HomeWorkIcon />
+            </Avatar>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: "text.primary",
+                fontWeight: 700,
+                textAlign: "center",
+                mb: 1,
+                px: 1,
+              }}
+            >
+              Sistema de Administración de Apartamentos
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
+                textAlign: "justify",
+                textAlignLast: "center",
+                mx: "auto",
+                maxWidth: 520,
+                px: { xs: 0.5, sm: 2 },
+                mb: 2,
+                lineHeight: 1.6,
+              }}
+            >
+              Gestiona tus propiedades, arrendatarios, contratos y pagos de manera eficiente
+            </Typography>
+            <Chip
+              label={`Actualizado: ${new Date().toLocaleString("es-CO")}`}
+              size="small"
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                color: "text.secondary",
+                border: "1px solid",
+                borderColor: alpha(theme.palette.primary.main, 0.25),
+                fontSize: "0.7rem",
+                maxWidth: "100%",
+              }}
+            />
           </Paper>
         </Box>
       </Box>

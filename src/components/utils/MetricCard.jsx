@@ -8,65 +8,101 @@ const MetricCard = ({
   title,
   color = "primary",
   badges = [],
-  icon = TrendingUpIcon,
+  icon = <TrendingUpIcon />,
 }) => {
   const theme = useTheme()
   const isHex = /^#([0-9A-F]{3}){1,2}$/i.test(color)
-  const mainColor = isHex ? color : theme.palette[color]?.main || color
+  const mainColor = isHex ? color : theme.palette[color]?.main || theme.palette.primary.main
 
   return (
     <Card
       elevation={0}
+      variant="outlined"
       sx={{
-        borderRadius: 1,
-        border: "1px solid",
+        height: "100%",
+        width: "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        borderRadius: 2.5,
         borderColor: "divider",
-        bgcolor: "background.paper",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-        transition: "box-shadow 0.2s ease, transform 0.2s ease",
+        borderLeft: 4,
+        borderLeftColor: mainColor,
+        bgcolor: "background.default",
+        backgroundImage: (t) =>
+          `linear-gradient(135deg, ${alpha(mainColor, t.palette.mode === "dark" ? 0.12 : 0.08)} 0%, transparent 60%)`,
+        boxShadow: "none",
+        overflow: "hidden",
+        transition: "transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease",
         "&:hover": {
-          boxShadow: theme.palette.mode === "dark"
-            ? "0 8px 24px rgba(0,0,0,0.35)"
-            : "0 6px 20px rgba(0,0,0,0.08)",
-          transform: "translateY(-1px)",
+          transform: "translateY(-2px)",
+          borderColor: alpha(mainColor, 0.55),
         },
       }}
     >
-      <CardContent sx={{ height: '100%', '&:last-child': { pb: 2 } }}>
+      <CardContent
+        sx={{
+          height: "100%",
+          p: { xs: 1.75, sm: 2 },
+          "&:last-child": { pb: { xs: 1.75, sm: 2 } },
+          minWidth: 0,
+        }}
+      >
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-start",
-            gap: 2,
+            gap: 1.5,
+            minWidth: 0,
           }}
         >
-          <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+            <Typography
+              variant="caption"
+              sx={{
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+                fontWeight: 700,
+                color: "text.secondary",
+                display: "block",
+                mb: 0.75,
+              }}
+            >
+              {title}
+            </Typography>
             <Typography
               variant="h5"
               sx={{
                 color: mainColor,
-                fontWeight: 700,
-                lineHeight: 1.2,
+                fontWeight: 800,
+                lineHeight: 1.15,
+                fontSize: { xs: "1.35rem", sm: "1.5rem" },
+                wordBreak: "break-word",
               }}
             >
               {value}
             </Typography>
-
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              fontWeight={600}
-              mt={0.75}
-            >
-              {title}
-            </Typography>
           </Box>
 
           {icon && (
-            <Box sx={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <Box
+              sx={{
+                width: 44,
+                height: 44,
+                borderRadius: 1.5,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                color: mainColor,
+                bgcolor: alpha(mainColor, theme.palette.mode === "dark" ? 0.2 : 0.12),
+                border: 1,
+                borderColor: alpha(mainColor, 0.35),
+                boxShadow: `0 0 0 3px ${alpha(mainColor, 0.08)}`,
+              }}
+            >
               {React.cloneElement(icon, {
-                sx: { color: mainColor, fontSize: 42, fontWeight: 700 },
+                sx: { color: mainColor, fontSize: 24 },
               })}
             </Box>
           )}
@@ -79,6 +115,9 @@ const MetricCard = ({
               flexWrap: "wrap",
               gap: 0.75,
               mt: 2,
+              pt: 1.5,
+              borderTop: 1,
+              borderColor: "divider",
             }}
           >
             {badges.map((badge, index) => (
@@ -88,14 +127,17 @@ const MetricCard = ({
                 size="small"
                 sx={{
                   height: 24,
+                  maxWidth: "100%",
                   fontSize: "0.7rem",
                   fontWeight: 600,
                   bgcolor: alpha(mainColor, 0.1),
                   color: mainColor,
                   border: "1px solid",
-                  borderColor: alpha(mainColor, 0.25),
+                  borderColor: alpha(mainColor, 0.28),
                   "& .MuiChip-label": {
                     px: 1,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   },
                 }}
               />

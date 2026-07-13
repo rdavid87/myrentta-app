@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Outlet, Link, useLocation } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import { styled, useTheme } from "@mui/material/styles"
+import { styled, useTheme, alpha } from "@mui/material/styles"
 import { useColorMode } from "../hooks/useMode.jsx"
 import Box from "@mui/material/Box"
 import Drawer from "@mui/material/Drawer"
@@ -164,7 +164,7 @@ const Layout = () => {
 
   // Render navigation list items
   const renderNavItems = (closeOnClick = false) => (
-    <List sx={{ px: 1 }}>
+    <List sx={{ px: 1.5, py: 1.5, display: "flex", flexDirection: "column", gap: 0.5 }}>
       {navItems.map(({ path, label, icon }) => {
         const isActive = isActivePath(path)
         return (
@@ -175,36 +175,116 @@ const Layout = () => {
               selected={isActive}
               onClick={closeOnClick ? handleDrawerClose : undefined}
               sx={{
-                mx: 1,
-                mb: 0.5,
-                borderRadius: 2,
+                position: "relative",
+                px: 1.5,
+                py: 1.15,
+                borderRadius: 2.5,
+                border: "none",
+                bgcolor: isActive
+                  ? alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.16 : 0.1)
+                  : "transparent",
+                color: isActive ? "primary.main" : "text.secondary",
+                transition: "background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease",
+                WebkitTapHighlightColor: "transparent",
+                // Soft left glow bar for active
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  left: 6,
+                  top: "22%",
+                  bottom: "22%",
+                  width: 3,
+                  borderRadius: 2,
+                  bgcolor: isActive ? "primary.main" : "transparent",
+                  boxShadow: isActive
+                    ? `0 0 10px ${alpha(theme.palette.primary.main, 0.7)}`
+                    : "none",
+                  transition: "background-color 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease",
+                },
                 "&.Mui-selected": {
-                  bgcolor: "primary.main",
-                  color: "primary.contrastText",
+                  bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.16 : 0.1),
+                  color: "primary.main",
+                },
+                "@media (hover: hover) and (pointer: fine)": {
                   "&:hover": {
-                    bgcolor: "primary.dark",
+                    transform: "translateX(3px)",
+                    bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.14 : 0.08),
+                    color: "primary.main",
+                    boxShadow: theme.palette.mode === "dark"
+                      ? `inset 0 0 0 1px ${alpha(theme.palette.primary.main, 0.35)}, 0 0 24px ${alpha(theme.palette.primary.main, 0.12)}`
+                      : `inset 0 0 0 1px ${alpha(theme.palette.primary.main, 0.22)}, 0 8px 20px ${alpha(theme.palette.primary.main, 0.1)}`,
+                    "&::before": {
+                      bgcolor: "primary.main",
+                      boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.75)}`,
+                    },
+                    "& .nav-icon-badge": {
+                      color: theme.palette.primary.main,
+                      bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.22 : 0.12),
+                    },
+                    "& .nav-item-label": {
+                      color: theme.palette.primary.main,
+                      fontWeight: 700,
+                    },
                   },
                 },
-                "&:hover": {
-                  bgcolor: "action.hover",
+                "&:active": {
+                  bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.22 : 0.14),
+                  color: "primary.main",
+                  "&::before": {
+                    bgcolor: "primary.main",
+                    boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.7)}`,
+                  },
+                  "& .nav-icon-badge": {
+                    color: theme.palette.primary.main,
+                    bgcolor: alpha(theme.palette.primary.main, 0.22),
+                  },
+                  "& .nav-item-label": {
+                    color: theme.palette.primary.main,
+                    fontWeight: 700,
+                  },
+                },
+                "&:focus-visible": {
+                  outline: "none",
+                  boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.4)}`,
                 },
               }}
             >
               <ListItemIcon
                 sx={{
-                  color: isActive ? "inherit" : "text.secondary",
                   minWidth: 40,
+                  color: "inherit",
                 }}
               >
-                {icon}
+                <Box
+                  className="nav-icon-badge"
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "inherit",
+                    bgcolor: isActive
+                      ? alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.22 : 0.12)
+                      : alpha(theme.palette.text.secondary, 0.06),
+                    transition: "background-color 0.25s ease, color 0.25s ease",
+                    "& .MuiSvgIcon-root": { fontSize: 20 },
+                  }}
+                >
+                  {icon}
+                </Box>
               </ListItemIcon>
               <ListItemText
                 primary={label}
                 slotProps={{
                   primary: {
+                    className: "nav-item-label",
                     sx: {
-                      fontSize: "0.875rem",
-                      fontWeight: isActive ? 600 : 400,
+                      fontSize: "0.9rem",
+                      fontWeight: isActive ? 700 : 500,
+                      letterSpacing: "0.01em",
+                      transition: "color 0.25s ease, font-weight 0.25s ease",
                     },
                   },
                 }}
@@ -215,6 +295,19 @@ const Layout = () => {
       })}
     </List>
   )
+
+  const drawerPaperSx = {
+    boxSizing: "border-box",
+    borderRight: "1px solid",
+    borderColor: "divider",
+    bgcolor: "background.paper",
+    backgroundImage: (t) =>
+      `linear-gradient(180deg, ${alpha(t.palette.primary.main, t.palette.mode === "dark" ? 0.1 : 0.05)} 0%, transparent 28%)`,
+  }
+
+  const themeToggleLabel = mode === "dark" ? "Modo claro" : "Modo oscuro"
+  const themeToggleHint =
+    mode === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
@@ -289,8 +382,8 @@ const Layout = () => {
                 </Typography>
               </Box>
             </Box>
-            <Tooltip title={mode === "dark" ? "Prender la luz" : "Apagar la luz"}>
-              <IconButton onClick={toggleMode}>
+            <Tooltip title={themeToggleHint}>
+              <IconButton onClick={toggleMode} aria-label={themeToggleHint}>
                 {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
               </IconButton>
             </Tooltip>
@@ -310,10 +403,8 @@ const Layout = () => {
             width: drawerWidth,
             flexShrink: 0,
             "& .MuiDrawer-paper": {
+              ...drawerPaperSx,
               width: drawerWidth,
-              boxSizing: "border-box",
-              borderRight: "1px solid",
-              borderColor: "divider",
             },
           }}
           variant="persistent"
@@ -323,6 +414,19 @@ const Layout = () => {
           onMouseLeave={handleMouseLeave}
         >
           <DrawerHeader>
+            <Box sx={{ flex: 1, px: 2 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                  color: "primary.main",
+                }}
+              >
+                Navegación
+              </Typography>
+            </Box>
             <IconButton onClick={handleDrawerClose} aria-label="close drawer">
               {theme.direction === "ltr" ? <ChevronLeftIcon /> : <ChevronRightIcon />}
             </IconButton>
@@ -337,10 +441,9 @@ const Layout = () => {
         <Drawer
           sx={{
             "& .MuiDrawer-paper": {
+              ...drawerPaperSx,
               width: "85%",
               maxWidth: 320,
-              boxSizing: "border-box",
-              bgcolor: "background.paper",
             },
           }}
           variant="temporary"
@@ -349,13 +452,26 @@ const Layout = () => {
           onClose={handleDrawerClose}
         >
           <DrawerHeader>
+            <Box sx={{ flex: 1, px: 2 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                  color: "primary.main",
+                }}
+              >
+                Menú
+              </Typography>
+            </Box>
             <IconButton onClick={handleDrawerClose} aria-label="close drawer">
               {theme.direction === "ltr" ? <ChevronLeftIcon /> : <ChevronRightIcon />}
             </IconButton>
           </DrawerHeader>
           <Divider />
           {renderNavItems(true)}
-          <Divider />
+          <Divider sx={{ mt: 1, opacity: 0.5 }} />
           <Box sx={{ p: 2 }}>
             <Box
               sx={{
@@ -363,51 +479,85 @@ const Layout = () => {
                 alignItems: "center",
                 gap: 1.5,
                 mb: 2,
-                px: 1,
+                px: 1.25,
                 py: 1,
-                borderRadius: 2,
               }}
             >
               <Avatar
                 sx={{
-                  width: 40,
-                  height: 40,
+                  width: 42,
+                  height: 42,
+                  bgcolor: "primary.main",
+                  color: "primary.contrastText",
+                  fontWeight: 700,
+                  boxShadow: (t) => `0 0 0 3px ${alpha(t.palette.primary.main, 0.25)}`,
                 }}
               >
                 {user?.full_name?.charAt(0) || "U"}
               </Avatar>
-              <Box>
-                <Typography>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="body2" fontWeight={700} noWrap>
                   {user?.full_name || "Usuario"}
                 </Typography>
-                <Typography>
+                <Typography variant="caption" color="text.secondary">
                   Arrendador
                 </Typography>
               </Box>
             </Box>
+
             <Button
-              variant="outlined"
               fullWidth
               onClick={() => {
                 toggleMode()
                 handleDrawerClose()
               }}
               startIcon={mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
-              sx={{ mb: 1.5 }}
+              sx={{
+                mb: 1,
+                justifyContent: "flex-start",
+                py: 1.2,
+                px: 1.5,
+                borderRadius: 2.5,
+                textTransform: "none",
+                fontWeight: 600,
+                color: "primary.main",
+                border: "none",
+                bgcolor: (t) => alpha(t.palette.primary.main, t.palette.mode === "dark" ? 0.12 : 0.08),
+                boxShadow: "none",
+                "&:hover": {
+                  bgcolor: (t) => alpha(t.palette.primary.main, t.palette.mode === "dark" ? 0.2 : 0.14),
+                  boxShadow: (t) => `0 0 18px ${alpha(t.palette.primary.main, 0.2)}`,
+                },
+              }}
             >
-              {mode === "dark" ? "Prender la luz" : "Apagar la luz"}
+              {themeToggleLabel}
             </Button>
+
             <Button
-              variant="contained"
-              color="error"
               fullWidth
               onClick={() => {
                 logout()
                 handleDrawerClose()
               }}
               startIcon={<LogoutIcon />}
+              sx={{
+                justifyContent: "flex-start",
+                py: 1.2,
+                px: 1.5,
+                borderRadius: 2.5,
+                textTransform: "none",
+                fontWeight: 600,
+                color: "error.main",
+                border: "none",
+                bgcolor: (t) => alpha(t.palette.error.main, t.palette.mode === "dark" ? 0.12 : 0.08),
+                boxShadow: "none",
+                "&:hover": {
+                  bgcolor: (t) => alpha(t.palette.error.main, t.palette.mode === "dark" ? 0.2 : 0.14),
+                  boxShadow: (t) => `0 0 18px ${alpha(t.palette.error.main, 0.18)}`,
+                },
+              }}
             >
-              Cerrar Sesión
+              Cerrar sesión
             </Button>
           </Box>
         </Drawer>

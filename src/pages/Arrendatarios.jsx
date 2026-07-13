@@ -392,12 +392,41 @@ const Arrendatarios = () => {
 
         {/* Mobile Cards */}
         <Box sx={{ display: { xs: "block", lg: "none" }, p: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {filteredArrendatarios.map((arr) => (
-              <Card key={arr.id} sx={{ borderRadius: 2 }}>
-                <CardContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+            {filteredArrendatarios.map((arr) => {
+              const hasActiveContract = getActiveContracts(arr.id).length > 0
+              const accent = hasActiveContract ? "success.main" : "secondary.main"
+              return (
+              <Card
+                key={arr.id}
+                variant="outlined"
+                sx={{
+                  borderRadius: 2.5,
+                  borderColor: "divider",
+                  borderLeft: 4,
+                  borderLeftColor: accent,
+                  bgcolor: "background.default",
+                  backgroundImage: (theme) =>
+                    `linear-gradient(135deg, ${theme.palette.mode === "dark" ? "rgba(82,139,158,0.08)" : "rgba(8,145,178,0.06)"} 0%, transparent 55%)`,
+                  boxShadow: "none",
+                  overflow: "hidden",
+                  transition: "transform 0.15s ease, border-color 0.15s ease",
+                  "&:active": { transform: "scale(0.992)" },
+                }}
+              >
+                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
                   <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                    <Avatar sx={{ bgcolor: "secondary.main", width: 48, height: 48 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: accent,
+                        color: hasActiveContract ? "success.contrastText" : "secondary.contrastText",
+                        width: 48,
+                        height: 48,
+                        fontWeight: 700,
+                        boxShadow: (theme) =>
+                          `0 0 0 3px ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
+                      }}
+                    >
                       {getInitials(arr.nombre_completo)}
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -407,24 +436,74 @@ const Arrendatarios = () => {
                       <Box sx={{ mt: 1 }}>
                         {renderActiveContracts(arr.id)}
                       </Box>
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          🪪 {arr.documento_identidad}
-                        </Typography>
-                        <a href={`tel:${arr.telefono}`} style={{ textDecoration: "none" }}>
-                          <Typography variant="body2" color="secondary">
-                            📞 {arr.telefono}
-                          </Typography>
-                        </a>
-                        <a href={`mailto:${arr.email}`} style={{ textDecoration: "none" }}>
-                          <Typography variant="body2" color="primary" noWrap>
-                            ✉️ {arr.email}
-                          </Typography>
-                        </a>
-                      </Box>
                     </Box>
                   </Box>
-                  <Box sx={{ display: "flex", gap: 1 }}>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.25,
+                      py: 1.5,
+                      px: 1.5,
+                      mb: 2,
+                      borderRadius: 2,
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(15,23,42,0.03)",
+                      border: 1,
+                      borderColor: "divider",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                      <BadgeIcon fontSize="small" color="action" />
+                      <Typography variant="body2" color="text.secondary">
+                        {arr.documento_identidad}
+                      </Typography>
+                    </Box>
+                    <Box
+                      component="a"
+                      href={`tel:${arr.telefono}`}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.25,
+                        textDecoration: "none",
+                        color: "secondary.main",
+                      }}
+                    >
+                      <PhoneIcon fontSize="small" color="secondary" />
+                      <Typography variant="body2" color="secondary">
+                        {arr.telefono}
+                      </Typography>
+                    </Box>
+                    <Box
+                      component="a"
+                      href={`mailto:${arr.email}`}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.25,
+                        textDecoration: "none",
+                        color: "primary.main",
+                        minWidth: 0,
+                      }}
+                    >
+                      <EmailIcon fontSize="small" color="primary" />
+                      <Typography variant="body2" color="primary" noWrap>
+                        {arr.email}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      pt: 1.5,
+                      borderTop: 1,
+                      borderColor: "divider",
+                    }}
+                  >
                     <Button
                       variant="outlined"
                       size="small"
@@ -447,7 +526,8 @@ const Arrendatarios = () => {
                   </Box>
                 </CardContent>
               </Card>
-            ))}
+              )
+            })}
           </Box>
 
           {filteredArrendatarios.length === 0 && (

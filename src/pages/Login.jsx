@@ -97,7 +97,7 @@ const Login = () => {
         },
       }}
     >
-      <Tooltip title={mode === 'dark' ? 'Prender la luz' : 'Apagar la luz'}>
+      <Tooltip title={mode === 'dark' ? 'Modo claro' : 'Modo oscuro'}>
         <IconButton
           onClick={toggleMode}
           sx={{
