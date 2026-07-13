@@ -341,16 +341,45 @@ const Apartamentos = () => {
 
         {/* Mobile Cards */}
         <Box sx={{ display: { xs: "block", lg: "none" }, p: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {filteredApartamentos.map((apt) => (
-              <Card key={apt.id} sx={{ borderRadius: 2 }}>
-                <CardContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+            {filteredApartamentos.map((apt) => {
+              const isDisponible = apt.estado === "disponible"
+              const accent = isDisponible ? "success.main" : "warning.main"
+              return (
+              <Card
+                key={apt.id}
+                variant="outlined"
+                sx={{
+                  borderRadius: 2.5,
+                  borderColor: "divider",
+                  borderLeft: 4,
+                  borderLeftColor: accent,
+                  bgcolor: "background.default",
+                  backgroundImage: (theme) =>
+                    `linear-gradient(135deg, ${theme.palette.mode === "dark" ? "rgba(82,139,158,0.08)" : "rgba(8,145,178,0.06)"} 0%, transparent 55%)`,
+                  boxShadow: "none",
+                  overflow: "hidden",
+                  transition: "transform 0.15s ease, border-color 0.15s ease",
+                  "&:active": { transform: "scale(0.992)" },
+                }}
+              >
+                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
                   <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                    <Avatar sx={{ bgcolor: "primary.main", width: 48, height: 48 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: accent,
+                        color: isDisponible ? "success.contrastText" : "warning.contrastText",
+                        width: 48,
+                        height: 48,
+                        fontWeight: 700,
+                        boxShadow: (theme) =>
+                          `0 0 0 3px ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
+                      }}
+                    >
                       {apt.nombre?.charAt(0)?.toUpperCase() || "A"}
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1, gap: 1 }}>
                         <Typography variant="subtitle1" fontWeight="medium" noWrap>
                           {apt.nombre}
                         </Typography>
@@ -373,7 +402,15 @@ const Apartamentos = () => {
                       </Box>
                     </Box>
                   </Box>
-                  <Box sx={{ display: "flex", gap: 1 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      pt: 1.5,
+                      borderTop: 1,
+                      borderColor: "divider",
+                    }}
+                  >
                     <Button
                       variant="outlined"
                       size="small"
@@ -396,7 +433,8 @@ const Apartamentos = () => {
                   </Box>
                 </CardContent>
               </Card>
-            ))}
+              )
+            })}
           </Box>
 
           {filteredApartamentos.length === 0 && (

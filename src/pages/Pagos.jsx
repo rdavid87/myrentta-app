@@ -26,6 +26,7 @@ import {
   Paper,
   Chip,
   IconButton,
+  Avatar,
   Card,
   CardContent,
   Grid,
@@ -43,6 +44,9 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   PictureAsPdf as PdfIcon,
+  Home as HomeIcon,
+  CalendarMonth as CalendarIcon,
+  CheckCircle as ConfirmIcon,
 } from "@mui/icons-material"
 import PaymentIcon from "@mui/icons-material/Payment"
 
@@ -577,6 +581,17 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
     }
   }
 
+  const getEstadoAccent = (estado) => {
+    switch (estado) {
+      case "pagado":
+        return "success.main"
+      case "en_mora":
+        return "error.main"
+      default:
+        return "warning.main"
+    }
+  }
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
@@ -586,11 +601,11 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "background.paper" }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1.5, sm: 3 }, overflowX: "hidden" }}>
+      <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: 3, bgcolor: "background.paper", overflow: "hidden" }}>
         <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: "1.5rem", sm: "2.125rem" } }}>
               <PaymentIcon sx={{ mr: 1, verticalAlign: "middle" }} />
               Gestión de Pagos
             </Typography>
@@ -601,7 +616,7 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
               </Link>
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
@@ -610,7 +625,7 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
                 setCuotasAltaLoading(false)
                 setShowModal(true)
               }}
-              sx={{ px: 4, py: 1.5, borderRadius: 2 }}
+              sx={{ px: { xs: 2, sm: 4 }, py: 1.5, borderRadius: 2, flex: { xs: "1 1 auto", sm: "none" } }}
             >
               Registrar Pago
             </Button>
@@ -618,7 +633,7 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
               variant="outlined"
               onClick={handleVerificarMora}
               disabled={verificandoMora}
-              sx={{ px: 3, py: 1.5, borderRadius: 2 }}
+              sx={{ px: { xs: 2, sm: 3 }, py: 1.5, borderRadius: 2, flex: { xs: "1 1 auto", sm: "none" } }}
             >
               {verificandoMora ? "Verificando..." : "Verificar Mora"}
             </Button>
@@ -626,8 +641,22 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
         </Box>
 
         {filterContractId && (
-          <Box sx={{ mt: 3, p: 2, borderRadius: 2, bgcolor: "primary.light", border: "1px solid", borderColor: "primary.main" }}>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+          <Box
+            sx={{
+              mt: 3,
+              p: 2,
+              borderRadius: 2,
+              bgcolor: "primary.light",
+              border: "1px solid",
+              borderColor: "primary.main",
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: { xs: "stretch", sm: "center" },
+              gap: 1,
+              minWidth: 0,
+            }}
+          >
+            <Typography variant="body2" sx={{ color: "text.secondary", minWidth: 0 }}>
               Pagos del contrato:{" "}
               <Typography component="span" sx={{ color: "text.primary", fontWeight: 500 }}>
                 {contractFilterLabel}
@@ -636,14 +665,14 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
             <Button
               size="small"
               onClick={clearContractFilter}
-              sx={{ ml: 2, fontSize: "0.75rem" }}
+              sx={{ fontSize: "0.75rem", alignSelf: { xs: "flex-start", sm: "center" } }}
             >
               Ver todos los pagos
             </Button>
           </Box>
         )}
 
-        <Box sx={{ mt: 3, display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
+        <Box sx={{ mt: 3, display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, minWidth: 0 }}>
           <TextField
             fullWidth
             size="small"
@@ -672,18 +701,31 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
             value={filterEstado}
             exclusive
             onChange={handleFilterChange}
-            sx={{ flexShrink: 0 }}
+            sx={{
+              width: { xs: "100%", sm: "auto" },
+              display: "flex",
+              flexWrap: "wrap",
+              "& .MuiToggleButtonGroup-grouped": {
+                flex: { xs: "1 1 calc(50% - 4px)", sm: "0 0 auto" },
+                borderRadius: "4px !important",
+                border: "1px solid",
+                borderColor: "divider",
+                m: 0.25,
+                px: { xs: 1, sm: 2 },
+                py: 1,
+              },
+            }}
           >
-            <ToggleButton value="todos" sx={{ px: 2, py: 1 }}>
+            <ToggleButton value="todos">
               Todos
             </ToggleButton>
-            <ToggleButton value="pendiente" sx={{ px: 2, py: 1 }}>
+            <ToggleButton value="pendiente">
               Pendientes
             </ToggleButton>
-            <ToggleButton value="pagado" sx={{ px: 2, py: 1 }}>
+            <ToggleButton value="pagado">
               Pagados
             </ToggleButton>
-            <ToggleButton value="en_mora" sx={{ px: 2, py: 1 }}>
+            <ToggleButton value="en_mora">
               En Mora
             </ToggleButton>
           </ToggleButtonGroup>
@@ -696,7 +738,7 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
         )}
       </Paper>
 
-      <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
+      <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper", maxWidth: "100%" }}>
         <Box sx={{ display: { xs: "none", md: "block" } }}>
           <TableContainer>
             <Table>
@@ -829,72 +871,186 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
           )}
         </Box>
 
-        <Box sx={{ display: { xs: "block", md: "none" }, p: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {filteredPagos.map((pago) => (
-              <Card key={pago.id} sx={{ borderRadius: 2, bgcolor: "background.paper" }}>
-                <CardContent>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+        <Box sx={{ display: { xs: "block", md: "none" }, p: { xs: 1.5, sm: 2 }, maxWidth: "100%", boxSizing: "border-box" }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, maxWidth: "100%" }}>
+            {filteredPagos.map((pago) => {
+              const accent = getEstadoAccent(pago.estado)
+              const isPagado = pago.estado === "pagado"
+              const isPendienteOrMora = pago.estado === "pendiente" || pago.estado === "en_mora"
+              const initial =
+                pago.arrendatario_nombre?.trim()?.charAt(0)?.toUpperCase() || "P"
+
+              return (
+              <Card
+                key={pago.id}
+                variant="outlined"
+                sx={{
+                  width: "100%",
+                  maxWidth: "100%",
+                  borderRadius: 2.5,
+                  borderColor: "divider",
+                  borderLeft: 4,
+                  borderLeftColor: accent,
+                  bgcolor: "background.default",
+                  backgroundImage: (theme) =>
+                    `linear-gradient(135deg, ${theme.palette.mode === "dark" ? "rgba(82,139,158,0.08)" : "rgba(8,145,178,0.06)"} 0%, transparent 55%)`,
+                  boxShadow: "none",
+                  overflow: "hidden",
+                  transition: "transform 0.15s ease, border-color 0.15s ease",
+                  "&:active": { transform: "scale(0.992)" },
+                }}
+              >
+                <CardContent
+                  sx={{
+                    p: { xs: 1.5, sm: 2 },
+                    "&:last-child": { pb: { xs: 1.5, sm: 2 } },
+                    minWidth: 0,
+                  }}
+                >
+                  <Box sx={{ display: "flex", gap: 1.5, mb: 2, minWidth: 0 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: accent,
+                        color: isPagado
+                          ? "success.contrastText"
+                          : pago.estado === "en_mora"
+                            ? "error.contrastText"
+                            : "warning.contrastText",
+                        width: 44,
+                        height: 44,
+                        flexShrink: 0,
+                        fontWeight: 700,
+                        boxShadow: (theme) =>
+                          `0 0 0 3px ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
+                      }}
+                    >
+                      {initial}
+                    </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="subtitle1" fontWeight="medium" noWrap>
-                        {pago.arrendatario_nombre}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {pago.apartamento_nombre}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1 }}>
+                        <Typography variant="subtitle1" fontWeight="medium" noWrap sx={{ minWidth: 0, flex: 1 }}>
+                          {pago.arrendatario_nombre}
+                        </Typography>
+                        <Chip
+                          label={getEstadoLabel(pago.estado)}
+                          size="small"
+                          color={getEstadoBadge(pago.estado).color}
+                          variant={getEstadoBadge(pago.estado).variant}
+                          sx={{ flexShrink: 0 }}
+                        />
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.75, minWidth: 0 }}>
+                        <HomeIcon sx={{ fontSize: 16, color: "primary.main", flexShrink: 0 }} />
+                        <Typography variant="body2" color="primary" fontWeight="medium" noWrap sx={{ minWidth: 0 }}>
+                          {pago.apartamento_nombre}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" color="text.secondary" display="block" noWrap sx={{ mt: 0.25, pl: 2.75, minWidth: 0 }}>
                         {pago.apartamento_direccion}
                       </Typography>
                     </Box>
-                    <Chip
-                      label={getEstadoLabel(pago.estado)}
-                      size="small"
-                      color={getEstadoBadge(pago.estado).color}
-                      variant={getEstadoBadge(pago.estado).variant}
-                    />
                   </Box>
 
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Período
-                      </Typography>
-                      <Typography variant="caption" fontWeight="medium">
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.25,
+                      py: 1.5,
+                      px: { xs: 1.25, sm: 1.5 },
+                      mb: 2,
+                      borderRadius: 2,
+                      minWidth: 0,
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(15,23,42,0.03)",
+                      border: 1,
+                      borderColor: "divider",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1.5, minWidth: 0 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
+                        <CalendarIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
+                        >
+                          Período
+                        </Typography>
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        fontWeight="medium"
+                        color="secondary.main"
+                        sx={{ minWidth: 0, textAlign: "right", wordBreak: "break-word" }}
+                      >
                         {formatPaymentPeriodForList(pago)}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Valor
-                      </Typography>
-                      <Typography variant="caption" fontWeight="medium" color="warning.main">
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
+                        <PaymentIcon sx={{ fontSize: 16, color: "warning.main" }} />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
+                        >
+                          Valor
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" fontWeight="bold" color="warning.main" sx={{ textAlign: "right" }}>
                         {formatCurrency(pago.valor)}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Typography variant="caption" color="text.secondary">
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1.5, minWidth: 0 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600, flexShrink: 0 }}
+                      >
                         Método
                       </Typography>
-                      <Typography variant="caption" fontWeight="medium">
+                      <Typography
+                        variant="body2"
+                        fontWeight="medium"
+                        sx={{ minWidth: 0, textAlign: "right", wordBreak: "break-word" }}
+                      >
                         {formatMetodoLabel(pago.metodo_pago)}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Typography variant="caption" color="text.secondary">
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600, flexShrink: 0 }}
+                      >
                         Fecha pago
                       </Typography>
-                      <Typography variant="caption" fontWeight="medium">
+                      <Typography variant="body2" fontWeight="medium" sx={{ textAlign: "right" }}>
                         {!pago.fecha_pago ? "—" : formatDate(pago.fecha_pago)}
                       </Typography>
                     </Box>
                   </Box>
 
-                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                    {(pago.estado === "pendiente" || pago.estado === "en_mora") && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                      pt: 1.5,
+                      borderTop: 1,
+                      borderColor: "divider",
+                    }}
+                  >
+                    {isPendienteOrMora && (
                       <>
                         <Button
                           variant="outlined"
                           size="small"
+                          color="primary"
                           startIcon={<EditIcon />}
                           onClick={() => openEditModal(pago)}
                           fullWidth
@@ -902,11 +1058,70 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
                           Editar
                         </Button>
                         <Button
-                          variant="contained"
                           size="small"
-                          color="success"
                           onClick={() => openConfirmarModal(pago)}
                           fullWidth
+                          startIcon={
+                            <Box
+                              component="span"
+                              sx={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: 1,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(110,231,183,0.22)"
+                                    : "rgba(16,185,129,0.16)",
+                                color: "success.main",
+                                border: 1,
+                                borderColor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(110,231,183,0.45)"
+                                    : "rgba(16,185,129,0.35)",
+                              }}
+                            >
+                              <ConfirmIcon sx={{ fontSize: 14 }} />
+                            </Box>
+                          }
+                          sx={{
+                            justifyContent: "center",
+                            px: 1.5,
+                            py: 1,
+                            minHeight: 40,
+                            borderRadius: 2,
+                            textTransform: "none",
+                            fontWeight: 700,
+                            letterSpacing: "0.02em",
+                            color: "success.main",
+                            border: 1,
+                            borderColor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(110,231,183,0.4)"
+                                : "rgba(16,185,129,0.35)",
+                            backgroundImage: (theme) =>
+                              `linear-gradient(135deg, ${
+                                theme.palette.mode === "dark"
+                                  ? "rgba(110,231,183,0.14)"
+                                  : "rgba(16,185,129,0.1)"
+                              } 0%, transparent 65%)`,
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(110,231,183,0.06)"
+                                : "rgba(16,185,129,0.04)",
+                            boxShadow: "none",
+                            "& .MuiButton-startIcon": { mr: 1.25, ml: 0 },
+                            "&:hover": {
+                              borderColor: "success.main",
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(110,231,183,0.14)"
+                                  : "rgba(16,185,129,0.1)",
+                              boxShadow: "none",
+                            },
+                          }}
                         >
                           Confirmar
                         </Button>
@@ -922,11 +1137,12 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
                         </Button>
                       </>
                     )}
-                    {pago.estado === "pagado" && (
+                    {isPagado && (
                       <>
                         <Button
                           variant="outlined"
                           size="small"
+                          color="primary"
                           startIcon={<EditIcon />}
                           onClick={() => openEditModal(pago)}
                           fullWidth
@@ -934,11 +1150,70 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
                           Editar
                         </Button>
                         <Button
-                          variant="outlined"
                           size="small"
-                          startIcon={<PdfIcon />}
                           onClick={() => handleReciboPdf(pago.id)}
                           fullWidth
+                          startIcon={
+                            <Box
+                              component="span"
+                              sx={{
+                                width: 22,
+                                height: 22,
+                                borderRadius: 1,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(245,158,11,0.25)"
+                                    : "rgba(245,158,11,0.18)",
+                                color: "warning.main",
+                                border: 1,
+                                borderColor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(245,158,11,0.45)"
+                                    : "rgba(245,158,11,0.35)",
+                              }}
+                            >
+                              <PdfIcon sx={{ fontSize: 14 }} />
+                            </Box>
+                          }
+                          sx={{
+                            justifyContent: "center",
+                            px: 1.5,
+                            py: 1,
+                            minHeight: 40,
+                            borderRadius: 2,
+                            textTransform: "none",
+                            fontWeight: 700,
+                            letterSpacing: "0.02em",
+                            color: "warning.main",
+                            border: 1,
+                            borderColor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(245,158,11,0.4)"
+                                : "rgba(245,158,11,0.35)",
+                            backgroundImage: (theme) =>
+                              `linear-gradient(135deg, ${
+                                theme.palette.mode === "dark"
+                                  ? "rgba(245,158,11,0.16)"
+                                  : "rgba(245,158,11,0.1)"
+                              } 0%, transparent 65%)`,
+                            bgcolor: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(245,158,11,0.06)"
+                                : "rgba(245,158,11,0.04)",
+                            boxShadow: "none",
+                            "& .MuiButton-startIcon": { mr: 1.25, ml: 0 },
+                            "&:hover": {
+                              borderColor: "warning.main",
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(245,158,11,0.14)"
+                                  : "rgba(245,158,11,0.1)",
+                              boxShadow: "none",
+                            },
+                          }}
                         >
                           Recibo PDF
                         </Button>
@@ -947,7 +1222,8 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
                   </Box>
                 </CardContent>
               </Card>
-            ))}
+              )
+            })}
 
             {filteredPagos.length === 0 && (
               <Box sx={{ py: 8, textAlign: "center" }}>

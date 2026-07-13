@@ -46,6 +46,10 @@ import {
   TrendingUp as RenewIcon,
   Schedule as ExtendIcon,
   CheckCircle as FinalizeIcon,
+  MoreHoriz as MoreHorizIcon,
+  Home as HomeIcon,
+  CalendarMonth as CalendarIcon,
+  Payments as PaymentsIcon,
 } from "@mui/icons-material"
 import DescriptionIcon from "@mui/icons-material/Description"
 
@@ -689,54 +693,138 @@ const Contratos = () => {
 
         {/* Mobile Cards */}
         <Box sx={{ display: { xs: "block", md: "none" }, p: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {filteredContratos.map((contrato) => (
-              <Card key={contrato.id} sx={{ borderRadius: 2, bgcolor: "background.paper" }}>
-                <CardContent>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+            {filteredContratos.map((contrato) => {
+              const isActivo = contrato.estado === "activo"
+              const accent = isActivo ? "success.main" : "text.disabled"
+              const initial =
+                contrato.arrendatario_nombre?.trim()?.charAt(0)?.toUpperCase() || "C"
+
+              return (
+              <Card
+                key={contrato.id}
+                variant="outlined"
+                sx={{
+                  borderRadius: 2.5,
+                  borderColor: "divider",
+                  borderLeft: 4,
+                  borderLeftColor: accent,
+                  bgcolor: "background.default",
+                  backgroundImage: (theme) =>
+                    `linear-gradient(135deg, ${theme.palette.mode === "dark" ? "rgba(82,139,158,0.08)" : "rgba(8,145,178,0.06)"} 0%, transparent 55%)`,
+                  boxShadow: "none",
+                  overflow: "hidden",
+                  transition: "transform 0.15s ease, border-color 0.15s ease",
+                  "&:active": { transform: "scale(0.992)" },
+                }}
+              >
+                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
+                  <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: accent,
+                        color: isActivo ? "success.contrastText" : "text.primary",
+                        width: 48,
+                        height: 48,
+                        fontWeight: 700,
+                        boxShadow: (theme) =>
+                          `0 0 0 3px ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
+                      }}
+                    >
+                      {initial}
+                    </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="subtitle1" fontWeight="medium" noWrap>
-                        {contrato.arrendatario_nombre}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {contrato.apartamento_nombre}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1 }}>
+                        <Typography variant="subtitle1" fontWeight="medium" noWrap>
+                          {contrato.arrendatario_nombre}
+                        </Typography>
+                        <Chip
+                          label={isActivo ? "Activo" : "Finalizado"}
+                          size="small"
+                          color={isActivo ? "success" : "default"}
+                          variant={isActivo ? "filled" : "outlined"}
+                        />
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.75, minWidth: 0 }}>
+                        <HomeIcon sx={{ fontSize: 16, color: "primary.main", flexShrink: 0 }} />
+                        <Typography variant="body2" color="primary" fontWeight="medium" noWrap>
+                          {contrato.apartamento_nombre}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" color="text.secondary" display="block" noWrap sx={{ mt: 0.25, pl: 2.75 }}>
                         {contrato.apartamento_direccion}
                       </Typography>
                     </Box>
-                    <Chip
-                      label={contrato.estado === "activo" ? "Activo" : "Finalizado"}
-                      size="small"
-                      color={contrato.estado === "activo" ? "success" : "default"}
-                      variant={contrato.estado === "activo" ? "filled" : "outlined"}
-                    />
                   </Box>
 
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Fecha
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.25,
+                      py: 1.5,
+                      px: 1.5,
+                      mb: 2,
+                      borderRadius: 2,
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(15,23,42,0.03)",
+                      border: 1,
+                      borderColor: "divider",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
+                      <CalendarIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
+                      >
+                        Vigencia
                       </Typography>
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25, alignItems: "flex-end" }}>
-                        <Typography variant="caption" fontWeight="medium">
-                          Inicio: {formatDate(contrato.fecha_inicio)}
-                        </Typography>
-                        <Typography variant="caption" fontWeight="medium">
-                          Fin: {formatDate(contrato.fecha_fin)}
+                    </Box>
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", pl: 3.25 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Inicio
+                      </Typography>
+                      <Typography variant="body2" fontWeight="medium">
+                        {formatDate(contrato.fecha_inicio)}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", pl: 3.25 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Fin
+                      </Typography>
+                      <Typography variant="body2" fontWeight="medium">
+                        {formatDate(contrato.fecha_fin)}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ borderTop: 1, borderColor: "divider", my: 0.25 }} />
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <PaymentsIcon sx={{ fontSize: 16, color: "warning.main" }} />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
+                        >
+                          Canon
                         </Typography>
                       </Box>
-                    </Box>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Canon mensual
-                      </Typography>
-                      <Typography variant="caption" fontWeight="medium" color="warning.main">
+                      <Typography variant="body2" fontWeight="bold" color="warning.main">
                         {formatCurrency(contrato.canon_mensual)}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant="caption" color="text.secondary">
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
+                      >
                         Extra días
                       </Typography>
                       <Chip
@@ -746,86 +834,223 @@ const Contratos = () => {
                         variant="outlined"
                       />
                     </Box>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant="caption" color="text.secondary">
+
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
+                      >
                         Modo cobro
                       </Typography>
-                      <Typography variant="caption" fontWeight="medium">
+                      <Typography variant="body2" fontWeight="medium">
                         {(contrato.modo_cobro || "anticipado") === "fin_mes" ? "Fin de mes" : "Anticipado"}
                       </Typography>
                     </Box>
                   </Box>
 
-                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                    {contrato.estado === "activo" ? (
-                      <>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                      pt: 1.5,
+                      borderTop: 1,
+                      borderColor: "divider",
+                      alignItems: "stretch",
+                    }}
+                  >
+                    <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
+                      {isActivo ? (
+                        <>
                           <Button
                             variant="outlined"
                             size="small"
+                            color="primary"
                             startIcon={<EditIcon />}
                             onClick={() => openEditModal(contrato)}
                             fullWidth
-                            sx={{ borderRadius: 2 }}
                           >
                             Editar
                           </Button>
                           <Button
-                            variant="outlined"
-                            size="small"
                             component={Link}
                             to={contractPaymentsHref(contrato.id)}
                             fullWidth
-                            sx={{ borderRadius: 2 }}
-                          >
-                            Ver Pagos
-                          </Button>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => openMoreMenu(e, contrato)}
-                          aria-expanded={openActionsMenu && menuContrato?.id === contrato.id}
-                          aria-haspopup="menu"
-                        >
-                          <Typography variant="caption" sx={{ fontSize: "1.2rem", lineHeight: 1 }}>⋯</Typography>
-                        </IconButton>
-                      </>
-                    ) : (
-                      <>
-                        {!tieneContratoActivoMismoAptoMismoArrendatario(contrato                        ) && (
-                          <Button
-                            variant="outlined"
                             size="small"
-                            startIcon={<RenewIcon />}
-                            onClick={() => openRenovarModal(contrato)}
-                            fullWidth
-                            sx={{ borderRadius: 2 }}
+                            startIcon={
+                              <Box
+                                component="span"
+                                sx={{
+                                  width: 22,
+                                  height: 22,
+                                  borderRadius: 1,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? "rgba(245,158,11,0.25)"
+                                      : "rgba(245,158,11,0.18)",
+                                  color: "warning.main",
+                                  border: 1,
+                                  borderColor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? "rgba(245,158,11,0.45)"
+                                      : "rgba(245,158,11,0.35)",
+                                }}
+                              >
+                                <PaymentsIcon sx={{ fontSize: 14 }} />
+                              </Box>
+                            }
+                            sx={{
+                              justifyContent: "center",
+                              px: 1.5,
+                              py: 1,
+                              minHeight: 40,
+                              borderRadius: 2,
+                              textTransform: "none",
+                              fontWeight: 700,
+                              letterSpacing: "0.02em",
+                              color: "warning.main",
+                              border: 1,
+                              borderColor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(245,158,11,0.4)"
+                                  : "rgba(245,158,11,0.35)",
+                              backgroundImage: (theme) =>
+                                `linear-gradient(135deg, ${
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(245,158,11,0.16)"
+                                    : "rgba(245,158,11,0.1)"
+                                } 0%, transparent 65%)`,
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(245,158,11,0.06)"
+                                  : "rgba(245,158,11,0.04)",
+                              boxShadow: "none",
+                              "& .MuiButton-startIcon": { mr: 1.25, ml: 0 },
+                              "&:hover": {
+                                borderColor: "warning.main",
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(245,158,11,0.14)"
+                                    : "rgba(245,158,11,0.1)",
+                                boxShadow: "none",
+                              },
+                            }}
                           >
-                            Renovar
+                            Ver pagos
                           </Button>
-                        )}
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          component={Link}
-                          to={contractPaymentsHref(contrato.id)}
-                          fullWidth
-                          sx={{ borderRadius: 2 }}
-                        >
-                          Ver Pagos
-                        </Button>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => openMoreMenu(e, contrato)}
-                          aria-expanded={openActionsMenu && menuContrato?.id === contrato.id}
-                          aria-haspopup="menu"
-                        >
-                          <Typography variant="caption" sx={{ fontSize: "1.2rem", lineHeight: 1 }}>⋯</Typography>
-                        </IconButton>
-                      </>
-                    )}
+                        </>
+                      ) : (
+                        <>
+                          {!tieneContratoActivoMismoAptoMismoArrendatario(contrato) && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              color="success"
+                              startIcon={<RenewIcon />}
+                              onClick={() => openRenovarModal(contrato)}
+                              fullWidth
+                            >
+                              Renovar
+                            </Button>
+                          )}
+                          <Button
+                            component={Link}
+                            to={contractPaymentsHref(contrato.id)}
+                            fullWidth
+                            size="small"
+                            startIcon={
+                              <Box
+                                component="span"
+                                sx={{
+                                  width: 22,
+                                  height: 22,
+                                  borderRadius: 1,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? "rgba(245,158,11,0.25)"
+                                      : "rgba(245,158,11,0.18)",
+                                  color: "warning.main",
+                                  border: 1,
+                                  borderColor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? "rgba(245,158,11,0.45)"
+                                      : "rgba(245,158,11,0.35)",
+                                }}
+                              >
+                                <PaymentsIcon sx={{ fontSize: 14 }} />
+                              </Box>
+                            }
+                            sx={{
+                              justifyContent: "center",
+                              px: 1.5,
+                              py: 1,
+                              minHeight: 40,
+                              borderRadius: 2,
+                              textTransform: "none",
+                              fontWeight: 700,
+                              letterSpacing: "0.02em",
+                              color: "warning.main",
+                              border: 1,
+                              borderColor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(245,158,11,0.4)"
+                                  : "rgba(245,158,11,0.35)",
+                              backgroundImage: (theme) =>
+                                `linear-gradient(135deg, ${
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(245,158,11,0.16)"
+                                    : "rgba(245,158,11,0.1)"
+                                } 0%, transparent 65%)`,
+                              bgcolor: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(245,158,11,0.06)"
+                                  : "rgba(245,158,11,0.04)",
+                              boxShadow: "none",
+                              "& .MuiButton-startIcon": { mr: 1.25, ml: 0 },
+                              "&:hover": {
+                                borderColor: "warning.main",
+                                bgcolor: (theme) =>
+                                  theme.palette.mode === "dark"
+                                    ? "rgba(245,158,11,0.14)"
+                                    : "rgba(245,158,11,0.1)",
+                                boxShadow: "none",
+                              },
+                            }}
+                          >
+                            Ver pagos
+                          </Button>
+                        </>
+                      )}
+                    </Box>
+                    <IconButton
+                      size="small"
+                      onClick={(e) => openMoreMenu(e, contrato)}
+                      aria-expanded={openActionsMenu && menuContrato?.id === contrato.id}
+                      aria-haspopup="menu"
+                      sx={{
+                        border: 1,
+                        borderColor: "divider",
+                        borderRadius: 1.5,
+                        flexShrink: 0,
+                        color: "text.secondary",
+                        alignSelf: "flex-start",
+                        width: 40,
+                        height: 40,
+                      }}
+                    >
+                      <MoreHorizIcon fontSize="small" />
+                    </IconButton>
                   </Box>
                 </CardContent>
               </Card>
-            ))}
+              )
+            })}
 
             {filteredContratos.length === 0 && (
               <Box sx={{ py: 8, textAlign: "center" }}>
@@ -895,17 +1120,57 @@ const Contratos = () => {
         onClose={closeActionsMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{
+          paper: {
+            sx: {
+              minWidth: 300,
+              maxWidth: 340,
+              borderRadius: 2.5,
+              border: 1,
+              borderColor: "divider",
+              bgcolor: "background.paper",
+              backgroundImage: (theme) =>
+                `linear-gradient(160deg, ${theme.palette.mode === "dark" ? "rgba(82,139,158,0.1)" : "rgba(8,145,178,0.06)"} 0%, transparent 45%)`,
+              boxShadow: (theme) =>
+                theme.palette.mode === "dark"
+                  ? "0 12px 40px rgba(0,0,0,0.45)"
+                  : "0 12px 32px rgba(15,23,42,0.12)",
+              overflow: "hidden",
+            },
+          },
+        }}
       >
         {menuContrato && (
-          <>
-            <Box sx={{ px: 2, py: 1, borderBottom: "1px solid", borderColor: "divider" }}>
-              <Typography variant="caption" sx={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "text.secondary" }}>
+          <Box sx={{ p: 1.25 }}>
+            <Box
+              sx={{
+                px: 1.5,
+                py: 1.25,
+                mb: 1,
+                borderRadius: 2,
+                border: 1,
+                borderColor: "divider",
+                bgcolor: (theme) =>
+                  theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(15,23,42,0.03)",
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "primary.main",
+                }}
+              >
                 Acciones
               </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 500, color: "text.primary" }} title={menuContrato.arrendatario_nombre}>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: "text.primary" }} noWrap title={menuContrato.arrendatario_nombre}>
                 {menuContrato.arrendatario_nombre}
               </Typography>
             </Box>
+
             {menuContrato.estado === "activo" && (
               <>
                 <MenuItem
@@ -913,94 +1178,314 @@ const Contratos = () => {
                     openExtenderModal(menuContrato)
                     closeActionsMenu()
                   }}
-                  sx={{ gap: 1.5, py: 1 }}
+                  sx={{
+                    gap: 1.5,
+                    py: 1.25,
+                    px: 1.25,
+                    mb: 0.75,
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(245,158,11,0.35)" : "rgba(245,158,11,0.4)",
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(245,158,11,0.08)" : "rgba(245,158,11,0.06)",
+                    "&:hover": {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(245,158,11,0.16)" : "rgba(245,158,11,0.12)",
+                    },
+                  }}
                 >
-                  <ExtendIcon fontSize="small" color="warning" />
-                  <Box>
-                    <Typography variant="body2" fontWeight="medium">Extender</Typography>
-                    <Typography variant="caption" color="text.secondary">Solo cambia la fecha de fin</Typography>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(245,158,11,0.22)" : "rgba(245,158,11,0.15)",
+                      color: "warning.main",
+                      border: 1,
+                      borderColor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(245,158,11,0.4)" : "rgba(245,158,11,0.35)",
+                    }}
+                  >
+                    <ExtendIcon fontSize="small" />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight="bold" color="warning.main">
+                      Extender
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      Solo cambia la fecha de fin
+                    </Typography>
                   </Box>
                 </MenuItem>
+
                 <MenuItem
                   onClick={() => {
                     openRenovarModal(menuContrato)
                     closeActionsMenu()
                   }}
-                  sx={{ gap: 1.5, py: 1 }}
+                  sx={{
+                    gap: 1.5,
+                    py: 1.25,
+                    px: 1.25,
+                    mb: 0.75,
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(82,139,158,0.45)" : "rgba(8,145,178,0.35)",
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(82,139,158,0.1)" : "rgba(8,145,178,0.06)",
+                    "&:hover": {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(82,139,158,0.2)" : "rgba(8,145,178,0.12)",
+                    },
+                  }}
                 >
-                  <RenewIcon fontSize="small" color="info" />
-                  <Box>
-                    <Typography variant="body2" fontWeight="medium">Renovar</Typography>
-                    <Typography variant="caption" color="text.secondary">Nuevo contrato al cerrar el actual</Typography>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(82,139,158,0.28)" : "rgba(8,145,178,0.14)",
+                      color: "primary.main",
+                      border: 1,
+                      borderColor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(82,139,158,0.5)" : "rgba(8,145,178,0.35)",
+                    }}
+                  >
+                    <RenewIcon fontSize="small" />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight="bold" color="primary.main">
+                      Renovar
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      Nuevo contrato al cerrar el actual
+                    </Typography>
                   </Box>
                 </MenuItem>
-                <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
-                  <Typography variant="caption" sx={{ fontSize: "0.7rem", fontWeight: 600, textTransform: "uppercase", color: "error.main" }}>
+
+                <Box sx={{ px: 0.5, pt: 0.75, pb: 0.75 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: "0.68rem",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "error.light",
+                    }}
+                  >
                     Zona sensible
                   </Typography>
                 </Box>
+
                 <MenuItem
                   onClick={() => {
                     closeActionsMenu()
                     handleFinalizar(menuContrato.id)
                   }}
-                  sx={{ gap: 1.5, py: 1, color: "error.main" }}
+                  sx={{
+                    gap: 1.5,
+                    py: 1.25,
+                    px: 1.25,
+                    mb: 0.75,
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(255,110,110,0.35)" : "rgba(239,68,68,0.3)",
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(255,110,110,0.06)" : "rgba(239,68,68,0.04)",
+                    "&:hover": {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(255,110,110,0.14)" : "rgba(239,68,68,0.1)",
+                    },
+                  }}
                 >
-                  <FinalizeIcon fontSize="small" />
-                  <Box>
-                    <Typography variant="body2" fontWeight="medium">Finalizar</Typography>
-                    <Typography variant="caption" color="text.secondary">Cierra el contrato activo</Typography>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(255,110,110,0.18)" : "rgba(239,68,68,0.12)",
+                      color: "error.main",
+                      border: 1,
+                      borderColor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(255,110,110,0.4)" : "rgba(239,68,68,0.3)",
+                    }}
+                  >
+                    <FinalizeIcon fontSize="small" />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight="bold" color="error.main">
+                      Finalizar
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      Cierra el contrato activo
+                    </Typography>
                   </Box>
                 </MenuItem>
+
                 <MenuItem
                   onClick={() => {
                     handleDelete(menuContrato)
                     closeActionsMenu()
                   }}
-                  sx={{ gap: 1.5, py: 1, color: "error.main" }}
+                  sx={{
+                    gap: 1.5,
+                    py: 1.25,
+                    px: 1.25,
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(255,110,110,0.55)" : "rgba(185,28,28,0.45)",
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(185,28,28,0.22)" : "rgba(239,68,68,0.1)",
+                    "&:hover": {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(185,28,28,0.34)" : "rgba(239,68,68,0.16)",
+                    },
+                  }}
                 >
-                  <DeleteIcon fontSize="small" />
-                  <Box>
-                    <Typography variant="body2" fontWeight="medium">Eliminar contrato</Typography>
-                    <Typography variant="caption" color="text.secondary">Libera el apartamento si está activo</Typography>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      bgcolor: "error.main",
+                      color: "error.contrastText",
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight="bold" color="error.main">
+                      Eliminar contrato
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      Libera el apartamento si está activo
+                    </Typography>
                   </Box>
                 </MenuItem>
               </>
             )}
+
             {menuContrato.estado === "finalizado" && (
               <>
                 <MenuItem
                   component={Link}
                   to={contractPaymentsHref(menuContrato.id)}
                   onClick={closeActionsMenu}
-                  sx={{ gap: 1.5, py: 1 }}
+                  sx={{
+                    gap: 1.5,
+                    py: 1.25,
+                    px: 1.25,
+                    mb: 0.75,
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(110,231,183,0.35)" : "rgba(16,185,129,0.35)",
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(110,231,183,0.08)" : "rgba(16,185,129,0.06)",
+                    "&:hover": {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(110,231,183,0.16)" : "rgba(16,185,129,0.12)",
+                    },
+                  }}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: "4px", bgcolor: "success.light", color: "success.contrastText" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="5" width="20" height="14" rx="2" />
-                      <line x1="2" x2="22" y1="10" y2="10" />
-                    </svg>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(110,231,183,0.2)" : "rgba(16,185,129,0.14)",
+                      color: "success.main",
+                      border: 1,
+                      borderColor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(110,231,183,0.4)" : "rgba(16,185,129,0.35)",
+                    }}
+                  >
+                    <PaymentsIcon fontSize="small" />
                   </Box>
-                  <Box>
-                    <Typography variant="body2" fontWeight="medium">Ver pagos</Typography>
-                    <Typography variant="caption" color="text.secondary">Historial de cobros del contrato</Typography>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight="bold" color="success.main">
+                      Ver pagos
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      Historial de cobros del contrato
+                    </Typography>
                   </Box>
                 </MenuItem>
+
                 <MenuItem
                   onClick={() => {
                     handleDelete(menuContrato)
                     closeActionsMenu()
                   }}
-                  sx={{ gap: 1.5, py: 1, color: "error.main" }}
+                  sx={{
+                    gap: 1.5,
+                    py: 1.25,
+                    px: 1.25,
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(255,110,110,0.55)" : "rgba(185,28,28,0.45)",
+                    bgcolor: (theme) =>
+                      theme.palette.mode === "dark" ? "rgba(185,28,28,0.22)" : "rgba(239,68,68,0.1)",
+                    "&:hover": {
+                      bgcolor: (theme) =>
+                        theme.palette.mode === "dark" ? "rgba(185,28,28,0.34)" : "rgba(239,68,68,0.16)",
+                    },
+                  }}
                 >
-                  <DeleteIcon fontSize="small" />
-                  <Box>
-                    <Typography variant="body2" fontWeight="medium">Eliminar contrato</Typography>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 1.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      bgcolor: "error.main",
+                      color: "error.contrastText",
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight="bold" color="error.main">
+                      Eliminar contrato
+                    </Typography>
                   </Box>
                 </MenuItem>
               </>
             )}
-          </>
+          </Box>
         )}
       </Menu>
 
