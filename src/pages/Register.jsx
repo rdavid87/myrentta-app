@@ -190,13 +190,16 @@ const Register = () => {
           sx={{
             minHeight: '100vh',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: { xs: 'flex-start', md: 'center' },
             justifyContent: 'center',
             backgroundImage: `url('${backgroundUrl}')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             position: 'relative',
+            overflowY: 'auto',
+            py: { xs: 2, sm: 3, md: 0 },
+            boxSizing: 'border-box',
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -237,15 +240,16 @@ const Register = () => {
               width: { xs: 'calc(100% - 32px)', sm: 'calc(100% - 48px)', md: 1100 },
               maxWidth: '100%',
               minHeight: { xs: 'auto', md: 650 },
-              maxHeight: { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 48px)', md: 'auto' },
-              overflow: 'hidden',
+              maxHeight: { xs: 'none', md: 'none' },
+              overflow: { xs: 'visible', md: 'hidden' },
               bgcolor: 'background.paper',
               borderRadius: { xs: '8px', sm: '12px' },
               zIndex: 1,
               position: 'relative',
               mx: { xs: 2, sm: 3, md: 'auto' },
-              my: { xs: 2, sm: 3, md: 0 },
+              my: { xs: 0, sm: 0, md: 0 },
               p: { xs: 2, sm: 3, md: 4 },
+              boxSizing: 'border-box',
             }}
           >
         {/* Panel Izquierdo - Solo branding visible en md+ */}
@@ -292,10 +296,13 @@ const Register = () => {
             background: { xs: 'primary.main', md: 'transparent' },
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
+            justifyContent: { xs: 'flex-start', md: 'center' },
             alignItems: 'center',
-            p: { xs: 3, sm: 6, md: 8 },
+            p: { xs: 2, sm: 4, md: 8 },
             position: 'relative',
+            minWidth: 0,
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           <Box
@@ -304,9 +311,12 @@ const Register = () => {
             sx={{
               maxWidth: { xs: '100%', sm: 380, md: 420 },
               width: '100%',
+              minWidth: 0,
               display: 'flex',
               flexDirection: 'column',
               gap: { xs: 2, sm: 2.5 },
+              boxSizing: 'border-box',
+              pb: { xs: 1, sm: 0 },
             }}
           >
             <Typography sx={{ color: { xs: 'primary.contrastText', md: 'text.secondary' }, mt: 1, fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
@@ -462,8 +472,31 @@ const Register = () => {
               }}
             />
 
-            <Alert severity="warning" sx={{ borderRadius: 2, fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
-              <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Alert
+              severity="warning"
+              sx={{
+                borderRadius: 2,
+                alignItems: 'flex-start',
+                width: '100%',
+                boxSizing: 'border-box',
+                '& .MuiAlert-message': {
+                  width: '100%',
+                  minWidth: 0,
+                  overflow: 'visible',
+                  whiteSpace: 'normal',
+                },
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontSize: { xs: '0.8rem', sm: '0.85rem' },
+                  lineHeight: 1.45,
+                  whiteSpace: 'normal',
+                  overflowWrap: 'anywhere',
+                  wordBreak: 'break-word',
+                }}
+              >
                 Tu cuenta quedará pendiente de activación. El administrador la habilitará luego de confirmar tu pago.
               </Typography>
             </Alert>
