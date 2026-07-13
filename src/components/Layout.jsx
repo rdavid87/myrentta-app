@@ -42,7 +42,16 @@ const drawerWidth = 256
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" && prop !== "isDesktop" })(
   ({ theme, isDesktop }) => ({
     flexGrow: 1,
-    padding: theme.spacing(3),
+    flexBasis: 0,
+    minWidth: 0,
+    width: "100%",
+    maxWidth: "100%",
+    boxSizing: "border-box",
+    overflowX: "hidden",
+    padding: theme.spacing(2),
+    [theme.breakpoints.up("sm")]: {
+      padding: theme.spacing(3),
+    },
     transition: theme.transitions.create("margin", {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
@@ -310,7 +319,16 @@ const Layout = () => {
     mode === "dark" ? "Cambiar a tema claro" : "Cambiar a tema oscuro"
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        width: "100%",
+        maxWidth: "100%",
+        overflowX: "hidden",
+        bgcolor: "background.default",
+      }}
+    >
       <CssBaseline />
       
       {/* Hover detection zone for auto-open on desktop */}
@@ -575,7 +593,7 @@ const Layout = () => {
             borderColor: "divider",
           }}
         >
-          <Box sx={{ maxWidth: "lg", mx: "auto", px: 3 }}>
+          <Box sx={{ maxWidth: "lg", mx: "auto", width: "100%", minWidth: 0 }}>
             <Typography
               variant="caption"
               color="text.disabled"
