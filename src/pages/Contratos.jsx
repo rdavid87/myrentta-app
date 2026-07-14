@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Link } from "react-router-dom"
 import api from "../services/api"
+import {
+  inclusiveEndHint,
+  normalizeInclusiveContractEnd,
+  prepareContractDateRange,
+} from "../utils/contractperiod"
 import ExtenderContrato from "../components/contratos/ExtenderContrato"
 import EditarContrato from "../components/contratos/EditarContrato"
 import CrearContrato from "../components/contratos/CrearContrato"
@@ -177,8 +182,11 @@ const Contratos = () => {
     e.preventDefault()
     try {
       const diaOffset = parseInt(String(formData.paymentDay ?? "0").trim(), 10)
+      const dates = prepareContractDateRange(formData.fecha_inicio, formData.fecha_fin)
       const dataToSend = {
         ...formData,
+        fecha_inicio: dates.fecha_inicio,
+        fecha_fin: dates.fecha_fin,
         arrendatario_id: parseInt(formData.arrendatario_id),
         apartamento_id: parseInt(formData.apartamento_id),
         canon_mensual: parseFloat(formData.canon_mensual.toString().replace(/\./g, "").replace(",", ".")),
@@ -214,7 +222,9 @@ const Contratos = () => {
   const handleExtender = async (e) => {
     e.preventDefault()
     try {
-      await api.put(`/contratos/${contratoToExtend.id}/extender`, { nueva_fecha_fin: nuevaFechaFin })
+      const fechaInicio = toDateInputValue(contratoToExtend?.fecha_inicio)
+      const nuevaFin = normalizeInclusiveContractEnd(fechaInicio, nuevaFechaFin)
+      await api.put(`/contratos/${contratoToExtend.id}/extender`, { nueva_fecha_fin: nuevaFin })
       closeExtenderModal()
       fetchContratos()
       alert("✅ Contrato extendido exitosamente")
@@ -236,6 +246,32 @@ const Contratos = () => {
         alert("Error al finalizar: " + (error.response?.data?.error || error.message))
       }
     }
+  }
+
+  const normalizeFormFechaFin = (fechaInicio, fechaFin, applyToForm) => {
+    if (!fechaInicio || !fechaFin) return
+    const normalized = normalizeInclusiveContractEnd(fechaInicio, fechaFin)
+    if (normalized !== fechaFin) {
+      applyToForm(normalized)
+    }
+  }
+
+  const handleCreateFechaFinBlur = () => {
+    normalizeFormFechaFin(formData.fecha_inicio, formData.fecha_fin, (fecha_fin) => {
+      setFormData((prev) => ({ ...prev, fecha_fin }))
+    })
+  }
+
+  const handleEditFechaFinBlur = () => {
+    normalizeFormFechaFin(editFormData.fecha_inicio, editFormData.fecha_fin, (fecha_fin) => {
+      setEditFormData((prev) => ({ ...prev, fecha_fin }))
+    })
+  }
+
+  const handleExtendFechaFinBlur = () => {
+    if (!contratoToExtend) return
+    const fechaInicio = toDateInputValue(contratoToExtend.fecha_inicio)
+    normalizeFormFechaFin(fechaInicio, nuevaFechaFin, setNuevaFechaFin)
   }
 
   const toDateInputValue = (dateString) => {
@@ -300,9 +336,10 @@ const Contratos = () => {
       return
     }
     try {
+      const dates = prepareContractDateRange(editFormData.fecha_inicio, editFormData.fecha_fin)
       await api.put(`/contratos/${contratoToEdit.id}`, {
-        fecha_inicio: editFormData.fecha_inicio,
-        fecha_fin: editFormData.fecha_fin,
+        fecha_inicio: dates.fecha_inicio,
+        fecha_fin: dates.fecha_fin,
         canon_mensual: canon,
         dia_pago: dia,
         modo_cobro: editFormData.modo_cobro === "fin_mes" ? "fin_mes" : "anticipado",
@@ -420,6 +457,19 @@ const Contratos = () => {
       minimumFractionDigits: 0,
     }).format(amount)
   }
+
+  const createFechaFinHint = useMemo(
+    () => inclusiveEndHint(formData.fecha_inicio, formData.fecha_fin),
+    [formData.fecha_inicio, formData.fecha_fin]
+  )
+  const editFechaFinHint = useMemo(
+    () => inclusiveEndHint(editFormData.fecha_inicio, editFormData.fecha_fin),
+    [editFormData.fecha_inicio, editFormData.fecha_fin]
+  )
+  const extendFechaFinHint = useMemo(() => {
+    if (!contratoToExtend) return null
+    return inclusiveEndHint(toDateInputValue(contratoToExtend.fecha_inicio), nuevaFechaFin)
+  }, [contratoToExtend, nuevaFechaFin])
 
   const tieneContratoActivoMismoAptoMismoArrendatario = useCallback(
     (contrato) =>
@@ -1502,6 +1552,8 @@ const Contratos = () => {
         onSubmit={handleSubmit}
         formatCurrency={formatCurrency}
         getApartamentoDisplayName={getApartamentoDisplayName}
+        fechaFinHint={createFechaFinHint}
+        onFechaFinBlur={handleCreateFechaFinBlur}
       />
 
       <ExtenderContrato
@@ -1512,6 +1564,8 @@ const Contratos = () => {
         onNuevaFechaFinChange={setNuevaFechaFin}
         onSubmit={handleExtender}
         formatDate={formatDate}
+        fechaFinHint={extendFechaFinHint}
+        onFechaFinBlur={handleExtendFechaFinBlur}
       />
 
       <EditarContrato
@@ -1522,6 +1576,8 @@ const Contratos = () => {
         onEditFormDataChange={setEditFormData}
         isEditContractUnchanged={isEditContractUnchanged}
         onSubmit={handleEditSubmit}
+        fechaFinHint={editFechaFinHint}
+        onFechaFinBlur={handleEditFechaFinBlur}
       />
     </Container>
   )

@@ -25,6 +25,8 @@ const CrearContrato = ({
   onSubmit,
   formatCurrency,
   getApartamentoDisplayName,
+  fechaFinHint,
+  onFechaFinBlur,
 }) => {
   const handleChange = (field) => (e) => {
     const value = e.target.value
@@ -157,10 +159,19 @@ const CrearContrato = ({
               type="date"
               value={formData.fecha_fin}
               onChange={handleChange("fecha_fin")}
+              onBlur={onFechaFinBlur}
               required
               InputLabelProps={{ shrink: true }}
             />
           </Box>
+          {fechaFinHint && (
+            <Typography variant="caption" color="info.main" sx={{ mt: -1 }}>
+              {fechaFinHint}
+            </Typography>
+          )}
+          <Typography variant="caption" color="text.secondary" sx={{ mt: fechaFinHint ? 0 : -1 }}>
+            El contrato termina el último día del periodo mensual (día anterior al aniversario).
+          </Typography>
 
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
             <TextField
