@@ -137,9 +137,9 @@ export const getTheme = (mode) => {
     palette: mode === 'light' ? lightPalette : darkPalette,
     typography: typographyConfig,
     
-    // Configuración de formas y esquinas sugerida (1 * 8px = 8px global)
+    // Configuración de formas y esquinas sugerida
     shape: {
-      borderRadius: 1,
+      borderRadius: 12,
     },
     
     // Ajustes específicos por componente para pulir la consistencia visual
@@ -210,6 +210,16 @@ export const getTheme = (mode) => {
             backgroundImage: 'none',
           },
         },
+      },
+      MuiCssBaseline: {
+        styleOverrides: (theme) => ({
+          body: {
+            scrollbarColor:
+              theme.palette.mode === 'dark'
+                ? `${alpha(theme.palette.primary.main, 0.4)} ${theme.palette.background.default}`
+                : `${alpha(theme.palette.primary.main, 0.3)} ${theme.palette.background.default}`,
+          },
+        }),
       },
     },
   });

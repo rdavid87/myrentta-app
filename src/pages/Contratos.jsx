@@ -10,53 +10,37 @@ import ExtenderContrato from "../components/contratos/ExtenderContrato"
 import EditarContrato from "../components/contratos/EditarContrato"
 import CrearContrato from "../components/contratos/CrearContrato"
 import {
-  Container,
   Typography,
-  Button,
-  TextField,
-  Table,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  Chip,
-  Avatar,
-  Card,
-  CardContent,
-  Grid,
   Box,
   CircularProgress,
   Menu,
   MenuItem,
-  InputAdornment,
-  Tooltip,
-  Alert,
-  ToggleButton,
-  ToggleButtonGroup,
+  Grid,
 } from "@mui/material"
 import {
   Add as AddIcon,
-  Search as SearchIcon,
-  Clear as ClearIcon,
-  Edit as EditIcon,
   Delete as DeleteIcon,
-  Close as CloseIcon,
   TrendingUp as RenewIcon,
   Schedule as ExtendIcon,
   CheckCircle as FinalizeIcon,
-  MoreHoriz as MoreHorizIcon,
-  Home as HomeIcon,
-  CalendarMonth as CalendarIcon,
   Payments as PaymentsIcon,
 } from "@mui/icons-material"
 import DescriptionIcon from "@mui/icons-material/Description"
+import PeopleTwoToneIcon from "@mui/icons-material/PeopleTwoTone"
+import CheckCircleIcon from "@mui/icons-material/CheckCircle"
+import HighlightOffIcon from "@mui/icons-material/HighlightOff"
+import {
+  StatCard,
+  GlassPanel,
+  PageHeader,
+  SearchField,
+  FilterPills,
+  GlowButton,
+  EmptyState,
+  ListFooter,
+  DataListHeader,
+} from "../components/ui"
+import ContractListRow from "../components/contratos/ContractListRow"
 
 const resolveApartamentoNombre = (apt = {}) => {
   const directCandidates = [apt.name, apt.nombre]
@@ -119,9 +103,24 @@ const Contratos = () => {
     setMenuContrato(contrato)
   }, [])
 
-  const handleFilterChange = (_event, newValue) => {
-    if (newValue !== null) setFilterEstado(newValue)
+  const handleFilterChange = (newValue) => {
+    setFilterEstado(newValue)
   }
+
+  const filterOptions = [
+    { value: "todos", label: "Todos" },
+    { value: "activo", label: "Activos" },
+    { value: "finalizado", label: "Finalizados" },
+  ]
+
+  const listColumns = [
+    { key: "arrendatario", label: "Arrendatario", width: "minmax(180px,1.4fr)" },
+    { key: "apartamento", label: "Apartamento", width: "minmax(160px,1.2fr)" },
+    { key: "periodo", label: "Periodo", width: "minmax(130px,1fr)" },
+    { key: "canon", label: "Renta mensual", width: "minmax(110px,0.8fr)" },
+    { key: "estado", label: "Estado", width: "minmax(100px,0.7fr)" },
+    { key: "acciones", label: "Acciones", width: "auto" },
+  ]
 
   useEffect(() => {
     if (!openActionsMenu) return
@@ -517,651 +516,126 @@ const Contratos = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
-      <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "background.paper" }}>
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-              <DescriptionIcon x={{ mr: 1, verticalAlign: "middle" }} />
-              Contratos de Arrendamiento
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Gestiona los contratos de renta de apartamentos
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={openNewModal}
-            sx={{ px: 4, py: 1.5, borderRadius: 2, alignSelf: { xs: "stretch", sm: "auto" } }}
-          >
-            Nuevo Contrato
-          </Button>
-        </Box>
-
-        {/* Search and Filters */}
-        <Box sx={{ mt: 3, display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Buscar arrendatario o apartamento…"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: searchTerm ? (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setSearchTerm("")} size="small">
-                      <ClearIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ) : undefined,
-              },
-            }}
+    <Box sx={{ maxWidth: 1280, mx: "auto", width: "100%", minWidth: 0 }}>
+      {/* KPIs */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 6, md: 3 }}>
+          <StatCard
+            value={contratos.length}
+            label="Contratos en total"
+            icon={<DescriptionIcon />}
+            color="primary"
+            sparkId="contratos-total"
           />
-          <ToggleButtonGroup
-            size="small"
-            value={filterEstado}
-            exclusive
-            onChange={handleFilterChange}
-            sx={{ flexShrink: 0 }}
-          >
-            <ToggleButton value="todos" sx={{ px: 2, py: 1 }}>
-              Todos
-            </ToggleButton>
-            <ToggleButton value="activo" sx={{ px: 2, py: 1 }}>
-              Activos
-            </ToggleButton>
-            <ToggleButton value="finalizado" sx={{ px: 2, py: 1 }}>
-              Finalizados
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
+        </Grid>
+        <Grid size={{ xs: 6, md: 3 }}>
+          <StatCard
+            value={getActiveContractsCount()}
+            label="Contratos activos"
+            icon={<CheckCircleIcon />}
+            color="success"
+            sparkId="contratos-activos"
+          />
+        </Grid>
+        <Grid size={{ xs: 6, md: 3 }}>
+          <StatCard
+            value={contratos.length - getActiveContractsCount()}
+            label="Contratos finalizados"
+            icon={<HighlightOffIcon />}
+            color="info"
+            sparkId="contratos-fin"
+          />
+        </Grid>
+        <Grid size={{ xs: 6, md: 3 }}>
+          <StatCard
+            value={tenants.length}
+            label="Arrendatarios"
+            icon={<PeopleTwoToneIcon />}
+            color="warning"
+            sparkId="contratos-arrend"
+          />
+        </Grid>
+      </Grid>
 
+      <PageHeader
+        title="Contratos de Arrendamiento"
+        subtitle="Gestiona los contratos de renta de apartamentos"
+        action={
+          <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
+            Nuevo Contrato
+          </GlowButton>
+        }
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
+            alignItems: { md: "center" },
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <SearchField
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Buscar contratos, arrendatarios o apartamentos…"
+            />
+          </Box>
+          <FilterPills options={filterOptions} value={filterEstado} onChange={handleFilterChange} />
+        </Box>
         {(searchTerm || filterEstado !== "todos") && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
             {filteredContratos.length} contrato(s) encontrado(s)
           </Typography>
         )}
-      </Paper>
+      </PageHeader>
 
-      {/* Content */}
-      <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper" }}>
-        {/* Desktop Table */}
-        <Box sx={{ display: { xs: "none", md: "block" } }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>Arrendatario</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Apartamento</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Fecha</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Canon</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Extra días</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Estado</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredContratos.map((contrato) => (
-                  <TableRow key={contrato.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {contrato.arrendatario_nombre}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", flexDirection: "column" }}>
-                        <Typography variant="body2" fontWeight="medium">
-                          {contrato.apartamento_nombre}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {contrato.apartamento_direccion}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                     <TableCell>
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          Inicio: {formatDate(contrato.fecha_inicio)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Fin: {formatDate(contrato.fecha_fin)}
-                        </Typography>
-                      </Box>
-                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium" color="warning.main">
-                        {formatCurrency(contrato.canon_mensual)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, alignItems: "center" }}>
-                        <Chip
-                          label={Number(contrato.dia_pago) === 0 ? "0 días extra" : `+${contrato.dia_pago} días`}
-                          size="small"
-                          color="warning"
-                          variant="outlined"
-                        />
-                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
-                          {(contrato.modo_cobro || "anticipado") === "fin_mes" ? "Fin de mes" : "Anticipado"}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={contrato.estado === "activo" ? "🟢 Activo" : "⚫ Finalizado"}
-                        size="small"
-                        color={contrato.estado === "activo" ? "success" : "default"}
-                        variant={contrato.estado === "activo" ? "filled" : "outlined"}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                        {contrato.estado === "activo" && (
-                          <>
-                            <Tooltip title="Editar">
-                              <IconButton size="small" onClick={() => openEditModal(contrato)} color="primary">
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Button
-                              size="small"
-                              variant="text"
-                              component={Link}
-                              to={contractPaymentsHref(contrato.id)}
-                              sx={{ color: "text.secondary", fontSize: "0.75rem", minWidth: 0 }}
-                            >
-                              Pagos
-                            </Button>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => openMoreMenu(e, contrato)}
-                              aria-expanded={openActionsMenu && menuContrato?.id === contrato.id}
-                              aria-haspopup="menu"
-                            >
-                              <Typography variant="caption" sx={{ fontSize: "1.2rem", lineHeight: 1 }}>⋯</Typography>
-                            </IconButton>
-                          </>
-                        )}
-                        {contrato.estado === "finalizado" && (
-                          <>
-                            {!tieneContratoActivoMismoAptoMismoArrendatario(contrato) && (
-                              <Tooltip title="Renovar">
-                                <IconButton size="small" onClick={() => openRenovarModal(contrato)} color="info">
-                                  <RenewIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
-                            <Button
-                              size="small"
-                              variant="text"
-                              component={Link}
-                              to={contractPaymentsHref(contrato.id)}
-                              sx={{ color: "text.secondary", fontSize: "0.75rem", minWidth: 0 }}
-                            >
-                              Pagos
-                            </Button>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => openMoreMenu(e, contrato)}
-                              aria-expanded={openActionsMenu && menuContrato?.id === contrato.id}
-                              aria-haspopup="menu"
-                            >
-                              <Typography variant="caption" sx={{ fontSize: "1.2rem", lineHeight: 1 }}>⋯</Typography>
-                            </IconButton>
-                          </>
-                        )}
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+      <GlassPanel sx={{ p: { xs: 1.5, sm: 2.5 } }}>
+        <DataListHeader columns={listColumns} />
 
-          {filteredContratos.length === 0 && (
-            <Box sx={{ py: 8, textAlign: "center" }}>
-              <Typography variant="h4" sx={{ mb: 2 }}>
-                📋
-              </Typography>
-              <Typography color="text.secondary">
-                {contratos.length === 0 ? "No hay contratos registrados" : "No se encontraron contratos"}
-              </Typography>
-              <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
-                {contratos.length === 0 ? "Crea el primer contrato para comenzar" : "Intenta con otros términos de búsqueda o filtros"}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-
-        {/* Mobile Cards */}
-        <Box sx={{ display: { xs: "block", md: "none" }, p: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            {filteredContratos.map((contrato) => {
-              const isActivo = contrato.estado === "activo"
-              const accent = isActivo ? "success.main" : "text.disabled"
-              const initial =
-                contrato.arrendatario_nombre?.trim()?.charAt(0)?.toUpperCase() || "C"
-
-              return (
-              <Card
+        {filteredContratos.length === 0 ? (
+          <EmptyState
+            title={contratos.length === 0 ? "No hay contratos registrados" : "No se encontraron contratos"}
+            description={
+              contratos.length === 0
+                ? "Crea el primer contrato para comenzar"
+                : "Intenta con otros términos de búsqueda o filtros"
+            }
+            action={
+              contratos.length === 0 ? (
+                <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
+                  Crear contrato
+                </GlowButton>
+              ) : undefined
+            }
+          />
+        ) : (
+          <Box>
+            {filteredContratos.map((contrato) => (
+              <ContractListRow
                 key={contrato.id}
-                variant="outlined"
-                sx={{
-                  borderRadius: 2.5,
-                  borderColor: "divider",
-                  borderLeft: 4,
-                  borderLeftColor: accent,
-                  bgcolor: "background.default",
-                  backgroundImage: (theme) =>
-                    `linear-gradient(135deg, ${theme.palette.mode === "dark" ? "rgba(82,139,158,0.08)" : "rgba(8,145,178,0.06)"} 0%, transparent 55%)`,
-                  boxShadow: "none",
-                  overflow: "hidden",
-                  transition: "transform 0.15s ease, border-color 0.15s ease",
-                  "&:active": { transform: "scale(0.992)" },
-                }}
-              >
-                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
-                  <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: accent,
-                        color: isActivo ? "success.contrastText" : "text.primary",
-                        width: 48,
-                        height: 48,
-                        fontWeight: 700,
-                        boxShadow: (theme) =>
-                          `0 0 0 3px ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
-                      }}
-                    >
-                      {initial}
-                    </Avatar>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1 }}>
-                        <Typography variant="subtitle1" fontWeight="medium" noWrap>
-                          {contrato.arrendatario_nombre}
-                        </Typography>
-                        <Chip
-                          label={isActivo ? "Activo" : "Finalizado"}
-                          size="small"
-                          color={isActivo ? "success" : "default"}
-                          variant={isActivo ? "filled" : "outlined"}
-                        />
-                      </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.75, minWidth: 0 }}>
-                        <HomeIcon sx={{ fontSize: 16, color: "primary.main", flexShrink: 0 }} />
-                        <Typography variant="body2" color="primary" fontWeight="medium" noWrap>
-                          {contrato.apartamento_nombre}
-                        </Typography>
-                      </Box>
-                      <Typography variant="caption" color="text.secondary" display="block" noWrap sx={{ mt: 0.25, pl: 2.75 }}>
-                        {contrato.apartamento_direccion}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1.25,
-                      py: 1.5,
-                      px: 1.5,
-                      mb: 2,
-                      borderRadius: 2,
-                      bgcolor: (theme) =>
-                        theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(15,23,42,0.03)",
-                      border: 1,
-                      borderColor: "divider",
-                    }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
-                      <CalendarIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
-                      >
-                        Vigencia
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", pl: 3.25 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Inicio
-                      </Typography>
-                      <Typography variant="body2" fontWeight="medium">
-                        {formatDate(contrato.fecha_inicio)}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", pl: 3.25 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Fin
-                      </Typography>
-                      <Typography variant="body2" fontWeight="medium">
-                        {formatDate(contrato.fecha_fin)}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ borderTop: 1, borderColor: "divider", my: 0.25 }} />
-
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <PaymentsIcon sx={{ fontSize: 16, color: "warning.main" }} />
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
-                        >
-                          Canon
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" fontWeight="bold" color="warning.main">
-                        {formatCurrency(contrato.canon_mensual)}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
-                      >
-                        Extra días
-                      </Typography>
-                      <Chip
-                        label={Number(contrato.dia_pago) === 0 ? "0 días" : `+${contrato.dia_pago} días`}
-                        size="small"
-                        color="warning"
-                        variant="outlined"
-                      />
-                    </Box>
-
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
-                      >
-                        Modo cobro
-                      </Typography>
-                      <Typography variant="body2" fontWeight="medium">
-                        {(contrato.modo_cobro || "anticipado") === "fin_mes" ? "Fin de mes" : "Anticipado"}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: 1,
-                      pt: 1.5,
-                      borderTop: 1,
-                      borderColor: "divider",
-                      alignItems: "stretch",
-                    }}
-                  >
-                    <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
-                      {isActivo ? (
-                        <>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            color="primary"
-                            startIcon={<EditIcon />}
-                            onClick={() => openEditModal(contrato)}
-                            fullWidth
-                          >
-                            Editar
-                          </Button>
-                          <Button
-                            component={Link}
-                            to={contractPaymentsHref(contrato.id)}
-                            fullWidth
-                            size="small"
-                            startIcon={
-                              <Box
-                                component="span"
-                                sx={{
-                                  width: 22,
-                                  height: 22,
-                                  borderRadius: 1,
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  bgcolor: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? "rgba(245,158,11,0.25)"
-                                      : "rgba(245,158,11,0.18)",
-                                  color: "warning.main",
-                                  border: 1,
-                                  borderColor: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? "rgba(245,158,11,0.45)"
-                                      : "rgba(245,158,11,0.35)",
-                                }}
-                              >
-                                <PaymentsIcon sx={{ fontSize: 14 }} />
-                              </Box>
-                            }
-                            sx={{
-                              justifyContent: "center",
-                              px: 1.5,
-                              py: 1,
-                              minHeight: 40,
-                              borderRadius: 2,
-                              textTransform: "none",
-                              fontWeight: 700,
-                              letterSpacing: "0.02em",
-                              color: "warning.main",
-                              border: 1,
-                              borderColor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? "rgba(245,158,11,0.4)"
-                                  : "rgba(245,158,11,0.35)",
-                              backgroundImage: (theme) =>
-                                `linear-gradient(135deg, ${
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(245,158,11,0.16)"
-                                    : "rgba(245,158,11,0.1)"
-                                } 0%, transparent 65%)`,
-                              bgcolor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? "rgba(245,158,11,0.06)"
-                                  : "rgba(245,158,11,0.04)",
-                              boxShadow: "none",
-                              "& .MuiButton-startIcon": { mr: 1.25, ml: 0 },
-                              "&:hover": {
-                                borderColor: "warning.main",
-                                bgcolor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(245,158,11,0.14)"
-                                    : "rgba(245,158,11,0.1)",
-                                boxShadow: "none",
-                              },
-                            }}
-                          >
-                            Ver pagos
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          {!tieneContratoActivoMismoAptoMismoArrendatario(contrato) && (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              color="success"
-                              startIcon={<RenewIcon />}
-                              onClick={() => openRenovarModal(contrato)}
-                              fullWidth
-                            >
-                              Renovar
-                            </Button>
-                          )}
-                          <Button
-                            component={Link}
-                            to={contractPaymentsHref(contrato.id)}
-                            fullWidth
-                            size="small"
-                            startIcon={
-                              <Box
-                                component="span"
-                                sx={{
-                                  width: 22,
-                                  height: 22,
-                                  borderRadius: 1,
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  bgcolor: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? "rgba(245,158,11,0.25)"
-                                      : "rgba(245,158,11,0.18)",
-                                  color: "warning.main",
-                                  border: 1,
-                                  borderColor: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? "rgba(245,158,11,0.45)"
-                                      : "rgba(245,158,11,0.35)",
-                                }}
-                              >
-                                <PaymentsIcon sx={{ fontSize: 14 }} />
-                              </Box>
-                            }
-                            sx={{
-                              justifyContent: "center",
-                              px: 1.5,
-                              py: 1,
-                              minHeight: 40,
-                              borderRadius: 2,
-                              textTransform: "none",
-                              fontWeight: 700,
-                              letterSpacing: "0.02em",
-                              color: "warning.main",
-                              border: 1,
-                              borderColor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? "rgba(245,158,11,0.4)"
-                                  : "rgba(245,158,11,0.35)",
-                              backgroundImage: (theme) =>
-                                `linear-gradient(135deg, ${
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(245,158,11,0.16)"
-                                    : "rgba(245,158,11,0.1)"
-                                } 0%, transparent 65%)`,
-                              bgcolor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? "rgba(245,158,11,0.06)"
-                                  : "rgba(245,158,11,0.04)",
-                              boxShadow: "none",
-                              "& .MuiButton-startIcon": { mr: 1.25, ml: 0 },
-                              "&:hover": {
-                                borderColor: "warning.main",
-                                bgcolor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(245,158,11,0.14)"
-                                    : "rgba(245,158,11,0.1)",
-                                boxShadow: "none",
-                              },
-                            }}
-                          >
-                            Ver pagos
-                          </Button>
-                        </>
-                      )}
-                    </Box>
-                    <IconButton
-                      size="small"
-                      onClick={(e) => openMoreMenu(e, contrato)}
-                      aria-expanded={openActionsMenu && menuContrato?.id === contrato.id}
-                      aria-haspopup="menu"
-                      sx={{
-                        border: 1,
-                        borderColor: "divider",
-                        borderRadius: 1.5,
-                        flexShrink: 0,
-                        color: "text.secondary",
-                        alignSelf: "flex-start",
-                        width: 40,
-                        height: 40,
-                      }}
-                    >
-                      <MoreHorizIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-                </CardContent>
-              </Card>
-              )
-            })}
-
-            {filteredContratos.length === 0 && (
-              <Box sx={{ py: 8, textAlign: "center" }}>
-                <Typography variant="h4" sx={{ mb: 2 }}>
-                  📋
-                </Typography>
-                <Typography color="text.secondary">
-                  {contratos.length === 0 ? "No hay contratos registrados" : "No se encontraron contratos"}
-                </Typography>
-                <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
-                  {contratos.length === 0 ? "Crea el primer contrato para comenzar" : "Intenta con otros términos de búsqueda o filtros"}
-                </Typography>
-              </Box>
-            )}
+                contrato={contrato}
+                formatDate={formatDate}
+                formatCurrency={formatCurrency}
+                onEdit={openEditModal}
+                onMore={openMoreMenu}
+                onRenew={openRenovarModal}
+                showRenew={!tieneContratoActivoMismoAptoMismoArrendatario(contrato)}
+                paymentsHref={contractPaymentsHref(contrato.id)}
+                isMenuOpen={openActionsMenu && menuContrato?.id === contrato.id}
+              />
+            ))}
           </Box>
-        </Box>
-      </Paper>
+        )}
 
-      {/* Stats */}
-      <Grid container spacing={2} sx={{ mt: 3 }}>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="primary">
-              {contratos.length}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Total
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="success.main">
-              {getActiveContractsCount()}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Activos
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="text.secondary">
-              {contratos.length - getActiveContractsCount()}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Finalizados
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="warning.main">
-              {tenants.length}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Arrendatarios
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
+        {filteredContratos.length > 0 && (
+          <ListFooter
+            from={1}
+            to={filteredContratos.length}
+            total={filteredContratos.length}
+          />
+        )}
+      </GlassPanel>
 
       {/* Menu Actions */}
       <Menu
@@ -1579,7 +1053,7 @@ const Contratos = () => {
         fechaFinHint={editFechaFinHint}
         onFechaFinBlur={handleEditFechaFinBlur}
       />
-    </Container>
+    </Box>
   )
 }
 

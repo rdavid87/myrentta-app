@@ -13,42 +13,33 @@ import {
   dedupeInstallmentPeriodOptions,
 } from "../utils/periodoCuota"
 import {
-  Container,
   Typography,
   Button,
-  TextField,
-  Table,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  Chip,
-  IconButton,
-  Avatar,
-  Card,
-  CardContent,
-  Grid,
   Box,
   CircularProgress,
-  ToggleButton,
-  ToggleButtonGroup,
-  InputAdornment,
-  Tooltip,
+  Grid,
 } from "@mui/material"
 import {
   Add as AddIcon,
-  Search as SearchIcon,
-  Clear as ClearIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  PictureAsPdf as PdfIcon,
-  Home as HomeIcon,
-  CalendarMonth as CalendarIcon,
-  CheckCircle as ConfirmIcon,
 } from "@mui/icons-material"
-import PaymentIcon from "@mui/icons-material/Payment"
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney"
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty"
+import WarningAmberIcon from "@mui/icons-material/WarningAmber"
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong"
+import {
+  FinanceStatCard,
+  GlassPanel,
+  PageHeader,
+  SearchField,
+  FilterPills,
+  GlowButton,
+  EmptyState,
+  ListFooter,
+  DataListHeader,
+} from "../components/ui"
+import PaymentListRow, { PAYMENT_LIST_COLUMNS } from "../components/pagos/PaymentListRow"
+import { ghostButtonSx } from "../components/ui/glassStyles"
+import { useTheme, alpha } from "@mui/material/styles"
 
 const METODOS_COBRO_CONFIRMADOS = new Set(["efectivo", "transferencia", "cheque"])
 
@@ -59,6 +50,7 @@ function metodoAlConfirmarCobro(pago) {
 }
 
 const Pagos = () => {
+  const theme = useTheme()
   const [searchParams, setSearchParams] = useSearchParams()
   const filterContractId = searchParams.get("contrato")
 
@@ -522,9 +514,16 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
     return map[m] || m
   }
 
-  const handleFilterChange = (_event, newValue) => {
-    if (newValue !== null) setFilterEstado(newValue)
+  const handleFilterChange = (newValue) => {
+    setFilterEstado(newValue)
   }
+
+  const filterOptions = [
+    { value: "todos", label: "Todos" },
+    { value: "pendiente", label: "Pendientes" },
+    { value: "pagado", label: "Pagados" },
+    { value: "en_mora", label: "En mora" },
+  ]
 
   const clearContractFilter = () => {
     const next = new URLSearchParams(searchParams)
@@ -562,35 +561,63 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
     return matchesContract && matchesSearch && matchesEstado
   })
 
-  const getEstadoBadge = (estado) => {
-    switch (estado) {
-      case "pagado":
-        return { color: "success", variant: "filled" }
-      case "en_mora":
-        return { color: "error", variant: "filled" }
-      default:
-        return { color: "warning", variant: "outlined" }
-    }
-  }
+  const paymentStats = useMemo(() => {
+    const hoy = new Date()
+    const mesActual = hoy.getMonth() + 1
+    const anioActual = hoy.getFullYear()
+    const prevDate = new Date(anioActual, mesActual - 2, 1)
+    const mesPrev = prevDate.getMonth() + 1
+    const anioPrev = prevDate.getFullYear()
 
-  const getEstadoLabel = (estado) => {
-    switch (estado) {
-      case "pagado": return "Pagado"
-      case "en_mora": return "En mora"
-      default: return "Pendiente"
+    const pagoCobradoEnMes = (p, mes, anio) => {
+      if (p.estado !== "pagado" || !p.fecha_pago) return false
+      const fechaStr = String(p.fecha_pago).slice(0, 10)
+      const [y, m] = fechaStr.split("-")
+      return Number(m) === mes && Number(y) === anio
     }
-  }
 
-  const getEstadoAccent = (estado) => {
-    switch (estado) {
-      case "pagado":
-        return "success.main"
-      case "en_mora":
-        return "error.main"
-      default:
-        return "warning.main"
+    const esCuotaMes = (p, mes, anio) => Number(p.mes) === mes && Number(p.anio) === anio
+    const sumValor = (arr) => arr.reduce((s, p) => s + (Number(p.valor) || 0), 0)
+
+    const ingresosMes = sumValor(pagos.filter((p) => pagoCobradoEnMes(p, mesActual, anioActual)))
+    const ingresosPrev = sumValor(pagos.filter((p) => pagoCobradoEnMes(p, mesPrev, anioPrev)))
+    const pendienteMes = sumValor(
+      pagos.filter((p) => p.estado === "pendiente" && esCuotaMes(p, mesActual, anioActual))
+    )
+    const pendientePrev = sumValor(
+      pagos.filter((p) => p.estado === "pendiente" && esCuotaMes(p, mesPrev, anioPrev))
+    )
+    const moraMes = sumValor(
+      pagos.filter((p) => p.estado === "en_mora" && esCuotaMes(p, mesActual, anioActual))
+    )
+    const moraPrev = sumValor(
+      pagos.filter((p) => p.estado === "en_mora" && esCuotaMes(p, mesPrev, anioPrev))
+    )
+    const recibidosMes = pagos.filter((p) => pagoCobradoEnMes(p, mesActual, anioActual)).length
+    const recibidosPrev = pagos.filter((p) => pagoCobradoEnMes(p, mesPrev, anioPrev)).length
+
+    const trendPct = (curr, prev) => {
+      if (prev === 0) return curr > 0 ? "+100%" : "—"
+      const pct = ((curr - prev) / prev) * 100
+      return `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`
     }
-  }
+
+    const prevLabel = `${getMonthName(mesPrev).slice(0, 3)} ${anioPrev}`
+
+    return {
+      mesLabel: `${getMonthName(mesActual)} ${anioActual}`,
+      ingresosMes,
+      pendienteMes,
+      moraMes,
+      recibidosMes,
+      trends: {
+        ingresos: `${trendPct(ingresosMes, ingresosPrev)} vs ${prevLabel}`,
+        pendiente: `${trendPct(pendienteMes, pendientePrev)} vs ${prevLabel}`,
+        mora: `${trendPct(moraMes, moraPrev)} vs ${prevLabel}`,
+        recibidos: `${trendPct(recibidosMes, recibidosPrev)} vs ${prevLabel}`,
+      },
+    }
+  }, [pagos])
 
   if (loading) {
     return (
@@ -601,648 +628,186 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1.5, sm: 3 }, overflowX: "hidden" }}>
-      <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, mb: 4, borderRadius: 3, bgcolor: "background.paper", overflow: "hidden" }}>
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2 }}>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1, fontSize: { xs: "1.5rem", sm: "2.125rem" } }}>
-              <PaymentIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-              Gestión de Pagos
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Registra y confirma pagos.{" "}
-              <Link to="/ayuda" style={{ color: "inherit" }}>
-                Contactar soporte (Ayuda)
-              </Link>
-            </Typography>
-          </Box>
+    <Box sx={{ maxWidth: 1400, mx: "auto", width: "100%", minWidth: 0 }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 6, md: 3 }}>
+          <FinanceStatCard
+            value={formatCurrency(paymentStats.ingresosMes)}
+            label="Ingresos del mes"
+            icon={<AttachMoneyIcon />}
+            color="success"
+            trend={paymentStats.trends.ingresos}
+            sparkId="pagos-ingresos"
+          />
+        </Grid>
+        <Grid size={{ xs: 6, md: 3 }}>
+          <FinanceStatCard
+            value={formatCurrency(paymentStats.pendienteMes)}
+            label="Pendiente"
+            icon={<HourglassEmptyIcon />}
+            color="warning"
+            trend={paymentStats.trends.pendiente}
+            sparkId="pagos-pendiente"
+          />
+        </Grid>
+        <Grid size={{ xs: 6, md: 3 }}>
+          <FinanceStatCard
+            value={formatCurrency(paymentStats.moraMes)}
+            label="En mora"
+            icon={<WarningAmberIcon />}
+            color="error"
+            trend={paymentStats.trends.mora}
+            sparkId="pagos-mora"
+          />
+        </Grid>
+        <Grid size={{ xs: 6, md: 3 }}>
+          <FinanceStatCard
+            value={paymentStats.recibidosMes}
+            label="Pagos recibidos"
+            icon={<ReceiptLongIcon />}
+            color="primary"
+            trend={paymentStats.trends.recibidos}
+            sparkId="pagos-recibidos"
+          />
+        </Grid>
+      </Grid>
+
+      <PageHeader
+        title="Gestión de Pagos"
+        subtitle={
+          <>
+            Módulo de finanzas ·{" "}
+            <Link to="/ayuda" style={{ color: "inherit" }}>
+              Contactar soporte (Ayuda)
+            </Link>
+          </>
+        }
+        action={
           <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
             <Button
-              variant="contained"
+              variant="outlined"
+              onClick={handleVerificarMora}
+              disabled={verificandoMora}
+              sx={ghostButtonSx(theme)}
+            >
+              {verificandoMora ? "Verificando..." : "Verificar Mora"}
+            </Button>
+            <GlowButton
               startIcon={<AddIcon />}
               onClick={() => {
                 setCuotasAlta(null)
                 setCuotasAltaLoading(false)
                 setShowModal(true)
               }}
-              sx={{ px: { xs: 2, sm: 4 }, py: 1.5, borderRadius: 2, flex: { xs: "1 1 auto", sm: "none" } }}
             >
               Registrar Pago
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={handleVerificarMora}
-              disabled={verificandoMora}
-              sx={{ px: { xs: 2, sm: 3 }, py: 1.5, borderRadius: 2, flex: { xs: "1 1 auto", sm: "none" } }}
-            >
-              {verificandoMora ? "Verificando..." : "Verificar Mora"}
-            </Button>
+            </GlowButton>
           </Box>
-        </Box>
-
+        }
+      >
         {filterContractId && (
           <Box
             sx={{
-              mt: 3,
-              p: 2,
-              borderRadius: 2,
-              bgcolor: "primary.light",
-              border: "1px solid",
-              borderColor: "primary.main",
+              mb: 2,
+              p: 1.5,
+              borderRadius: "10px",
               display: "flex",
               flexDirection: { xs: "column", sm: "row" },
               alignItems: { xs: "stretch", sm: "center" },
               gap: 1,
-              minWidth: 0,
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.25)}`,
             }}
           >
-            <Typography variant="body2" sx={{ color: "text.secondary", minWidth: 0 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
               Pagos del contrato:{" "}
-              <Typography component="span" sx={{ color: "text.primary", fontWeight: 500 }}>
+              <Typography component="span" fontWeight={700} color="text.primary">
                 {contractFilterLabel}
               </Typography>
             </Typography>
-            <Button
-              size="small"
-              onClick={clearContractFilter}
-              sx={{ fontSize: "0.75rem", alignSelf: { xs: "flex-start", sm: "center" } }}
-            >
+            <Button size="small" onClick={clearContractFilter}>
               Ver todos los pagos
             </Button>
           </Box>
         )}
 
-        <Box sx={{ mt: 3, display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2, minWidth: 0 }}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Buscar por arrendatario, apartamento o período…"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: searchTerm ? (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setSearchTerm("")} size="small">
-                      <ClearIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ) : undefined,
-              },
-            }}
-          />
-          <ToggleButtonGroup
-            size="small"
-            value={filterEstado}
-            exclusive
-            onChange={handleFilterChange}
-            sx={{
-              width: { xs: "100%", sm: "auto" },
-              display: "flex",
-              flexWrap: "wrap",
-              "& .MuiToggleButtonGroup-grouped": {
-                flex: { xs: "1 1 calc(50% - 4px)", sm: "0 0 auto" },
-                borderRadius: "4px !important",
-                border: "1px solid",
-                borderColor: "divider",
-                m: 0.25,
-                px: { xs: 1, sm: 2 },
-                py: 1,
-              },
-            }}
-          >
-            <ToggleButton value="todos">
-              Todos
-            </ToggleButton>
-            <ToggleButton value="pendiente">
-              Pendientes
-            </ToggleButton>
-            <ToggleButton value="pagado">
-              Pagados
-            </ToggleButton>
-            <ToggleButton value="en_mora">
-              En Mora
-            </ToggleButton>
-          </ToggleButtonGroup>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
+            alignItems: { md: "center" },
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <SearchField
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Buscar arrendatario, apartamento o período…"
+            />
+          </Box>
+          <FilterPills options={filterOptions} value={filterEstado} onChange={handleFilterChange} />
         </Box>
 
         {(searchTerm || filterEstado !== "todos" || filterContractId) && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
             {filteredPagos.length} pago(s) encontrado(s)
           </Typography>
         )}
-      </Paper>
+      </PageHeader>
 
-      <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden", bgcolor: "background.paper", maxWidth: "100%" }}>
-        <Box sx={{ display: { xs: "none", md: "block" } }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>Arrendatario</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Apartamento</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Período</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Valor</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Método</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>
-                    <span style={{ display: "block" }}>Fecha pago</span>
-                    <span style={{ display: "block", fontWeight: "normal", fontSize: "0.75rem" }}>al confirmar cobro</span>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Estado</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredPagos.map((pago) => (
-                  <TableRow key={pago.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {pago.arrendatario_nombre}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", flexDirection: "column" }}>
-                        <Typography variant="body2" fontWeight="medium">
-                          {pago.apartamento_nombre}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {pago.apartamento_direccion}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={formatPaymentPeriodForList(pago)}
-                        size="small"
-                        sx={{ color: "secondary.main" }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="medium" color="warning.main">
-                        {formatCurrency(pago.valor)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {formatMetodoLabel(pago.metodo_pago)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {!pago.fecha_pago ? "—" : formatDate(pago.fecha_pago)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getEstadoLabel(pago.estado)}
-                        size="small"
-                        color={getEstadoBadge(pago.estado).color}
-                        variant={getEstadoBadge(pago.estado).variant}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                        {(pago.estado === "pendiente" || pago.estado === "en_mora") && (
-                          <>
-                            <Tooltip title="Editar">
-                              <IconButton size="small" onClick={() => openEditModal(pago)} color="primary">
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              color="success"
-                              onClick={() => openConfirmarModal(pago)}
-                            >
-                              Confirmar
-                            </Button>
-                            <Tooltip title="Eliminar">
-                              <IconButton size="small" onClick={() => handleDelete(pago.id)} color="error">
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </>
-                        )}
-                        {pago.estado === "pagado" && (
-                          <>
-                            <Tooltip title="Editar">
-                              <IconButton size="small" onClick={() => openEditModal(pago)} color="primary">
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              startIcon={<PdfIcon />}
-                              onClick={() => handleReciboPdf(pago.id)}
-                            >
-                              Recibo PDF
-                            </Button>
-                          </>
-                        )}
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {filteredPagos.length === 0 && (
-            <Box sx={{ py: 8, textAlign: "center" }}>
-              <Typography variant="h4" sx={{ mb: 2 }}>
-                💳
-              </Typography>
-              <Typography color="text.secondary">
-                {pagos.length === 0 ? "No hay pagos registrados" : "No se encontraron pagos"}
-              </Typography>
-              <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
-                {pagos.length === 0
-                  ? "Usa Registrar pago o contacta a soporte desde Ayuda si necesitas asistencia."
-                  : "Intenta con otros términos de búsqueda o filtros"}
-              </Typography>
+      <GlassPanel sx={{ p: { xs: 1.5, sm: 2 } }}>
+          {filteredPagos.length === 0 ? (
+            <EmptyState
+              icon="💳"
+              title={pagos.length === 0 ? "No hay pagos registrados" : "No se encontraron pagos"}
+              description={
+                pagos.length === 0
+                  ? "Usa Registrar pago o contacta soporte desde Ayuda."
+                  : "Intenta con otros términos de búsqueda o filtros"
+              }
+              action={
+                pagos.length === 0 ? (
+                  <GlowButton
+                    startIcon={<AddIcon />}
+                    onClick={() => {
+                      setCuotasAlta(null)
+                      setCuotasAltaLoading(false)
+                      setShowModal(true)
+                    }}
+                  >
+                    Registrar Pago
+                  </GlowButton>
+                ) : undefined
+              }
+            />
+          ) : (
+            <Box>
+              <DataListHeader columns={PAYMENT_LIST_COLUMNS} />
+              {filteredPagos.map((pago, index) => (
+                <PaymentListRow
+                  key={pago.id}
+                  pago={pago}
+                  periodLabel={formatPaymentPeriodForList(pago)}
+                  formatCurrency={formatCurrency}
+                  formatDate={formatDate}
+                  formatMetodoLabel={formatMetodoLabel}
+                  onEdit={openEditModal}
+                  onConfirm={openConfirmarModal}
+                  onDelete={handleDelete}
+                  onPdf={handleReciboPdf}
+                  pdfLoading={descargandoPDF}
+                  isLast={index === filteredPagos.length - 1}
+                />
+              ))}
             </Box>
           )}
-        </Box>
 
-        <Box sx={{ display: { xs: "block", md: "none" }, p: { xs: 1.5, sm: 2 }, maxWidth: "100%", boxSizing: "border-box" }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, maxWidth: "100%" }}>
-            {filteredPagos.map((pago) => {
-              const accent = getEstadoAccent(pago.estado)
-              const isPagado = pago.estado === "pagado"
-              const isPendienteOrMora = pago.estado === "pendiente" || pago.estado === "en_mora"
-              const initial =
-                pago.arrendatario_nombre?.trim()?.charAt(0)?.toUpperCase() || "P"
+          {filteredPagos.length > 0 && (
+            <ListFooter from={1} to={filteredPagos.length} total={filteredPagos.length} />
+          )}
+      </GlassPanel>
 
-              return (
-              <Card
-                key={pago.id}
-                variant="outlined"
-                sx={{
-                  width: "100%",
-                  maxWidth: "100%",
-                  borderRadius: 2.5,
-                  borderColor: "divider",
-                  borderLeft: 4,
-                  borderLeftColor: accent,
-                  bgcolor: "background.default",
-                  backgroundImage: (theme) =>
-                    `linear-gradient(135deg, ${theme.palette.mode === "dark" ? "rgba(82,139,158,0.08)" : "rgba(8,145,178,0.06)"} 0%, transparent 55%)`,
-                  boxShadow: "none",
-                  overflow: "hidden",
-                  transition: "transform 0.15s ease, border-color 0.15s ease",
-                  "&:active": { transform: "scale(0.992)" },
-                }}
-              >
-                <CardContent
-                  sx={{
-                    p: { xs: 1.5, sm: 2 },
-                    "&:last-child": { pb: { xs: 1.5, sm: 2 } },
-                    minWidth: 0,
-                  }}
-                >
-                  <Box sx={{ display: "flex", gap: 1.5, mb: 2, minWidth: 0 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: accent,
-                        color: isPagado
-                          ? "success.contrastText"
-                          : pago.estado === "en_mora"
-                            ? "error.contrastText"
-                            : "warning.contrastText",
-                        width: 44,
-                        height: 44,
-                        flexShrink: 0,
-                        fontWeight: 700,
-                        boxShadow: (theme) =>
-                          `0 0 0 3px ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
-                      }}
-                    >
-                      {initial}
-                    </Avatar>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1 }}>
-                        <Typography variant="subtitle1" fontWeight="medium" noWrap sx={{ minWidth: 0, flex: 1 }}>
-                          {pago.arrendatario_nombre}
-                        </Typography>
-                        <Chip
-                          label={getEstadoLabel(pago.estado)}
-                          size="small"
-                          color={getEstadoBadge(pago.estado).color}
-                          variant={getEstadoBadge(pago.estado).variant}
-                          sx={{ flexShrink: 0 }}
-                        />
-                      </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 0.75, minWidth: 0 }}>
-                        <HomeIcon sx={{ fontSize: 16, color: "primary.main", flexShrink: 0 }} />
-                        <Typography variant="body2" color="primary" fontWeight="medium" noWrap sx={{ minWidth: 0 }}>
-                          {pago.apartamento_nombre}
-                        </Typography>
-                      </Box>
-                      <Typography variant="caption" color="text.secondary" display="block" noWrap sx={{ mt: 0.25, pl: 2.75, minWidth: 0 }}>
-                        {pago.apartamento_direccion}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1.25,
-                      py: 1.5,
-                      px: { xs: 1.25, sm: 1.5 },
-                      mb: 2,
-                      borderRadius: 2,
-                      minWidth: 0,
-                      bgcolor: (theme) =>
-                        theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(15,23,42,0.03)",
-                      border: 1,
-                      borderColor: "divider",
-                    }}
-                  >
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1.5, minWidth: 0 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
-                        <CalendarIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
-                        >
-                          Período
-                        </Typography>
-                      </Box>
-                      <Typography
-                        variant="body2"
-                        fontWeight="medium"
-                        color="secondary.main"
-                        sx={{ minWidth: 0, textAlign: "right", wordBreak: "break-word" }}
-                      >
-                        {formatPaymentPeriodForList(pago)}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5, minWidth: 0 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
-                        <PaymentIcon sx={{ fontSize: 16, color: "warning.main" }} />
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600 }}
-                        >
-                          Valor
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" fontWeight="bold" color="warning.main" sx={{ textAlign: "right" }}>
-                        {formatCurrency(pago.valor)}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1.5, minWidth: 0 }}>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600, flexShrink: 0 }}
-                      >
-                        Método
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        fontWeight="medium"
-                        sx={{ minWidth: 0, textAlign: "right", wordBreak: "break-word" }}
-                      >
-                        {formatMetodoLabel(pago.metodo_pago)}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1.5, minWidth: 0 }}>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 600, flexShrink: 0 }}
-                      >
-                        Fecha pago
-                      </Typography>
-                      <Typography variant="body2" fontWeight="medium" sx={{ textAlign: "right" }}>
-                        {!pago.fecha_pago ? "—" : formatDate(pago.fecha_pago)}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1,
-                      pt: 1.5,
-                      borderTop: 1,
-                      borderColor: "divider",
-                    }}
-                  >
-                    {isPendienteOrMora && (
-                      <>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          color="primary"
-                          startIcon={<EditIcon />}
-                          onClick={() => openEditModal(pago)}
-                          fullWidth
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          size="small"
-                          onClick={() => openConfirmarModal(pago)}
-                          fullWidth
-                          startIcon={
-                            <Box
-                              component="span"
-                              sx={{
-                                width: 22,
-                                height: 22,
-                                borderRadius: 1,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                bgcolor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(110,231,183,0.22)"
-                                    : "rgba(16,185,129,0.16)",
-                                color: "success.main",
-                                border: 1,
-                                borderColor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(110,231,183,0.45)"
-                                    : "rgba(16,185,129,0.35)",
-                              }}
-                            >
-                              <ConfirmIcon sx={{ fontSize: 14 }} />
-                            </Box>
-                          }
-                          sx={{
-                            justifyContent: "center",
-                            px: 1.5,
-                            py: 1,
-                            minHeight: 40,
-                            borderRadius: 2,
-                            textTransform: "none",
-                            fontWeight: 700,
-                            letterSpacing: "0.02em",
-                            color: "success.main",
-                            border: 1,
-                            borderColor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? "rgba(110,231,183,0.4)"
-                                : "rgba(16,185,129,0.35)",
-                            backgroundImage: (theme) =>
-                              `linear-gradient(135deg, ${
-                                theme.palette.mode === "dark"
-                                  ? "rgba(110,231,183,0.14)"
-                                  : "rgba(16,185,129,0.1)"
-                              } 0%, transparent 65%)`,
-                            bgcolor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? "rgba(110,231,183,0.06)"
-                                : "rgba(16,185,129,0.04)",
-                            boxShadow: "none",
-                            "& .MuiButton-startIcon": { mr: 1.25, ml: 0 },
-                            "&:hover": {
-                              borderColor: "success.main",
-                              bgcolor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? "rgba(110,231,183,0.14)"
-                                  : "rgba(16,185,129,0.1)",
-                              boxShadow: "none",
-                            },
-                          }}
-                        >
-                          Confirmar
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          color="error"
-                          startIcon={<DeleteIcon />}
-                          onClick={() => handleDelete(pago.id)}
-                          fullWidth
-                        >
-                          Eliminar
-                        </Button>
-                      </>
-                    )}
-                    {isPagado && (
-                      <>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          color="primary"
-                          startIcon={<EditIcon />}
-                          onClick={() => openEditModal(pago)}
-                          fullWidth
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          size="small"
-                          onClick={() => handleReciboPdf(pago.id)}
-                          fullWidth
-                          startIcon={
-                            <Box
-                              component="span"
-                              sx={{
-                                width: 22,
-                                height: 22,
-                                borderRadius: 1,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                bgcolor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(245,158,11,0.25)"
-                                    : "rgba(245,158,11,0.18)",
-                                color: "warning.main",
-                                border: 1,
-                                borderColor: (theme) =>
-                                  theme.palette.mode === "dark"
-                                    ? "rgba(245,158,11,0.45)"
-                                    : "rgba(245,158,11,0.35)",
-                              }}
-                            >
-                              <PdfIcon sx={{ fontSize: 14 }} />
-                            </Box>
-                          }
-                          sx={{
-                            justifyContent: "center",
-                            px: 1.5,
-                            py: 1,
-                            minHeight: 40,
-                            borderRadius: 2,
-                            textTransform: "none",
-                            fontWeight: 700,
-                            letterSpacing: "0.02em",
-                            color: "warning.main",
-                            border: 1,
-                            borderColor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? "rgba(245,158,11,0.4)"
-                                : "rgba(245,158,11,0.35)",
-                            backgroundImage: (theme) =>
-                              `linear-gradient(135deg, ${
-                                theme.palette.mode === "dark"
-                                  ? "rgba(245,158,11,0.16)"
-                                  : "rgba(245,158,11,0.1)"
-                              } 0%, transparent 65%)`,
-                            bgcolor: (theme) =>
-                              theme.palette.mode === "dark"
-                                ? "rgba(245,158,11,0.06)"
-                                : "rgba(245,158,11,0.04)",
-                            boxShadow: "none",
-                            "& .MuiButton-startIcon": { mr: 1.25, ml: 0 },
-                            "&:hover": {
-                              borderColor: "warning.main",
-                              bgcolor: (theme) =>
-                                theme.palette.mode === "dark"
-                                  ? "rgba(245,158,11,0.14)"
-                                  : "rgba(245,158,11,0.1)",
-                              boxShadow: "none",
-                            },
-                          }}
-                        >
-                          Recibo PDF
-                        </Button>
-                      </>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-              )
-            })}
-
-            {filteredPagos.length === 0 && (
-              <Box sx={{ py: 8, textAlign: "center" }}>
-                <Typography variant="h4" sx={{ mb: 2 }}>
-                  💳
-                </Typography>
-                <Typography color="text.secondary">
-                  {pagos.length === 0 ? "No hay pagos registrados" : "No se encontraron pagos"}
-                </Typography>
-                <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
-                  {pagos.length === 0
-                    ? "Usa Registrar pago o escríbenos desde Ayuda si necesitas soporte."
-                    : "Intenta con otros términos de búsqueda o filtros"}
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        </Box>
-      </Paper>
 
       <RegistrarPago
         open={showModal}
@@ -1282,7 +847,7 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
         onConfirmarChange={setConfirmarData}
         onConfirmarSubmit={handleConfirmar}
       />
-    </Container>
+    </Box>
   )
 }
 
