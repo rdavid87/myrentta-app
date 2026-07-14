@@ -21,6 +21,8 @@ const ExtenderContrato = ({
   onNuevaFechaFinChange,
   onSubmit,
   formatDate,
+  fechaFinHint,
+  onFechaFinBlur,
 }) => {
   const [localFechaFin, setLocalFechaFin] = useState("")
 
@@ -141,6 +143,7 @@ const ExtenderContrato = ({
               fullWidth
               value={localFechaFin}
               onChange={handleFechaChange}
+              onBlur={onFechaFinBlur}
               required
               sx={{
                 "& .MuiInputBase-root": { bgcolor: "rgba(17,24,39,0.6)" },
@@ -149,8 +152,14 @@ const ExtenderContrato = ({
               }}
               slotProps={{ inputLabel: { shrink: true } }}
             />
+            {fechaFinHint && (
+              <Typography variant="caption" sx={{ color: "#38bdf8" }}>
+                {fechaFinHint}
+              </Typography>
+            )}
             <Typography variant="caption" sx={{ color: "#6b7280" }}>
-              La fecha debe ser posterior a la fecha de fin actual
+              La fecha debe ser posterior a la fin actual. Si eliges el aniversario del contrato,
+              se guardará el día anterior (fin del periodo inclusivo).
             </Typography>
           </Box>
         </DialogContent>

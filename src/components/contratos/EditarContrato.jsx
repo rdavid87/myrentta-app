@@ -27,6 +27,8 @@ const EditarContrato = ({
   onEditFormDataChange,
   isEditContractUnchanged,
   onSubmit,
+  fechaFinHint,
+  onFechaFinBlur,
 }) => {
   const handleChange = (field) => (e) => {
     if (onEditFormDataChange) {
@@ -112,11 +114,20 @@ const EditarContrato = ({
                   fullWidth
                   value={editFormData?.fecha_fin ?? ""}
                   onChange={handleChange("fecha_fin")}
+                  onBlur={onFechaFinBlur}
                   required
                   slotProps={{ inputLabel: { shrink: true } }}
                 />
               </Grid>
             </Grid>
+            {fechaFinHint && (
+              <Typography variant="caption" sx={{ color: "#38bdf8", mt: -1 }}>
+                {fechaFinHint}
+              </Typography>
+            )}
+            <Typography variant="caption" sx={{ color: "#6b7280", mt: fechaFinHint ? 0 : -1 }}>
+              El contrato termina el último día del periodo mensual (día anterior al aniversario).
+            </Typography>
             <TextField
               label="💰 Canon mensual"
               size="small"
