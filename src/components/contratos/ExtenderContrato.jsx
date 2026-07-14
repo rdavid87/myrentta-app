@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react"
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Divider,
-  Typography,
-  Box,
-  Paper,
-} from "@mui/material"
+import { Typography, Box, Button } from "@mui/material"
 import TimerIcon from "@mui/icons-material/Timer"
+import { alpha, useTheme } from "@mui/material/styles"
+import {
+  GlassDialog,
+  GlassTextField,
+  GlowButton,
+  FormHint,
+  FormHintText,
+  FormSection,
+} from "../ui"
+import { ghostButtonSx } from "../ui/glassStyles"
 
 const ExtenderContrato = ({
   open,
@@ -24,6 +23,7 @@ const ExtenderContrato = ({
   fechaFinHint,
   onFechaFinBlur,
 }) => {
+  const theme = useTheme()
   const [localFechaFin, setLocalFechaFin] = useState("")
 
   useEffect(() => {
@@ -35,160 +35,101 @@ const ExtenderContrato = ({
   const handleFechaChange = (e) => {
     const value = e.target.value
     setLocalFechaFin(value)
-    if (onNuevaFechaFinChange) {
-      onNuevaFechaFinChange(value)
-    }
+    if (onNuevaFechaFinChange) onNuevaFechaFinChange(value)
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (onSubmit) {
-      onSubmit(e)
-    }
+    if (onSubmit) onSubmit(e)
   }
 
   return (
-    <Dialog
+    <GlassDialog
       open={open && !!contratoToExtend}
       onClose={onClose}
-      fullWidth
       maxWidth="xs"
-      slotProps={{
-        paper: {
-          sx: {
-            bgcolor: "rgba(17, 24, 39, 0.95)",
-            backdropFilter: "blur(24px)",
-            border: "1px solid rgba(75, 85, 99, 0.5)",
-            borderRadius: 3,
-            m: { xs: 1, sm: 2 },
-          },
-        },
-      }}
+      title="Extender Contrato"
+      subtitle="Solo se modificará la fecha de fin del contrato"
+      icon={<TimerIcon />}
+      actions={
+        <>
+          <Button onClick={onClose} sx={ghostButtonSx(theme)}>
+            Cancelar
+          </Button>
+          <GlowButton type="submit" form="extender-contrato-form" color="warning">
+            Extender Contrato
+          </GlowButton>
+        </>
+      }
     >
-      <DialogTitle sx={{ pb: 0 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 40,
-              height: 40,
-              borderRadius: 2,
-              bgcolor: "rgba(245, 158, 11, 0.2)",
-            }}
-          >
-            <TimerIcon sx={{ color: "#fbbf24", fontSize: 24 }} />
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-              Extender Contrato
+      <Box
+        component="form"
+        id="extender-contrato-form"
+        onSubmit={handleSubmit}
+        sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+      >
+        <Box
+          sx={{
+            p: 2,
+            borderRadius: "12px",
+            bgcolor: alpha(theme.palette.background.default, 0.45),
+            border: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.25,
+          }}
+        >
+          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+            <Typography variant="caption" color="text.secondary">
+              Arrendatario
             </Typography>
-            <Typography variant="body2" sx={{ color: "#9ca3af", mt: 0.25 }}>
-              Solo se modificará la fecha de fin del contrato
+            <Typography variant="body2" fontWeight={600} textAlign="right">
+              {contratoToExtend?.arrendatario_nombre}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+            <Typography variant="caption" color="text.secondary">
+              Apartamento
+            </Typography>
+            <Typography variant="body2" fontWeight={600} textAlign="right">
+              {contratoToExtend?.apartamento_nombre}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+            <Typography variant="caption" color="text.secondary">
+              Fecha de fin actual
+            </Typography>
+            <Typography variant="body2" fontWeight={700} color="success.main" textAlign="right">
+              {contratoToExtend && formatDate(contratoToExtend.fecha_fin)}
             </Typography>
           </Box>
         </Box>
-      </DialogTitle>
 
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.08)", my: 1 }} />
-
-      <form onSubmit={handleSubmit}>
-        <DialogContent sx={{ pt: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <Paper
-              elevation={0}
-              sx={{
-                bgcolor: "rgba(55, 65, 81, 0.3)",
-                border: "1px solid rgba(75, 85, 99, 0.4)",
-                borderRadius: 2,
-                p: 2.5,
-                display: "flex",
-                flexDirection: "column",
-                gap: 1.5,
-              }}
-            >
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-                  Arrendatario
-                </Typography>
-                <Typography variant="body2" sx={{ color: "#e5e7eb", fontWeight: 500 }}>
-                  {contratoToExtend?.arrendatario_nombre}
-                </Typography>
-              </Box>
-              <Divider sx={{ borderColor: "rgba(255,255,255,0.06)" }} />
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-                  Apartamento
-                </Typography>
-                <Typography variant="body2" sx={{ color: "#e5e7eb", fontWeight: 500 }}>
-                  {contratoToExtend?.apartamento_nombre}
-                </Typography>
-              </Box>
-              <Divider sx={{ borderColor: "rgba(255,255,255,0.06)" }} />
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography variant="caption" sx={{ color: "#9ca3af" }}>
-                  Fecha de fin actual
-                </Typography>
-                <Typography variant="body2" sx={{ color: "#34d399", fontWeight: 600 }}>
-                  {contratoToExtend && formatDate(contratoToExtend.fecha_fin)}
-                </Typography>
-              </Box>
-            </Paper>
-
-            <TextField
-              label="Nueva Fecha de Fin"
-              type="date"
-              size="small"
-              fullWidth
-              value={localFechaFin}
-              onChange={handleFechaChange}
-              onBlur={onFechaFinBlur}
-              required
-              sx={{
-                "& .MuiInputBase-root": { bgcolor: "rgba(17,24,39,0.6)" },
-                "& .MuiInputLabel-root": { color: "#9ca3af" },
-                "& .MuiInputBase-input": { color: "#f9fafb" },
-              }}
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
+        <FormSection title="Nueva vigencia">
+          <GlassTextField
+            label="Nueva fecha de fin"
+            type="date"
+            value={localFechaFin}
+            onChange={handleFechaChange}
+            onBlur={onFechaFinBlur}
+            required
+          />
+          <FormHint tone="info">
             {fechaFinHint && (
-              <Typography variant="caption" sx={{ color: "#38bdf8" }}>
-                {fechaFinHint}
-              </Typography>
+              <FormHintText>
+                <Box component="span" sx={{ color: "info.main", fontWeight: 600 }}>
+                  {fechaFinHint}
+                </Box>
+              </FormHintText>
             )}
-            <Typography variant="caption" sx={{ color: "#6b7280" }}>
-              La fecha debe ser posterior a la fin actual. Si eliges el aniversario del contrato,
-              se guardará el día anterior (fin del periodo inclusivo).
-            </Typography>
-          </Box>
-        </DialogContent>
-
-        <Divider sx={{ borderColor: "rgba(255,255,255,0.08)" }} />
-
-        <DialogActions sx={{ p: { xs: 2, sm: 3 } }}>
-          <Box sx={{ display: "flex", gap: 2, width: "100%" }}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="warning"
-              fullWidth
-            >
-              Extender Contrato
-            </Button>
-            <Button
-              type="button"
-              variant="outlined"
-              color="neutral"
-              onClick={onClose}
-              fullWidth
-            >
-              Cancelar
-            </Button>
-          </Box>
-        </DialogActions>
-      </form>
-    </Dialog>
+            <FormHintText>
+              La fecha debe ser posterior a la fin actual. Si eliges el aniversario del contrato, se
+              guardará el día anterior (fin del periodo inclusivo).
+            </FormHintText>
+          </FormHint>
+        </FormSection>
+      </Box>
+    </GlassDialog>
   )
 }
 

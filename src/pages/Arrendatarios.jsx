@@ -1,71 +1,68 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
-import {
-  Container,
-  Typography,
-  Button,
-  TextField,
-  Table,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  Chip,
-  Avatar,
-  Card,
-  CardContent,
-  Grid,
-  Box,
-  CircularProgress,
-  InputAdornment,
-  Tooltip,
-} from "@mui/material"
+import { useState, useEffect, useMemo, useCallback } from "react"
+import { Typography, Button, Box, CircularProgress, Grid } from "@mui/material"
 import {
   Add as AddIcon,
-  Search as SearchIcon,
-  Clear as ClearIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Close as CloseIcon,
-  Phone as PhoneIcon,
-  Email as EmailIcon,
+  People as PeopleIcon,
+  VpnKey as VpnKeyIcon,
+  CheckCircle as CheckCircleIcon,
+  WarningAmber as WarningAmberIcon,
   Badge as BadgeIcon,
 } from "@mui/icons-material"
 import api from "../services/api"
+import TenantListItem from "../components/arrendatarios/TenantListItem"
+import TenantDetailPanel from "../components/arrendatarios/TenantDetailPanel"
+import {
+  FinanceStatCard,
+  PageHeader,
+  SearchField,
+  FilterPills,
+  GlowButton,
+  EmptyState,
+  GlassPanel,
+  GlassDialog,
+  GlassTextField,
+  FormSection,
+} from "../components/ui"
+import { ghostButtonSx } from "../components/ui/glassStyles"
+import { useTheme } from "@mui/material/styles"
 
 const resolveApartamentoNombre = (apt = {}) => {
   const directCandidates = [apt.name, apt.nombre]
-
   for (const value of directCandidates) {
     if (typeof value === "string" && value.trim()) return value.trim()
   }
-
   const byKeyHeuristic = Object.entries(apt).find(
     ([key, value]) =>
       typeof value === "string" &&
       value.trim() &&
       (key.toLowerCase() === "nombre" || key.toLowerCase() === "name")
   )
-
   return byKeyHeuristic ? byKeyHeuristic[1].trim() : null
 }
 
+const getTenantStatus = (tenantId, contracts, pagos) => {
+  const activeContracts = contracts.filter((c) => c.arrendatario_id === tenantId && c.estado === "activo")
+  if (activeContracts.length === 0) return "sin_contrato"
+
+  const activeIds = new Set(activeContracts.map((c) => c.id))
+  const hasMora = pagos.some((p) => activeIds.has(p.contrato_id) && p.estado === "en_mora")
+  return hasMora ? "en_mora" : "activo"
+}
+
 const Arrendatarios = () => {
+  const theme = useTheme()
   const [arrendatarios, setArrendatarios] = useState([])
   const [contracts, setContracts] = useState([])
+  const [pagos, setPagos] = useState([])
   const [apartamentos, setApartamentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [filterEstado, setFilterEstado] = useState("todos")
+  const [selectedId, setSelectedId] = useState(null)
   const [formData, setFormData] = useState({
     nombre_completo: "",
     documento_identidad: "",
@@ -73,91 +70,109 @@ const Arrendatarios = () => {
     email: "",
   })
 
-  useEffect(() => {
-    fetchArrendatarios()
-    fetchApartamentos()
-    fetchContracts()
-  }, [])
+  const filterOptions = [
+    { value: "todos", label: "Todos" },
+    { value: "activo", label: "Activo" },
+    { value: "en_mora", label: "En mora" },
+    { value: "sin_contrato", label: "Sin contrato" },
+  ]
 
-  const fetchArrendatarios = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      const { data } = await api.get("/arrendatarios")
-      setArrendatarios(data || [])
+      const [arrRes, contRes, pagRes, aptRes] = await Promise.all([
+        api.get("/arrendatarios"),
+        api.get("/contratos"),
+        api.get("/pagos"),
+        api.get("/apartamentos"),
+      ])
+      setArrendatarios(arrRes.data || [])
+      setContracts(contRes.data || [])
+      setPagos(pagRes.data || [])
+      setApartamentos(aptRes.data || [])
     } catch (error) {
-      console.error("Error fetching arrendatarios:", error)
+      console.error("Error fetching arrendatarios data:", error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const fetchApartamentos = async () => {
-    try {
-      const { data } = await api.get("/apartamentos")
-      setApartamentos(data || [])
-    } catch (error) {
-      console.error("Error fetching apartamentos:", error)
-    }
-  }
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
-  const fetchContracts = async () => {
-    try {
-      const { data } = await api.get("/contratos")
-      setContracts(data || [])
-    } catch (error) {
-      console.error("Error fetching contracts:", error)
-    }
-  }
-
-  const getActiveContracts = (tenantId) =>
-    contracts.filter((c) => c.arrendatario_id === tenantId && c.estado === "activo")
-
-  const getApartmentLabel = (contract) => {
-    const name =
-      contract.apartamento_nombre?.trim() ||
-      resolveApartamentoNombre(apartamentos.find((a) => a.id === contract.apartamento_id))
-    return name || `Apto #${contract.apartamento_id}`
-  }
-
-  const renderActiveContracts = (tenantId) => {
-    const activeContracts = getActiveContracts(tenantId)
-    if (activeContracts.length === 0) {
-      return (
-        <Chip
-          label="Sin contrato activo"
-          size="small"
-          variant="outlined"
-          sx={{ color: "text.disabled" }}
-        />
-      )
-    }
-    return (
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-        {activeContracts.map((contract) => (
-          <Chip
-            key={contract.id}
-            label={`🏠 ${getApartmentLabel(contract)}`}
-            size="small"
-            color="success"
-            variant="filled"
-          />
-        ))}
-      </Box>
-    )
-  }
-
-  const tenantsWithActiveContract = useMemo(() => {
-    const ids = new Set(
-      contracts.filter((c) => c.estado === "activo").map((c) => c.arrendatario_id)
-    )
-    return ids.size
-  }, [contracts])
-
-  const filteredArrendatarios = arrendatarios.filter(arr =>
-    arr.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    arr.documento_identidad?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    arr.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    arr.telefono?.includes(searchTerm)
+  const getActiveContracts = useCallback(
+    (tenantId) => contracts.filter((c) => c.arrendatario_id === tenantId && c.estado === "activo"),
+    [contracts]
   )
+
+  const getApartmentLabel = useCallback(
+    (contract) => {
+      const name =
+        contract.apartamento_nombre?.trim() ||
+        resolveApartamentoNombre(apartamentos.find((a) => a.id === contract.apartamento_id))
+      return name || `Apto #${contract.apartamento_id}`
+    },
+    [apartamentos]
+  )
+
+  const tenantStatusMap = useMemo(() => {
+    const map = new Map()
+    arrendatarios.forEach((t) => {
+      map.set(t.id, getTenantStatus(t.id, contracts, pagos))
+    })
+    return map
+  }, [arrendatarios, contracts, pagos])
+
+  const stats = useMemo(() => {
+    const total = arrendatarios.length
+    const contratosActivos = contracts.filter((c) => c.estado === "activo").length
+    let enMora = 0
+    let alDia = 0
+
+    arrendatarios.forEach((t) => {
+      const status = tenantStatusMap.get(t.id)
+      if (status === "en_mora") enMora += 1
+      if (status === "activo") alDia += 1
+    })
+
+    const pct = (n) => (total > 0 ? `${Math.round((n / total) * 100)}%` : "0%")
+
+    return {
+      total,
+      contratosActivos,
+      alDia,
+      enMora,
+      trends: {
+        total: `${alDia} activos`,
+        contratos: `${contratosActivos} vigentes`,
+        alDia: `${pct(alDia)} al día`,
+        mora: `${pct(enMora)} del total`,
+      },
+    }
+  }, [arrendatarios, contracts, tenantStatusMap])
+
+  const filteredArrendatarios = useMemo(() => {
+    return arrendatarios.filter((arr) => {
+      const q = searchTerm.toLowerCase()
+      const matchesSearch =
+        arr.nombre_completo?.toLowerCase().includes(q) ||
+        arr.documento_identidad?.toLowerCase().includes(q) ||
+        arr.email?.toLowerCase().includes(q) ||
+        arr.telefono?.includes(searchTerm)
+
+      const status = tenantStatusMap.get(arr.id)
+      const matchesEstado = filterEstado === "todos" || status === filterEstado
+
+      return matchesSearch && matchesEstado
+    })
+  }, [arrendatarios, searchTerm, filterEstado, tenantStatusMap])
+
+  const selectedTenant = useMemo(
+    () => filteredArrendatarios.find((t) => t.id === selectedId) ?? filteredArrendatarios[0] ?? null,
+    [filteredArrendatarios, selectedId]
+  )
+
+  const selectedStatus = selectedTenant ? tenantStatusMap.get(selectedTenant.id) : null
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -167,10 +182,8 @@ const Arrendatarios = () => {
       } else {
         await api.post("/arrendatarios", formData)
       }
-
       closeModal()
-      fetchArrendatarios()
-      fetchContracts()
+      fetchData()
     } catch (error) {
       console.error("Error saving arrendatario:", error)
       alert("Error al guardar arrendatario: " + (error.response?.data?.error || error.message))
@@ -192,8 +205,8 @@ const Arrendatarios = () => {
     if (window.confirm("¿Estás seguro de eliminar este arrendatario?")) {
       try {
         await api.delete(`/arrendatarios/${id}`)
-        fetchArrendatarios()
-        fetchContracts()
+        if (selectedId === id) setSelectedId(null)
+        fetchData()
       } catch (error) {
         console.error("Error deleting arrendatario:", error)
         alert("Error al eliminar: " + (error.response?.data?.error || error.message))
@@ -204,464 +217,246 @@ const Arrendatarios = () => {
   const closeModal = () => {
     setShowModal(false)
     setEditingId(null)
-    setFormData({
-      nombre_completo: "",
-      documento_identidad: "",
-      telefono: "",
-      email: "",
-    })
+    setFormData({ nombre_completo: "", documento_identidad: "", telefono: "", email: "" })
   }
 
   const openNewModal = () => {
     setEditingId(null)
-    setFormData({
-      nombre_completo: "",
-      documento_identidad: "",
-      telefono: "",
-      email: "",
-    })
+    setFormData({ nombre_completo: "", documento_identidad: "", telefono: "", email: "" })
     setShowModal(true)
   }
 
   const getInitials = (name) => {
     if (!name) return "?"
     const parts = name.split(" ")
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase()
-    }
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
     return name.substring(0, 2).toUpperCase()
   }
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "—"
+    const d = new Date(dateString)
+    if (Number.isNaN(d.getTime())) return dateString
+    return d.toLocaleDateString("es-CO", { day: "2-digit", month: "2-digit", year: "numeric" })
+  }
+
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(amount)
+
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
-        <CircularProgress size={64} sx={{ color: "secondary.main" }} />
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+        <CircularProgress size={64} sx={{ color: "primary.main" }} />
       </Box>
     )
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
-      <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "background.paper" }}>
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-              <BadgeIcon sx={{ mr: 1, verticalAlign: "middle", color: "secondary.main" }} />
-              Arrendatarios
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Gestiona la información de tus inquilinos
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={openNewModal}
-            sx={{ px: 4, py: 1.5, borderRadius: 2 }}
-          >
-            Nuevo Arrendatario
-          </Button>
-        </Box>
-
-        {/* Search Bar */}
-        <Box sx={{ mt: 3 }}>
-          <TextField
-            fullWidth
-            placeholder="Buscar por nombre, documento, email o teléfono..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: searchTerm ? (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setSearchTerm("")} size="small">
-                      <ClearIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ) : undefined,
-              },
-            }}
+    <Box sx={{ maxWidth: 1400, mx: "auto", width: "100%", minWidth: 0 }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 6, sm: 3 }}>
+          <FinanceStatCard
+            value={stats.total}
+            label="Total arrendatarios"
+            icon={<PeopleIcon />}
+            color="primary"
+            trend={stats.trends.total}
+            sparkId="arr-total"
           />
-          {searchTerm && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {filteredArrendatarios.length} resultado(s) encontrado(s)
-            </Typography>
-          )}
-        </Box>
-      </Paper>
-
-      {/* Content */}
-      <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden" }}>
-        {/* Desktop Table */}
-        <Box sx={{ display: { xs: "none", lg: "block" } }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>Nombre</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Documento</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Teléfono</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Contratos activos</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredArrendatarios.map((arr) => (
-                  <TableRow key={arr.id} hover>
-                    <TableCell>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <Avatar sx={{ bgcolor: "secondary.main" }}>
-                          {getInitials(arr.nombre_completo)}
-                        </Avatar>
-                        <Typography variant="body2" fontWeight="medium">
-                          {arr.nombre_completo}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip label={arr.documento_identidad} size="small" variant="outlined" />
-                    </TableCell>
-                    <TableCell>
-                      <a href={`tel:${arr.telefono}`} style={{ textDecoration: "none" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, color: "secondary.main" }}>
-                          <PhoneIcon fontSize="small" />
-                          {arr.telefono}
-                        </Box>
-                      </a>
-                    </TableCell>
-                    <TableCell>
-                      <a href={`mailto:${arr.email}`} style={{ textDecoration: "none" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, color: "primary.main" }}>
-                          <EmailIcon fontSize="small" />
-                          {arr.email}
-                        </Box>
-                      </a>
-                    </TableCell>
-                    <TableCell>
-                      {renderActiveContracts(arr.id)}
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", gap: 1 }}>
-                        <Tooltip title="Editar">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEdit(arr)}
-                            color="primary"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Eliminar">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDelete(arr.id)}
-                            color="error"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {filteredArrendatarios.length === 0 && (
-            <Box sx={{ py: 8, textAlign: "center" }}>
-              <Typography variant="h4" sx={{ mb: 2 }}>
-                🏢
-              </Typography>
-              <Typography color="text.secondary">
-                {searchTerm ? "No se encontraron arrendatarios" : "No hay arrendatarios registrados"}
-              </Typography>
-              <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
-                {searchTerm ? "Intenta con otro término de búsqueda" : "Agrega tu primer arrendatario para comenzar"}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-
-        {/* Mobile Cards */}
-        <Box sx={{ display: { xs: "block", lg: "none" }, p: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            {filteredArrendatarios.map((arr) => {
-              const hasActiveContract = getActiveContracts(arr.id).length > 0
-              const accent = hasActiveContract ? "success.main" : "secondary.main"
-              return (
-              <Card
-                key={arr.id}
-                variant="outlined"
-                sx={{
-                  borderRadius: 2.5,
-                  borderColor: "divider",
-                  borderLeft: 4,
-                  borderLeftColor: accent,
-                  bgcolor: "background.default",
-                  backgroundImage: (theme) =>
-                    `linear-gradient(135deg, ${theme.palette.mode === "dark" ? "rgba(82,139,158,0.08)" : "rgba(8,145,178,0.06)"} 0%, transparent 55%)`,
-                  boxShadow: "none",
-                  overflow: "hidden",
-                  transition: "transform 0.15s ease, border-color 0.15s ease",
-                  "&:active": { transform: "scale(0.992)" },
-                }}
-              >
-                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
-                  <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: accent,
-                        color: hasActiveContract ? "success.contrastText" : "secondary.contrastText",
-                        width: 48,
-                        height: 48,
-                        fontWeight: 700,
-                        boxShadow: (theme) =>
-                          `0 0 0 3px ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
-                      }}
-                    >
-                      {getInitials(arr.nombre_completo)}
-                    </Avatar>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="subtitle1" fontWeight="medium" noWrap>
-                        {arr.nombre_completo}
-                      </Typography>
-                      <Box sx={{ mt: 1 }}>
-                        {renderActiveContracts(arr.id)}
-                      </Box>
-                    </Box>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1.25,
-                      py: 1.5,
-                      px: 1.5,
-                      mb: 2,
-                      borderRadius: 2,
-                      bgcolor: (theme) =>
-                        theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(15,23,42,0.03)",
-                      border: 1,
-                      borderColor: "divider",
-                    }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-                      <BadgeIcon fontSize="small" color="action" />
-                      <Typography variant="body2" color="text.secondary">
-                        {arr.documento_identidad}
-                      </Typography>
-                    </Box>
-                    <Box
-                      component="a"
-                      href={`tel:${arr.telefono}`}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1.25,
-                        textDecoration: "none",
-                        color: "secondary.main",
-                      }}
-                    >
-                      <PhoneIcon fontSize="small" color="secondary" />
-                      <Typography variant="body2" color="secondary">
-                        {arr.telefono}
-                      </Typography>
-                    </Box>
-                    <Box
-                      component="a"
-                      href={`mailto:${arr.email}`}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1.25,
-                        textDecoration: "none",
-                        color: "primary.main",
-                        minWidth: 0,
-                      }}
-                    >
-                      <EmailIcon fontSize="small" color="primary" />
-                      <Typography variant="body2" color="primary" noWrap>
-                        {arr.email}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: 1,
-                      pt: 1.5,
-                      borderTop: 1,
-                      borderColor: "divider",
-                    }}
-                  >
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<EditIcon />}
-                      onClick={() => handleEdit(arr)}
-                      fullWidth
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      size="small"
-                      startIcon={<DeleteIcon />}
-                      onClick={() => handleDelete(arr.id)}
-                      fullWidth
-                    >
-                      Eliminar
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-              )
-            })}
-          </Box>
-
-          {filteredArrendatarios.length === 0 && (
-            <Box sx={{ py: 8, textAlign: "center" }}>
-              <Typography variant="h4" sx={{ mb: 2 }}>
-                🏢
-              </Typography>
-              <Typography color="text.secondary">
-                {searchTerm ? "No se encontraron arrendatarios" : "No hay arrendatarios registrados"}
-              </Typography>
-              <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
-                {searchTerm ? "Intenta con otro término de búsqueda" : "Agrega tu primer arrendatario para comenzar"}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      </Paper>
-
-      {/* Stats Footer */}
-      <Grid container spacing={2} sx={{ mt: 3 }}>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="secondary">
-              {arrendatarios.length}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Total
-            </Typography>
-          </Paper>
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="success.main">
-              {tenantsWithActiveContract}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Con contrato activo
-            </Typography>
-          </Paper>
+          <FinanceStatCard
+            value={stats.contratosActivos}
+            label="Contratos activos"
+            icon={<VpnKeyIcon />}
+            color="success"
+            trend={stats.trends.contratos}
+            sparkId="arr-contratos"
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="warning.main">
-              {arrendatarios.length - tenantsWithActiveContract}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Sin contrato activo
-            </Typography>
-          </Paper>
+          <FinanceStatCard
+            value={stats.alDia}
+            label="Pagos al día"
+            icon={<CheckCircleIcon />}
+            color="success"
+            trend={stats.trends.alDia}
+            sparkId="arr-al-dia"
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="primary.main">
-              {arrendatarios.filter(a => a.email).length}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Con Email
-            </Typography>
-          </Paper>
+          <FinanceStatCard
+            value={stats.enMora}
+            label="En mora"
+            icon={<WarningAmberIcon />}
+            color="error"
+            trend={stats.trends.mora}
+            sparkId="arr-mora"
+          />
         </Grid>
       </Grid>
 
-      {/* Modal */}
-      <Dialog
+      <PageHeader
+        title="Arrendatarios"
+        subtitle="Gestiona la información de tus inquilinos"
+        action={
+          <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
+            Nuevo Arrendatario
+          </GlowButton>
+        }
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
+            alignItems: { md: "center" },
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <SearchField
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Buscar por nombre, documento, email o teléfono…"
+            />
+          </Box>
+          <FilterPills options={filterOptions} value={filterEstado} onChange={setFilterEstado} />
+        </Box>
+        {(searchTerm || filterEstado !== "todos") && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+            {filteredArrendatarios.length} arrendatario(s) encontrado(s)
+          </Typography>
+        )}
+      </PageHeader>
+
+      {filteredArrendatarios.length === 0 ? (
+        <EmptyState
+          icon="👤"
+          title={arrendatarios.length === 0 ? "No hay arrendatarios registrados" : "No se encontraron arrendatarios"}
+          description={
+            arrendatarios.length === 0
+              ? "Agrega tu primer arrendatario para comenzar"
+              : "Intenta con otro término de búsqueda o filtro"
+          }
+          action={
+            arrendatarios.length === 0 ? (
+              <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
+                Nuevo Arrendatario
+              </GlowButton>
+            ) : undefined
+          }
+        />
+      ) : (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", lg: "row" },
+            gap: 2,
+            alignItems: "stretch",
+            minHeight: 420,
+          }}
+        >
+          <GlassPanel
+            sx={{
+              width: { xs: "100%", lg: 360 },
+              flexShrink: 0,
+              p: 1.5,
+              maxHeight: { xs: 360, lg: "calc(100vh - 280px)" },
+              overflowY: "auto",
+            }}
+          >
+            {filteredArrendatarios.map((arr) => (
+              <TenantListItem
+                key={arr.id}
+                tenant={arr}
+                selected={selectedTenant?.id === arr.id}
+                status={tenantStatusMap.get(arr.id)}
+                onSelect={(t) => setSelectedId(t.id)}
+                getInitials={getInitials}
+              />
+            ))}
+          </GlassPanel>
+
+          <TenantDetailPanel
+            tenant={selectedTenant}
+            status={selectedStatus}
+            activeContracts={selectedTenant ? getActiveContracts(selectedTenant.id) : []}
+            getApartmentLabel={getApartmentLabel}
+            formatCurrency={formatCurrency}
+            formatDate={formatDate}
+            getInitials={getInitials}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </Box>
+      )}
+
+      <GlassDialog
         open={showModal}
         onClose={closeModal}
-        maxWidth="sm"
-        fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        title={editingId ? "Editar Arrendatario" : "Nuevo Arrendatario"}
+        subtitle="Datos de contacto e identificación"
+        icon={<BadgeIcon />}
+        actions={
+          <>
+            <Button onClick={closeModal} sx={ghostButtonSx(theme)}>
+              Cancelar
+            </Button>
+            <GlowButton type="submit" form="arrendatario-form" color="primary">
+              {editingId ? "Actualizar" : "Guardar"}
+            </GlowButton>
+          </>
+        }
       >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Typography variant="h5" component="div" fontWeight="bold">
-              {editingId ? "Editar Arrendatario" : "Nuevo Arrendatario"}
-            </Typography>
-            <IconButton onClick={closeModal} size="small">
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent dividers sx={{ pt: 2 }}>
-            <TextField
-              fullWidth
-              label="Nombre Completo"
+        <Box
+          component="form"
+          id="arrendatario-form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
+        >
+          <FormSection title="Identificación">
+            <GlassTextField
+              label="Nombre completo"
               placeholder="Ej: Juan Pérez García"
               value={formData.nombre_completo}
               onChange={(e) => setFormData({ ...formData, nombre_completo: e.target.value })}
-              margin="normal"
               required
             />
-            <TextField
-              fullWidth
-              label="Documento de Identidad"
+            <GlassTextField
+              label="Documento de identidad"
               placeholder="Ej: 1234567890"
               value={formData.documento_identidad}
               onChange={(e) => setFormData({ ...formData, documento_identidad: e.target.value })}
-              margin="normal"
               required
             />
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Teléfono"
-                  placeholder="Ej: 3001234567"
-                  value={formData.telefono}
-                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  placeholder="correo@ejemplo.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 3, pt: 2 }}>
-            <Button onClick={closeModal} variant="outlined" sx={{ borderRadius: 2 }}>
-              Cancelar
-            </Button>
-            <Button type="submit" variant="contained" sx={{ borderRadius: 2 }}>
-              {editingId ? "Actualizar" : "Guardar"}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-    </Container>
+          </FormSection>
+
+          <FormSection title="Contacto">
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+              <GlassTextField
+                label="Teléfono"
+                placeholder="Ej: 3001234567"
+                value={formData.telefono}
+                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                required
+              />
+              <GlassTextField
+                label="Email"
+                placeholder="correo@ejemplo.com"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+              />
+            </Box>
+          </FormSection>
+        </Box>
+      </GlassDialog>
+    </Box>
   )
 }
 

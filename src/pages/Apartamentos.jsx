@@ -1,83 +1,71 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import {
-  Container,
-  Typography,
-  Button,
-  TextField,
-  Table,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  Chip,
-  Avatar,
-  Card,
-  CardContent,
-  Grid,
-  Box,
-  CircularProgress,
-  InputAdornment,
-  Tooltip,
-} from "@mui/material"
+import { useState, useEffect, useMemo } from "react"
+import { Typography, Button, Box, CircularProgress, Grid } from "@mui/material"
 import {
   Add as AddIcon,
-  Search as SearchIcon,
-  Clear as ClearIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Close as CloseIcon,
-  LocationOn as LocationOnIcon,
   Apartment as ApartmentIcon,
+  CheckCircle as CheckCircleIcon,
+  VpnKey as VpnKeyIcon,
+  People as PeopleIcon,
+  AttachMoney as AttachMoneyIcon,
 } from "@mui/icons-material"
 import api from "../services/api"
+import ApartmentCard from "../components/apartamentos/ApartmentCard"
+import {
+  FinanceStatCard,
+  PageHeader,
+  SearchField,
+  FilterPills,
+  GlowButton,
+  EmptyState,
+  ListFooter,
+  GlassDialog,
+  GlassTextField,
+  FormSection,
+} from "../components/ui"
+import { ghostButtonSx } from "../components/ui/glassStyles"
+import { useTheme } from "@mui/material/styles"
 
 const resolveApartamentoNombre = (apt = {}) => {
   const directCandidates = [apt.name, apt.nombre]
-
   for (const value of directCandidates) {
     if (typeof value === "string" && value.trim()) return value.trim()
   }
-
   const byKeyHeuristic = Object.entries(apt).find(
     ([key, value]) =>
       typeof value === "string" &&
       value.trim() &&
       (key.toLowerCase() === "nombre" || key.toLowerCase() === "name")
   )
-
   return byKeyHeuristic ? byKeyHeuristic[1].trim() : ""
 }
 
-const normalizeApartamento = (apt = {}) => {
-  const nombreNormalizado = resolveApartamentoNombre(apt)
-
-  return {
-    ...apt,
-    nombre: nombreNormalizado,
-  }
-}
+const normalizeApartamento = (apt = {}) => ({
+  ...apt,
+  nombre: resolveApartamentoNombre(apt),
+})
 
 const Apartamentos = () => {
+  const theme = useTheme()
   const [apartamentos, setApartamentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [filterEstado, setFilterEstado] = useState("todos")
   const [formData, setFormData] = useState({
     nombre: "",
     direccion: "",
     ciudad: "",
     valor_arriendo: "",
   })
+
+  const filterOptions = [
+    { value: "todos", label: "Todos" },
+    { value: "disponible", label: "Disponible" },
+    { value: "arrendado", label: "Arrendado" },
+  ]
 
   useEffect(() => {
     fetchApartamentos()
@@ -94,18 +82,56 @@ const Apartamentos = () => {
     }
   }
 
-  const filteredApartamentos = apartamentos.filter(apt =>
-    apt.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    apt.ciudad?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    apt.direccion?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const stats = useMemo(() => {
+    const total = apartamentos.length
+    const disponibles = apartamentos.filter((a) => a.estado === "disponible").length
+    const arrendados = total - disponibles
+    const ocupacion = total > 0 ? Math.round((arrendados / total) * 100) : 0
+    const ingresosMensuales = apartamentos
+      .filter((a) => a.estado !== "disponible")
+      .reduce((sum, a) => sum + (Number(a.valor_arriendo) || 0), 0)
+
+    const pct = (n) => (total > 0 ? `${Math.round((n / total) * 100)}%` : "0%")
+
+    return {
+      total,
+      disponibles,
+      arrendados,
+      ocupacion,
+      ingresosMensuales,
+      trends: {
+        total: `${pct(total)} del portafolio`,
+        disponibles: `${pct(disponibles)} disponibles`,
+        arrendados: `${pct(arrendados)} ocupados`,
+        ocupacion: `${arrendados} de ${total} ocupados`,
+        ingresos: "Renta total esperada",
+      },
+    }
+  }, [apartamentos])
+
+  const filteredApartamentos = useMemo(() => {
+    return apartamentos.filter((apt) => {
+      const q = searchTerm.toLowerCase()
+      const matchesSearch =
+        apt.nombre?.toLowerCase().includes(q) ||
+        apt.ciudad?.toLowerCase().includes(q) ||
+        apt.direccion?.toLowerCase().includes(q)
+
+      const matchesEstado =
+        filterEstado === "todos" ||
+        (filterEstado === "disponible" && apt.estado === "disponible") ||
+        (filterEstado === "arrendado" && apt.estado !== "disponible")
+
+      return matchesSearch && matchesEstado
+    })
+  }, [apartamentos, searchTerm, filterEstado])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
       const dataToSend = {
         ...formData,
-        valor_arriendo: parseFloat(formData.valor_arriendo.toString().replace(/\./g, "").replace(",", "."))
+        valor_arriendo: parseFloat(formData.valor_arriendo.toString().replace(/\./g, "").replace(",", ".")),
       }
 
       if (editingId) {
@@ -161,407 +187,208 @@ const Apartamentos = () => {
     }
   }
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("es-CO", {
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
       minimumFractionDigits: 0,
     }).format(amount)
-  }
-
-  const getEstadoBadge = (estado) => {
-    return estado === "disponible"
-      ? { color: "success", variant: "filled" }
-      : { color: "warning", variant: "filled" }
-  }
-
-  const getEstadoLabel = (estado) => {
-    return estado === "disponible" ? "Disponible" : "Arrendado"
-  }
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
         <CircularProgress size={64} sx={{ color: "primary.main" }} />
       </Box>
     )
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
-      <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "background.paper" }}>
-        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", alignItems: { xs: "stretch", sm: "center" }, gap: 2 }}>
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
-              <ApartmentIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-              Apartamentos
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Gestiona tus propiedades de arriendo
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={openNewModal}
-            sx={{ px: 4, py: 1.5, borderRadius: 2 }}
-          >
-            Nuevo Apartamento
-          </Button>
-        </Box>
-
-        {/* Search Bar */}
-        <Box sx={{ mt: 3 }}>
-          <TextField
-            fullWidth
-            placeholder="Buscar por nombre, ciudad o dirección..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: searchTerm ? (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setSearchTerm("")} size="small">
-                      <ClearIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ) : undefined,
-              },
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 2,
-                bgcolor: "background.default",
-              },
-            }}
+    <Box sx={{ maxWidth: 1400, mx: "auto", width: "100%", minWidth: 0 }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 6, sm: 4, lg: 2.4 }}>
+          <FinanceStatCard
+            value={stats.total}
+            label="Total apartamentos"
+            icon={<ApartmentIcon />}
+            color="primary"
+            trend={stats.trends.total}
+            sparkId="apt-total"
           />
-          {searchTerm && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {filteredApartamentos.length} resultado(s) encontrado(s)
-            </Typography>
-          )}
-        </Box>
-      </Paper>
-
-      {/* Content */}
-      <Paper elevation={0} sx={{ borderRadius: 3, overflow: "hidden" }}>
-        {/* Desktop Table */}
-        <Box sx={{ display: { xs: "none", lg: "block" } }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>Nombre</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Dirección</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Ciudad</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Valor Arriendo</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Estado</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredApartamentos.map((apt) => (
-                  <TableRow key={apt.id} hover>
-                    <TableCell>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                        <Avatar sx={{ bgcolor: "primary.main" }}>
-                          {apt.nombre?.charAt(0)?.toUpperCase() || "A"}
-                        </Avatar>
-                        <Typography variant="body2" fontWeight="medium">
-                          {apt.nombre}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>{apt.direccion}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <LocationOnIcon fontSize="small" color="disabled" />
-                        {apt.ciudad}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography color="primary" fontWeight="medium">
-                        {formatCurrency(apt.valor_arriendo)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getEstadoLabel(apt.estado)}
-                        {...getEstadoBadge(apt.estado)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", gap: 1 }}>
-                        <Tooltip title="Editar">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEdit(apt)}
-                            color="primary"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Eliminar">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDelete(apt.id)}
-                            color="error"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {filteredApartamentos.length === 0 && (
-            <Box sx={{ py: 8, textAlign: "center" }}>
-              <Typography variant="h4" sx={{ mb: 2 }}>
-                🏢
-              </Typography>
-              <Typography color="text.secondary">
-                {searchTerm ? "No se encontraron apartamentos" : "No hay apartamentos registrados"}
-              </Typography>
-              <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
-                {searchTerm ? "Intenta con otro término de búsqueda" : "Agrega tu primer apartamento para comenzar"}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-
-        {/* Mobile Cards */}
-        <Box sx={{ display: { xs: "block", lg: "none" }, p: 2 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            {filteredApartamentos.map((apt) => {
-              const isDisponible = apt.estado === "disponible"
-              const accent = isDisponible ? "success.main" : "warning.main"
-              return (
-              <Card
-                key={apt.id}
-                variant="outlined"
-                sx={{
-                  borderRadius: 2.5,
-                  borderColor: "divider",
-                  borderLeft: 4,
-                  borderLeftColor: accent,
-                  bgcolor: "background.default",
-                  backgroundImage: (theme) =>
-                    `linear-gradient(135deg, ${theme.palette.mode === "dark" ? "rgba(82,139,158,0.08)" : "rgba(8,145,178,0.06)"} 0%, transparent 55%)`,
-                  boxShadow: "none",
-                  overflow: "hidden",
-                  transition: "transform 0.15s ease, border-color 0.15s ease",
-                  "&:active": { transform: "scale(0.992)" },
-                }}
-              >
-                <CardContent sx={{ "&:last-child": { pb: 2 } }}>
-                  <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: accent,
-                        color: isDisponible ? "success.contrastText" : "warning.contrastText",
-                        width: 48,
-                        height: 48,
-                        fontWeight: 700,
-                        boxShadow: (theme) =>
-                          `0 0 0 3px ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
-                      }}
-                    >
-                      {apt.nombre?.charAt(0)?.toUpperCase() || "A"}
-                    </Avatar>
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1, gap: 1 }}>
-                        <Typography variant="subtitle1" fontWeight="medium" noWrap>
-                          {apt.nombre}
-                        </Typography>
-                        <Chip
-                          label={getEstadoLabel(apt.estado)}
-                          size="small"
-                          {...getEstadoBadge(apt.estado)}
-                        />
-                      </Box>
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                        <Typography variant="body2" color="text.secondary" noWrap>
-                          {apt.direccion}
-                        </Typography>
-                        <Typography variant="body2" color="primary">
-                          {apt.ciudad}
-                        </Typography>
-                        <Typography variant="h6" color="primary" fontWeight="bold">
-                          {formatCurrency(apt.valor_arriendo)}/mes
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      gap: 1,
-                      pt: 1.5,
-                      borderTop: 1,
-                      borderColor: "divider",
-                    }}
-                  >
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<EditIcon />}
-                      onClick={() => handleEdit(apt)}
-                      fullWidth
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      size="small"
-                      startIcon={<DeleteIcon />}
-                      onClick={() => handleDelete(apt.id)}
-                      fullWidth
-                    >
-                      Eliminar
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-              )
-            })}
-          </Box>
-
-          {filteredApartamentos.length === 0 && (
-            <Box sx={{ py: 8, textAlign: "center" }}>
-              <Typography variant="h4" sx={{ mb: 2 }}>
-                🏢
-              </Typography>
-              <Typography color="text.secondary">
-                {searchTerm ? "No se encontraron apartamentos" : "No hay apartamentos registrados"}
-              </Typography>
-              <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
-                {searchTerm ? "Intenta con otro término de búsqueda" : "Agrega tu primer apartamento para comenzar"}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-      </Paper>
-
-      {/* Stats Footer */}
-      <Grid container spacing={2} sx={{ mt: 3 }}>
-        <Grid size={{ xs: 4 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="primary">
-              {apartamentos.length}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Total
-            </Typography>
-          </Paper>
         </Grid>
-        <Grid size={{ xs: 4 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="success.main">
-              {apartamentos.filter(a => a.estado === "disponible").length}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Disponibles
-            </Typography>
-          </Paper>
+        <Grid size={{ xs: 6, sm: 4, lg: 2.4 }}>
+          <FinanceStatCard
+            value={stats.disponibles}
+            label="Disponibles"
+            icon={<CheckCircleIcon />}
+            color="success"
+            trend={stats.trends.disponibles}
+            sparkId="apt-disp"
+          />
         </Grid>
-        <Grid size={{ xs: 4 }}>
-          <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-            <Typography variant="h4" color="warning.main">
-              {apartamentos.filter(a => a.estado !== "disponible").length}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Arrendados
-            </Typography>
-          </Paper>
+        <Grid size={{ xs: 6, sm: 4, lg: 2.4 }}>
+          <FinanceStatCard
+            value={stats.arrendados}
+            label="Arrendados"
+            icon={<VpnKeyIcon />}
+            color="warning"
+            trend={stats.trends.arrendados}
+            sparkId="apt-arr"
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, lg: 2.4 }}>
+          <FinanceStatCard
+            value={`${stats.ocupacion}%`}
+            label="Ocupación"
+            icon={<PeopleIcon />}
+            color="info"
+            trend={stats.trends.ocupacion}
+            sparkId="apt-ocup"
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 8, lg: 2.4 }}>
+          <FinanceStatCard
+            value={formatCurrency(stats.ingresosMensuales)}
+            label="Ingresos mensuales"
+            icon={<AttachMoneyIcon />}
+            color="warning"
+            trend={stats.trends.ingresos}
+            sparkId="apt-ing"
+          />
         </Grid>
       </Grid>
 
-      {/* Modal */}
-      <Dialog
+      <PageHeader
+        title="Apartamentos"
+        subtitle="Módulo de propiedades"
+        action={
+          <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
+            Nuevo Apartamento
+          </GlowButton>
+        }
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
+            alignItems: { md: "center" },
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <SearchField
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Buscar apartamento, dirección o ciudad…"
+            />
+          </Box>
+          <FilterPills options={filterOptions} value={filterEstado} onChange={setFilterEstado} />
+        </Box>
+        {(searchTerm || filterEstado !== "todos") && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+            {filteredApartamentos.length} apartamento(s) encontrado(s)
+          </Typography>
+        )}
+      </PageHeader>
+
+      {filteredApartamentos.length === 0 ? (
+        <EmptyState
+          icon="🏢"
+          title={apartamentos.length === 0 ? "No hay apartamentos registrados" : "No se encontraron apartamentos"}
+          description={
+            apartamentos.length === 0
+              ? "Agrega tu primer apartamento para comenzar"
+              : "Intenta con otro término de búsqueda o filtro"
+          }
+          action={
+            apartamentos.length === 0 ? (
+              <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
+                Nuevo Apartamento
+              </GlowButton>
+            ) : undefined
+          }
+        />
+      ) : (
+        <>
+          <Grid container spacing={2}>
+            {filteredApartamentos.map((apt) => (
+              <Grid key={apt.id} size={{ xs: 12, md: 6 }}>
+                <ApartmentCard
+                  apartamento={apt}
+                  formatCurrency={formatCurrency}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              </Grid>
+            ))}
+          </Grid>
+          <ListFooter from={1} to={filteredApartamentos.length} total={filteredApartamentos.length} />
+        </>
+      )}
+
+      <GlassDialog
         open={showModal}
         onClose={closeModal}
-        maxWidth="sm"
-        fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        title={editingId ? "Editar Apartamento" : "Nuevo Apartamento"}
+        subtitle="Completa los datos de la propiedad"
+        icon={<ApartmentIcon />}
+        actions={
+          <>
+            <Button onClick={closeModal} sx={ghostButtonSx(theme)}>
+              Cancelar
+            </Button>
+            <GlowButton type="submit" form="apartamento-form" color="primary">
+              {editingId ? "Actualizar" : "Guardar"}
+            </GlowButton>
+          </>
+        }
       >
-        <DialogTitle sx={{ pb: 1 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Typography variant="h5" component="div" fontWeight="bold">
-              {editingId ? "Editar Apartamento" : "Nuevo Apartamento"}
-            </Typography>
-            <IconButton onClick={closeModal} size="small">
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent dividers sx={{ pt: 2 }}>
-            <TextField
-              fullWidth
-              label="Nombre del Apartamento"
+        <Box
+          component="form"
+          id="apartamento-form"
+          onSubmit={handleSubmit}
+          sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}
+        >
+          <FormSection title="Información general">
+            <GlassTextField
+              label="Nombre del apartamento"
               placeholder="Ej: Apartamento 101"
               value={formData.nombre}
               onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-              margin="normal"
               required
             />
-            <TextField
-              fullWidth
+            <GlassTextField
               label="Dirección"
               placeholder="Ej: Calle 123 # 45-67"
               value={formData.direccion}
               onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-              margin="normal"
               required
             />
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Ciudad"
-                  placeholder="Ej: Bogotá"
-                  value={formData.ciudad}
-                  onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
-                  required
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  fullWidth
-                  label="Valor Arriendo"
-                  placeholder="Ej: 500000 o 500.000"
-                  value={formData.valor_arriendo}
-                  onChange={(e) => setFormData({ ...formData, valor_arriendo: e.target.value })}
-                  required
-                />
-                <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: "block" }}>
-                  Puedes escribir con o sin puntos. Ej: 400000 o 400.000
-                </Typography>
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 3, pt: 2 }}>
-            <Button onClick={closeModal} variant="outlined" sx={{ borderRadius: 2 }}>
-              Cancelar
-            </Button>
-            <Button type="submit" variant="contained" sx={{ borderRadius: 2 }}>
-              {editingId ? "Actualizar" : "Guardar"}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-    </Container>
+          </FormSection>
+
+          <FormSection title="Ubicación y canon">
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
+              <GlassTextField
+                label="Ciudad"
+                placeholder="Ej: Bogotá"
+                value={formData.ciudad}
+                onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
+                required
+              />
+              <GlassTextField
+                label="Valor arriendo"
+                placeholder="Ej: 500.000"
+                value={formData.valor_arriendo}
+                onChange={(e) => setFormData({ ...formData, valor_arriendo: e.target.value })}
+                required
+              />
+            </Box>
+            <Typography variant="caption" color="text.secondary">
+              Puedes escribir el valor con o sin puntos. Ej: 400000 o 400.000
+            </Typography>
+          </FormSection>
+        </Box>
+      </GlassDialog>
+    </Box>
   )
 }
 

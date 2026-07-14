@@ -1,17 +1,17 @@
+import { MenuItem, Typography, Box, Button } from "@mui/material"
+import DescriptionIcon from "@mui/icons-material/Description"
+import AutorenewIcon from "@mui/icons-material/Autorenew"
+import { useTheme } from "@mui/material/styles"
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Typography,
-  Box,
-} from "@mui/material"
+  GlassDialog,
+  GlassTextField,
+  GlassSelect,
+  GlowButton,
+  FormHint,
+  FormHintText,
+  FormSection,
+} from "../ui"
+import { ghostButtonSx } from "../ui/glassStyles"
 
 const CrearContrato = ({
   open,
@@ -28,6 +28,8 @@ const CrearContrato = ({
   fechaFinHint,
   onFechaFinBlur,
 }) => {
+  const theme = useTheme()
+
   const handleChange = (field) => (e) => {
     const value = e.target.value
 
@@ -46,187 +48,164 @@ const CrearContrato = ({
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (onSubmit) {
-      onSubmit(e)
-    }
+    if (onSubmit) onSubmit(e)
   }
 
+  const isRenew = Boolean(contratoToRenew)
+
   return (
-    <Dialog
+    <GlassDialog
       open={open}
       onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      slotProps={{
-        paper: {
-          sx: {
-            bgcolor: "background.paper",
-            border: "1px solid",
-            borderColor: "divider",
-            borderRadius: 1,
-          }
-        }
-      }}
+      title={isRenew ? "Renovar Contrato" : "Nuevo Contrato de Arrendamiento"}
+      subtitle={
+        isRenew
+          ? `${contratoToRenew.arrendatario_nombre} · ${contratoToRenew.apartamento_nombre}`
+          : "Completa los datos para registrar el arrendamiento"
+      }
+      icon={isRenew ? <AutorenewIcon /> : <DescriptionIcon />}
+      actions={
+        <>
+          <Button onClick={onClose} sx={ghostButtonSx(theme)}>
+            Cancelar
+          </Button>
+          <GlowButton type="submit" form="crear-contrato-form" color="success" disabled={isDisabled}>
+            {isRenew ? "Renovar Contrato" : "Crear Contrato"}
+          </GlowButton>
+        </>
+      }
     >
-      <DialogTitle sx={{ 
-        color: "text.primary", 
-        fontWeight: 700, 
-        display: "flex", 
-        alignItems: "center", 
-        gap: 1 
-      }}>
-        <Box component="span" sx={{ fontSize: "1.5rem" }}>
-          {contratoToRenew ? "🔄" : "📝"}
-        </Box>
-        <Box component="span" sx={{ fontSize: "1.25rem" }}>
-          {contratoToRenew ? "Renovar Contrato" : "Nuevo Contrato de Arrendamiento"}
-        </Box>
-      </DialogTitle>
-
-      <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column" }}>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <FormControl size="small" fullWidth>
-            <InputLabel id="arrendatario-label">Arrendatario</InputLabel>
-            <Select
-              labelId="arrendatario-label"
-              label="Arrendatario"
-              value={formData.arrendatario_id}
-              onChange={handleChange("arrendatario_id")}
-              disabled={contratoToRenew}
-              required
-            >
-              <MenuItem value="">Seleccionar arrendatario</MenuItem>
-              {contratoToRenew ? (
-                <MenuItem value={contratoToRenew.arrendatario_id}>
-                  {contratoToRenew.arrendatario_nombre}
+      <Box
+        component="form"
+        id="crear-contrato-form"
+        onSubmit={handleSubmit}
+        sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+      >
+        <FormSection title="Arrendatario e inmueble">
+          <GlassSelect
+            label="Arrendatario"
+            value={formData.arrendatario_id}
+            onChange={handleChange("arrendatario_id")}
+            disabled={isRenew}
+            required
+          >
+            <MenuItem value="">Seleccionar arrendatario</MenuItem>
+            {isRenew ? (
+              <MenuItem value={contratoToRenew.arrendatario_id}>
+                {contratoToRenew.arrendatario_nombre}
+              </MenuItem>
+            ) : (
+              tenants.map((tenant) => (
+                <MenuItem key={tenant.id} value={tenant.id}>
+                  {tenant.nombre_completo} — {tenant.documento_identidad}
                 </MenuItem>
-              ) : (
-                tenants.map((tenant) => (
-                  <MenuItem key={tenant.id} value={tenant.id}>
-                    {tenant.nombre_completo} - {tenant.documento_identidad}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-            {!contratoToRenew && tenants.length === 0 && (
-              <Typography variant="caption" color="warning" sx={{ mt: 1 }}>
-                No hay arrendatarios registrados. Crea uno en la sección Arrendatarios.
-              </Typography>
+              ))
             )}
-          </FormControl>
+          </GlassSelect>
+          {!isRenew && tenants.length === 0 && (
+            <Typography variant="caption" color="warning.main">
+              No hay arrendatarios registrados. Crea uno en la sección Arrendatarios.
+            </Typography>
+          )}
 
-          <FormControl size="small" fullWidth>
-            <InputLabel id="apartamento-label">Apartamento</InputLabel>
-            <Select
-              labelId="apartamento-label"
-              label="Apartamento"
-              value={formData.apartamento_id}
-              onChange={handleChange("apartamento_id")}
-              disabled={contratoToRenew}
-              required
-            >
-              <MenuItem value="">Seleccionar apartamento</MenuItem>
-              {contratoToRenew ? (
-                <MenuItem value={contratoToRenew.apartamento_id}>
-                  {contratoToRenew.apartamento_nombre} - {contratoToRenew.apartamento_direccion}
+          <GlassSelect
+            label="Apartamento"
+            value={formData.apartamento_id}
+            onChange={handleChange("apartamento_id")}
+            disabled={isRenew}
+            required
+          >
+            <MenuItem value="">Seleccionar apartamento</MenuItem>
+            {isRenew ? (
+              <MenuItem value={contratoToRenew.apartamento_id}>
+                {contratoToRenew.apartamento_nombre} — {contratoToRenew.apartamento_direccion}
+              </MenuItem>
+            ) : (
+              apartamentos.map((apt) => (
+                <MenuItem key={apt.id} value={apt.id}>
+                  {getApartamentoDisplayName(apt)} — {formatCurrency(apt.valor_arriendo)}
                 </MenuItem>
-              ) : (
-                apartamentos.map((apt) => (
-                  <MenuItem key={apt.id} value={apt.id}>
-                    {getApartamentoDisplayName(apt)} - {formatCurrency(apt.valor_arriendo)}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-            {!contratoToRenew && apartamentos.length === 0 && (
-              <Typography variant="caption" color="warning" sx={{ mt: 1 }}>
-                No hay apartamentos disponibles
-              </Typography>
+              ))
             )}
-          </FormControl>
+          </GlassSelect>
+          {!isRenew && apartamentos.length === 0 && (
+            <Typography variant="caption" color="warning.main">
+              No hay apartamentos disponibles
+            </Typography>
+          )}
+        </FormSection>
 
+        <FormSection title="Vigencia del contrato">
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-            <TextField
-              label="Fecha Inicio"
+            <GlassTextField
+              label="Fecha inicio"
               type="date"
               value={formData.fecha_inicio}
               onChange={handleChange("fecha_inicio")}
               required
-              InputLabelProps={{ shrink: true }}
             />
-            <TextField
-              label="Fecha Fin"
+            <GlassTextField
+              label="Fecha fin"
               type="date"
               value={formData.fecha_fin}
               onChange={handleChange("fecha_fin")}
               onBlur={onFechaFinBlur}
               required
-              InputLabelProps={{ shrink: true }}
             />
           </Box>
-          {fechaFinHint && (
-            <Typography variant="caption" color="info.main" sx={{ mt: -1 }}>
-              {fechaFinHint}
-            </Typography>
-          )}
-          <Typography variant="caption" color="text.secondary" sx={{ mt: fechaFinHint ? 0 : -1 }}>
-            El contrato termina el último día del periodo mensual (día anterior al aniversario).
-          </Typography>
 
+          <FormHint tone="info">
+            {fechaFinHint && (
+              <FormHintText>
+                <Box component="span" sx={{ color: "info.main", fontWeight: 600 }}>
+                  {fechaFinHint}
+                </Box>
+              </FormHintText>
+            )}
+            <FormHintText>
+              El contrato termina el último día del periodo mensual (día anterior al aniversario).
+            </FormHintText>
+          </FormHint>
+        </FormSection>
+
+        <FormSection title="Condiciones de cobro">
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2 }}>
-            <TextField
-              label="Canon Mensual"
+            <GlassTextField
+              label="Canon mensual"
               value={formData.canon_mensual}
               onChange={handleChange("canon_mensual")}
               required
               placeholder="Ej: 1.500.000"
             />
-            <TextField
+            <GlassTextField
               label="Días de gracia"
               type="number"
               value={formData.paymentDay}
               onChange={handleChange("paymentDay")}
               slotProps={{ htmlInput: { min: 0, max: 90 } }}
             />
-            <Box sx={{ gridColumn: { xs: "1 / -1", sm: "1 / -1" } }}>
-              <Typography variant="caption" color="text.secondary">
-                Indica cuántos días después del aniversario mensual se establece la fecha límite de pago.
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Por ejemplo, si el contrato inicia el 20 y pones 1, la fecha de cobro será el 21.
-              </Typography>
-            </Box>
-
-            <FormControl size="small" fullWidth>
-              <InputLabel id="modo-cobro-label">Modo de cobro del canon</InputLabel>
-              <Select
-                labelId="modo-cobro-label"
-                label="Modo de cobro del canon"
-                value={formData.modo_cobro}
-                onChange={handleChange("modo_cobro")}
-              >
-                <MenuItem value="anticipado">Cobro Anticipado (Mes Adelantado)</MenuItem>
-                <MenuItem value="fin_mes">Cobro a Mes Vencido (Fin de Mes)</MenuItem>
-              </Select>
-            </FormControl>
           </Box>
-        </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-          <Button onClick={onClose} color="neutral" variant="contained">
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            color="success"
-            disabled={isDisabled}
+          <GlassSelect
+            label="Modo de cobro del canon"
+            value={formData.modo_cobro}
+            onChange={handleChange("modo_cobro")}
           >
-            {contratoToRenew ? "🔄 Renovar Contrato" : "Crear Contrato"}
-          </Button>
-        </DialogActions>
+            <MenuItem value="anticipado">Cobro anticipado (mes adelantado)</MenuItem>
+            <MenuItem value="fin_mes">Cobro a mes vencido (fin de mes)</MenuItem>
+          </GlassSelect>
+
+          <FormHint>
+            <FormHintText>
+              Indica cuántos días después del aniversario mensual se establece la fecha límite de pago.
+            </FormHintText>
+            <FormHintText>
+              Ejemplo: si el contrato inicia el 20 y pones 1, la fecha de cobro será el 21.
+            </FormHintText>
+          </FormHint>
+        </FormSection>
       </Box>
-    </Dialog>
+    </GlassDialog>
   )
 }
 
