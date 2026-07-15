@@ -136,7 +136,25 @@ const TenantDetailPanel = ({
   }
 
   return (
-    <GlassPanel sx={{ flex: 1, p: { xs: 2, md: 3 }, minHeight: { xs: "auto", md: 360 }, minWidth: 0 }}>
+    <GlassPanel
+      sx={{
+        flex: 1,
+        p: { xs: 2, md: 3 },
+        minHeight: { xs: "auto", md: 360 },
+        minWidth: 0,
+        // En móvil: franja superior + glow para diferenciar del listado
+        borderTopWidth: { xs: 3, lg: 1 },
+        borderTopColor: {
+          xs: alpha(theme.palette.primary.main, 0.7),
+          lg: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.22 : 0.18),
+        },
+        borderTopStyle: "solid",
+        boxShadow: {
+          xs: `0 0 24px ${alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.12 : 0.08)}`,
+          lg: undefined,
+        },
+      }}
+    >
       {/* Header: avatar + info, then actions below on mobile */}
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: "flex", alignItems: "flex-start", gap: { xs: 1.5, sm: 2 }, mb: 1.75 }}>

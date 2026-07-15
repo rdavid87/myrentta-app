@@ -22,19 +22,21 @@ import {
   VisibilityOff,
   Badge as BadgeIcon,
   CheckCircle as CheckCircleIcon,
-  Apartment as ApartmentIcon,
+  PersonAddAlt as PersonAddAltIcon,
   Sms as SmsIcon,
   Security as SecurityIcon,
 } from "@mui/icons-material"
 import Logo from "@/components/Logo"
 import AuthSplitLayout, { AuthThemeToggle } from "../components/auth/AuthSplitLayout"
-import { GlassTextField, GlowButton, FormSection, FormHint, FormHintText } from "../components/ui"
+import AuthFormSection from "../components/auth/AuthFormSection"
+import LoginPromoCTA from "../components/auth/LoginPromoCTA"
+import { GlassTextField, GlowButton, FormHint, FormHintText } from "../components/ui"
 import { ghostButtonSx, glassSurface } from "../components/ui/glassStyles"
 import { alpha, useTheme } from "@mui/material/styles"
 import { useAuthBackground } from "../components/auth/useAuthBackground"
 
 const REGISTER_FEATURES = [
-  { icon: <PersonIcon />, label: "Registro rápido y sencillo", colorKey: "primary" },
+  { icon: <PersonAddAltIcon />, label: "Registro rápido y sencillo", colorKey: "primary" },
   { icon: <SmsIcon />, label: "Verificación por SMS", colorKey: "success" },
   { icon: <SecurityIcon />, label: "Gestión segura de propiedades", colorKey: "warning" },
 ]
@@ -187,23 +189,22 @@ const Register = () => {
       welcomeTitle="Únete a MyRentta"
       welcomeDescription="Crea tu cuenta y comienza a gestionar tus propiedades de manera eficiente y segura."
       features={REGISTER_FEATURES}
-      maxFormWidth={460}
+      maxFormWidth={500}
     >
       <Box
         component="form"
         onSubmit={handleSubmit}
-        sx={{ display: "flex", flexDirection: "column", gap: 2.25 }}
+        sx={{ display: "flex", flexDirection: "column", gap: 2 }}
       >
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 0.25 }}>
-          <Logo size="large" />
-        </Box>
-
-        <Box sx={{ textAlign: "center", mb: 0.5 }}>
+        <Box sx={{ textAlign: "center", mb: 0.25 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 1 }}>
+            <Logo size="large" />
+          </Box>
           <Typography variant="h6" fontWeight={800}>
             Crear cuenta
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Completa tus datos para empezar
+            Completa los 3 pasos para registrarte
           </Typography>
         </Box>
 
@@ -213,7 +214,7 @@ const Register = () => {
           </Alert>
         )}
 
-        <FormSection title="Datos personales">
+        <AuthFormSection step={1} title="Datos personales">
           <GlassTextField
             label="Nombres completos"
             name="full_name"
@@ -248,98 +249,114 @@ const Register = () => {
               },
             }}
           />
-        </FormSection>
+        </AuthFormSection>
 
-        <FormSection title="Contacto">
-          <GlassTextField
-            label="Número de teléfono"
-            name="phone"
-            value={form.phone}
-            onChange={handleChangeMobile}
-            placeholder="3001234567"
-            required
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Typography variant="caption" fontWeight={700} sx={{ color: "text.secondary", mr: 0.5 }}>
-                      +57
-                    </Typography>
-                    <PhoneIcon fontSize="small" sx={{ color: "primary.main" }} />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-          <GlassTextField
-            label="Correo electrónico (opcional)"
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="correo@ejemplo.com"
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon fontSize="small" sx={{ color: "primary.main" }} />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-        </FormSection>
+        <AuthFormSection step={2} title="Contacto">
+          <Grid container spacing={1.75}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <GlassTextField
+                label="Número de teléfono"
+                name="phone"
+                value={form.phone}
+                onChange={handleChangeMobile}
+                placeholder="3001234567"
+                required
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Typography
+                          variant="caption"
+                          fontWeight={700}
+                          sx={{ color: "text.secondary", mr: 0.5 }}
+                        >
+                          +57
+                        </Typography>
+                        <PhoneIcon fontSize="small" sx={{ color: "primary.main" }} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <GlassTextField
+                label="Correo electrónico (opcional)"
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="correo@ejemplo.com"
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon fontSize="small" sx={{ color: "primary.main" }} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Grid>
+          </Grid>
+        </AuthFormSection>
 
-        <FormSection title="Credenciales">
-          <GlassTextField
-            label="Contraseña"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Mínimo 6 caracteres"
-            required
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon fontSize="small" sx={{ color: "primary.main" }} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      size="small"
-                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    >
-                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-          <GlassTextField
-            label="Confirmar contraseña"
-            name="confirmPassword"
-            type={showPassword ? "text" : "password"}
-            value={form.confirmPassword}
-            onChange={handleChange}
-            placeholder="Repite tu contraseña"
-            required
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon fontSize="small" sx={{ color: "primary.main" }} />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-        </FormSection>
+        <AuthFormSection step={3} title="Credenciales">
+          <Grid container spacing={1.75}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <GlassTextField
+                label="Contraseña"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                value={form.password}
+                onChange={handleChange}
+                placeholder="Mínimo 6 caracteres"
+                required
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon fontSize="small" sx={{ color: "primary.main" }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          size="small"
+                          aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                        >
+                          {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <GlassTextField
+                label="Confirmar contraseña"
+                name="confirmPassword"
+                type={showPassword ? "text" : "password"}
+                value={form.confirmPassword}
+                onChange={handleChange}
+                placeholder="Repite tu contraseña"
+                required
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon fontSize="small" sx={{ color: "primary.main" }} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Grid>
+          </Grid>
+        </AuthFormSection>
 
         <FormHint tone="warning">
           <FormHintText>
@@ -347,49 +364,35 @@ const Register = () => {
           </FormHintText>
         </FormHint>
 
-        <Grid container spacing={1.5}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Button
-              type="button"
-              onClick={() => navigate("/login")}
-              disabled={loading}
-              fullWidth
-              sx={{ ...ghostButtonSx(theme), py: 1.25 }}
-            >
-              Cancelar
-            </Button>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <GlowButton
-              type="submit"
-              fullWidth
-              disabled={loading}
-              startIcon={
-                loading ? (
-                  <CircularProgress size={20} color="inherit" sx={{ opacity: 0.9 }} />
-                ) : (
-                  <ApartmentIcon fontSize="small" />
-                )
-              }
-              sx={{ py: 1.25 }}
-            >
-              {loading ? "Registrando…" : "Crear cuenta"}
-            </GlowButton>
-          </Grid>
-        </Grid>
+        <GlowButton
+          type="submit"
+          fullWidth
+          disabled={loading}
+          startIcon={
+            loading ? (
+              <CircularProgress size={20} color="inherit" sx={{ opacity: 0.9 }} />
+            ) : (
+              <PersonAddAltIcon fontSize="small" />
+            )
+          }
+          sx={{ py: 1.35 }}
+        >
+          {loading ? "Registrando…" : "Crear cuenta"}
+        </GlowButton>
 
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
-          ¿Ya tienes cuenta?{" "}
-          <Button
-            component={Link}
-            to="/login"
-            sx={{ textTransform: "none", fontWeight: 700, color: "primary.main", fontSize: "inherit", p: 0, minWidth: 0 }}
-          >
-            Inicia sesión
-          </Button>
-        </Typography>
+        <Button
+          type="button"
+          onClick={() => navigate("/login")}
+          disabled={loading}
+          fullWidth
+          sx={{ ...ghostButtonSx(theme), py: 1.1 }}
+        >
+          Cancelar
+        </Button>
 
-        <Typography variant="caption" color="text.disabled" sx={{ textAlign: "center" }}>
+        <LoginPromoCTA to="/login" title="¿Ya tienes cuenta?" label="Iniciar sesión" />
+
+        <Typography variant="caption" color="text.disabled" sx={{ textAlign: "center", pt: 0.5 }}>
           © 2026 Todos los derechos reservados
         </Typography>
       </Box>
