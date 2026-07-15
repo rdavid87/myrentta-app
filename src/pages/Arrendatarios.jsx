@@ -9,6 +9,7 @@ import {
   CheckCircle as CheckCircleIcon,
   WarningAmber as WarningAmberIcon,
   Badge as BadgeIcon,
+  Person as PersonIcon,
 } from "@mui/icons-material"
 import api from "../services/api"
 import TenantListItem from "../components/arrendatarios/TenantListItem"
@@ -26,7 +27,7 @@ import {
   FormSection,
 } from "../components/ui"
 import { ghostButtonSx } from "../components/ui/glassStyles"
-import { useTheme } from "@mui/material/styles"
+import { alpha, useTheme } from "@mui/material/styles"
 
 const resolveApartamentoNombre = (apt = {}) => {
   const directCandidates = [apt.name, apt.nombre]
@@ -355,34 +356,107 @@ const Arrendatarios = () => {
           sx={{
             display: "flex",
             flexDirection: { xs: "column", lg: "row" },
-            gap: 2,
+            gap: { xs: 0, lg: 2 },
             alignItems: "stretch",
             minHeight: { xs: "auto", lg: 420 },
             minWidth: 0,
             width: "100%",
           }}
         >
-          <GlassPanel
+          <Box sx={{ width: { xs: "100%", lg: 360 }, flexShrink: 0, minWidth: 0 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                display: { xs: "block", lg: "none" },
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "text.secondary",
+                mb: 1,
+                px: 0.5,
+              }}
+            >
+              Lista de arrendatarios
+            </Typography>
+            <GlassPanel
+              sx={{
+                p: 1.5,
+                maxHeight: { xs: 280, lg: "calc(100vh - 280px)" },
+                overflowY: "auto",
+                minWidth: 0,
+              }}
+            >
+              {filteredArrendatarios.map((arr) => (
+                <TenantListItem
+                  key={arr.id}
+                  tenant={arr}
+                  selected={selectedTenant?.id === arr.id}
+                  status={tenantStatusMap.get(arr.id)}
+                  onSelect={(t) => setSelectedId(t.id)}
+                  getInitials={getInitials}
+                />
+              ))}
+            </GlassPanel>
+          </Box>
+
+          {/* Separador móvil: lista vs perfil */}
+          <Box
             sx={{
-              width: { xs: "100%", lg: 360 },
-              flexShrink: 0,
-              p: 1.5,
-              maxHeight: { xs: 280, lg: "calc(100vh - 280px)" },
-              overflowY: "auto",
-              minWidth: 0,
+              display: { xs: "flex", lg: "none" },
+              alignItems: "center",
+              gap: 1.5,
+              my: 2.5,
+              px: 0.5,
             }}
           >
-            {filteredArrendatarios.map((arr) => (
-              <TenantListItem
-                key={arr.id}
-                tenant={arr}
-                selected={selectedTenant?.id === arr.id}
-                status={tenantStatusMap.get(arr.id)}
-                onSelect={(t) => setSelectedId(t.id)}
-                getInitials={getInitials}
-              />
-            ))}
-          </GlassPanel>
+            <Box
+              sx={{
+                flex: 1,
+                height: 2,
+                borderRadius: 1,
+                bgcolor: alpha(theme.palette.primary.main, 0.35),
+                boxShadow: `0 0 10px ${alpha(theme.palette.primary.main, 0.25)}`,
+              }}
+            />
+            <Box
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.75,
+                px: 1.5,
+                py: 0.6,
+                borderRadius: "20px",
+                flexShrink: 0,
+                bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.12 : 0.08),
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.4)}`,
+                boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.15)}`,
+              }}
+            >
+              <PersonIcon sx={{ fontSize: 16, color: "primary.main" }} />
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "primary.main",
+                  fontSize: "0.68rem",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Perfil seleccionado
+              </Typography>
+            </Box>
+            <Box
+              sx={{
+                flex: 1,
+                height: 2,
+                borderRadius: 1,
+                bgcolor: alpha(theme.palette.primary.main, 0.35),
+                boxShadow: `0 0 10px ${alpha(theme.palette.primary.main, 0.25)}`,
+              }}
+            />
+          </Box>
 
           <TenantDetailPanel
             tenant={selectedTenant}
