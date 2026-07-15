@@ -5,7 +5,11 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
 import { alpha, useTheme } from "@mui/material/styles"
 import { neonBorder } from "../ui/glassStyles"
 
-const LoginPromoCTA = ({ to = "/login" }) => {
+const LoginPromoCTA = ({
+  to = "/login",
+  title = "¿Recordaste tu contraseña?",
+  label = "Iniciar sesión",
+}) => {
   const theme = useTheme()
   const isDark = theme.palette.mode === "dark"
   const accent = theme.palette.primary.main
@@ -63,10 +67,10 @@ const LoginPromoCTA = ({ to = "/login" }) => {
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.25 }}>
-          ¿Recordaste tu contraseña?
+          {title}
         </Typography>
         <Typography variant="body2" fontWeight={800} sx={{ color: accent, lineHeight: 1.2 }}>
-          Iniciar sesión
+          {label}
         </Typography>
       </Box>
 
