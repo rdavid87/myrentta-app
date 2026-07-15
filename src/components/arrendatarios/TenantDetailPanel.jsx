@@ -44,7 +44,11 @@ const ContactRow = ({ icon, label, value, href, trailing }) => {
         <Typography variant="caption" color="text.secondary" display="block">
           {label}
         </Typography>
-        <Typography variant="body2" fontWeight={600} noWrap>
+        <Typography
+          variant="body2"
+          fontWeight={600}
+          sx={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
+        >
           {value}
         </Typography>
       </Box>
@@ -96,7 +100,9 @@ const TenantDetailPanel = ({
   }
 
   const phoneDigits = tenant.telefono?.replace(/\D/g, "") ?? ""
-  const waHref = phoneDigits ? `https://wa.me/${phoneDigits.startsWith("57") ? phoneDigits : `57${phoneDigits}`}` : null
+  const waHref = phoneDigits
+    ? `https://wa.me/${phoneDigits.startsWith("57") ? phoneDigits : `57${phoneDigits}`}`
+    : null
 
   const copyEmail = async () => {
     try {
@@ -106,10 +112,34 @@ const TenantDetailPanel = ({
     }
   }
 
+  const editBtnSx = {
+    ...ghostButtonSx(theme),
+    py: 0.85,
+    px: 1.5,
+    color: "primary.main",
+    borderColor: alpha(theme.palette.primary.main, 0.35),
+    minWidth: 0,
+  }
+
+  const deleteBtnSx = {
+    ...ghostButtonSx(theme),
+    py: 0.85,
+    px: 1.5,
+    color: "error.main",
+    borderColor: alpha(theme.palette.error.main, 0.35),
+    minWidth: 0,
+    "&:hover": {
+      borderColor: "error.main",
+      bgcolor: alpha(theme.palette.error.main, 0.08),
+      color: "error.main",
+    },
+  }
+
   return (
-    <GlassPanel sx={{ flex: 1, p: { xs: 2, md: 3 }, minHeight: 360 }}>
-      <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2, mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, minWidth: 0 }}>
+    <GlassPanel sx={{ flex: 1, p: { xs: 2, md: 3 }, minHeight: { xs: "auto", md: 360 }, minWidth: 0 }}>
+      {/* Header: avatar + info, then actions below on mobile */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "flex-start", gap: { xs: 1.5, sm: 2 }, mb: 1.75 }}>
           <Box
             sx={{
               p: 0.5,
@@ -121,19 +151,35 @@ const TenantDetailPanel = ({
           >
             <Avatar
               sx={{
-                width: { xs: 64, md: 80 },
-                height: { xs: 64, md: 80 },
-                bgcolor: status === "activo" ? "success.main" : status === "en_mora" ? "error.main" : "text.disabled",
+                width: { xs: 56, sm: 64, md: 80 },
+                height: { xs: 56, sm: 64, md: 80 },
+                bgcolor:
+                  status === "activo"
+                    ? "success.main"
+                    : status === "en_mora"
+                      ? "error.main"
+                      : "text.disabled",
                 color: status === "sin_contrato" ? "text.primary" : "common.white",
                 fontWeight: 800,
-                fontSize: { xs: "1.25rem", md: "1.5rem" },
+                fontSize: { xs: "1.1rem", md: "1.5rem" },
               }}
             >
               {getInitials(tenant.nombre_completo)}
             </Avatar>
           </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h5" fontWeight={800} sx={{ lineHeight: 1.2, mb: 0.75 }}>
+
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography
+              variant="h5"
+              fontWeight={800}
+              sx={{
+                lineHeight: 1.25,
+                mb: 0.75,
+                fontSize: { xs: "1.15rem", sm: "1.35rem", md: "1.5rem" },
+                overflowWrap: "anywhere",
+                wordBreak: "break-word",
+              }}
+            >
               {tenant.nombre_completo}
             </Typography>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, alignItems: "center" }}>
@@ -153,39 +199,35 @@ const TenantDetailPanel = ({
               <StatusBadge status={status} />
             </Box>
           </Box>
+
+          {/* Desktop actions — same row */}
+          <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1, flexShrink: 0 }}>
+            <Button size="small" startIcon={<EditIcon />} onClick={() => onEdit(tenant)} sx={editBtnSx}>
+              Editar
+            </Button>
+            <Button size="small" startIcon={<DeleteIcon />} onClick={() => onDelete(tenant.id)} sx={deleteBtnSx}>
+              Eliminar
+            </Button>
+          </Box>
         </Box>
 
-        <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
+        {/* Mobile actions — full width below profile */}
+        <Box sx={{ display: { xs: "flex", sm: "none" }, gap: 1 }}>
           <Button
             size="small"
+            fullWidth
             startIcon={<EditIcon />}
             onClick={() => onEdit(tenant)}
-            sx={{
-              ...ghostButtonSx(theme),
-              py: 0.85,
-              px: 1.5,
-              color: "primary.main",
-              borderColor: alpha(theme.palette.primary.main, 0.35),
-            }}
+            sx={editBtnSx}
           >
             Editar
           </Button>
           <Button
             size="small"
+            fullWidth
             startIcon={<DeleteIcon />}
             onClick={() => onDelete(tenant.id)}
-            sx={{
-              ...ghostButtonSx(theme),
-              py: 0.85,
-              px: 1.5,
-              color: "error.main",
-              borderColor: alpha(theme.palette.error.main, 0.35),
-              "&:hover": {
-                borderColor: "error.main",
-                bgcolor: alpha(theme.palette.error.main, 0.08),
-                color: "error.main",
-              },
-            }}
+            sx={deleteBtnSx}
           >
             Eliminar
           </Button>
@@ -209,6 +251,7 @@ const TenantDetailPanel = ({
             mb: 3,
             mx: -0.5,
             px: 0.5,
+            WebkitOverflowScrolling: "touch",
           }}
         >
           {activeContracts.map((contract) => (
