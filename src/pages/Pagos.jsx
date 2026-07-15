@@ -756,7 +756,7 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
         )}
       </PageHeader>
 
-      <GlassPanel sx={{ p: { xs: 1.5, sm: 2 } }}>
+      <GlassPanel sx={{ p: { xs: 1.75, sm: 2 } }}>
           {filteredPagos.length === 0 ? (
             <EmptyState
               icon="💳"
@@ -782,7 +782,7 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
               }
             />
           ) : (
-            <Box>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: { xs: 0.25, lg: 0 } }}>
               <DataListHeader columns={PAYMENT_LIST_COLUMNS} />
               {filteredPagos.map((pago, index) => (
                 <PaymentListRow
