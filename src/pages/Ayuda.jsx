@@ -9,10 +9,10 @@ const SUPPORT_EMAIL =
   import.meta.env.VITE_SUPPORT_EMAIL?.trim() || "soporte@myrentta.com"
 
 const SUPPORT_PHONE_DISPLAY =
-  import.meta.env.VITE_SUPPORT_PHONE_DISPLAY?.trim() || "+57 300 123 4567"
+  import.meta.env.VITE_SUPPORT_PHONE_DISPLAY?.trim() || "+57 302 605 7156"
 
 const whatsappDigits = (
-  import.meta.env.VITE_SUPPORT_WHATSAPP?.trim() || "573001234567"
+  import.meta.env.VITE_SUPPORT_WHATSAPP?.trim() || "573026057156"
 ).replace(/\D/g, "")
 
 const whatsappUrl = whatsappDigits

@@ -590,7 +590,7 @@ const Contratos = () => {
         )}
       </PageHeader>
 
-      <GlassPanel sx={{ p: { xs: 1.5, sm: 2.5 } }}>
+      <GlassPanel sx={{ p: { xs: 1.75, sm: 2.5 } }}>
         <DataListHeader columns={listColumns} />
 
         {filteredContratos.length === 0 ? (
@@ -610,7 +610,7 @@ const Contratos = () => {
             }
           />
         ) : (
-          <Box>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: { xs: 0.25, lg: 0 } }}>
             {filteredContratos.map((contrato) => (
               <ContractListRow
                 key={contrato.id}

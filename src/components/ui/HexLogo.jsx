@@ -4,6 +4,8 @@ import { alpha, useTheme } from "@mui/material/styles"
 const HexLogo = ({ size = 40 }) => {
   const theme = useTheme()
   const primary = theme.palette.primary.main
+  const letterSize = size * 0.28
+  const ampSize = size * 0.18
 
   return (
     <Box
@@ -22,14 +24,36 @@ const HexLogo = ({ size = 40 }) => {
       <Box
         component="span"
         sx={{
+          display: "inline-flex",
+          alignItems: "baseline",
+          justifyContent: "center",
           fontWeight: 800,
-          fontSize: size * 0.38,
           color: theme.palette.primary.contrastText,
           fontFamily: '"Plus Jakarta Sans", sans-serif',
           lineHeight: 1,
+          letterSpacing: "-0.04em",
+          userSelect: "none",
         }}
       >
-        M
+        <Box component="span" sx={{ fontSize: letterSize }}>
+          M
+        </Box>
+        <Box
+          component="span"
+          sx={{
+            fontSize: ampSize,
+            fontWeight: 700,
+            opacity: 0.9,
+            mx: `${Math.max(0.5, size * 0.01)}px`,
+            position: "relative",
+            top: size * -0.01,
+          }}
+        >
+          &
+        </Box>
+        <Box component="span" sx={{ fontSize: letterSize }}>
+          R
+        </Box>
       </Box>
     </Box>
   )

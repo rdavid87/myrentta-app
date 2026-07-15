@@ -357,7 +357,9 @@ const Arrendatarios = () => {
             flexDirection: { xs: "column", lg: "row" },
             gap: 2,
             alignItems: "stretch",
-            minHeight: 420,
+            minHeight: { xs: "auto", lg: 420 },
+            minWidth: 0,
+            width: "100%",
           }}
         >
           <GlassPanel
@@ -365,8 +367,9 @@ const Arrendatarios = () => {
               width: { xs: "100%", lg: 360 },
               flexShrink: 0,
               p: 1.5,
-              maxHeight: { xs: 360, lg: "calc(100vh - 280px)" },
+              maxHeight: { xs: 280, lg: "calc(100vh - 280px)" },
               overflowY: "auto",
+              minWidth: 0,
             }}
           >
             {filteredArrendatarios.map((arr) => (

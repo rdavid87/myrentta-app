@@ -1,67 +1,57 @@
-import { Box, Typography, Avatar } from "@mui/material"
-import ChevronRightIcon from "@mui/icons-material/ChevronRight"
+import { Box, Typography } from "@mui/material"
+import SouthWestIcon from "@mui/icons-material/SouthWest"
+import ScheduleIcon from "@mui/icons-material/Schedule"
+import WarningAmberIcon from "@mui/icons-material/WarningAmber"
 import { alpha, useTheme } from "@mui/material/styles"
 
-const getInitials = (name) => {
-  if (!name) return "?"
-  const parts = name.trim().split(/\s+/)
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
-  return name.substring(0, 2).toUpperCase()
-}
-
-const formatRelativeTime = (dateString) => {
+const formatPaymentDate = (dateString) => {
   if (!dateString) return "—"
-  const date = new Date(dateString)
-  if (Number.isNaN(date.getTime())) return "—"
-
-  const now = new Date()
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  const diffDays = Math.round((today - target) / (1000 * 60 * 60 * 24))
-
-  const time = date.toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit", hour12: true })
-  if (diffDays === 0) return `Hoy, ${time}`
-  if (diffDays === 1) return `Ayer, ${time}`
-  return date.toLocaleDateString("es-CO", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })
+  const raw = String(dateString).slice(0, 10)
+  const [year, month, day] = raw.split("-").map(Number)
+  if (!year || !month || !day) {
+    const date = new Date(dateString)
+    if (Number.isNaN(date.getTime())) return "—"
+    return date.toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })
+  }
+  const date = new Date(year, month - 1, day)
+  return date.toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })
 }
 
-const ActivityTag = ({ label, color }) => {
-  const theme = useTheme()
-  return (
-    <Box
-      sx={{
-        display: "inline-flex",
-        px: 1,
-        py: 0.35,
-        borderRadius: "6px",
-        fontSize: "0.68rem",
-        fontWeight: 700,
-        color,
-        bgcolor: alpha(color, theme.palette.mode === "dark" ? 0.15 : 0.1),
-        border: `1px solid ${alpha(color, 0.35)}`,
-        whiteSpace: "nowrap",
-      }}
-    >
-      {label}
-    </Box>
-  )
+const statusConfig = (pago, isPending, theme) => {
+  const isMora = pago.estado === "en_mora"
+  if (!isPending) {
+    return {
+      accent: theme.palette.success.main,
+      icon: <SouthWestIcon sx={{ fontSize: 22 }} />,
+      thirdLine: `Pago ${formatPaymentDate(pago.fecha_pago)}`,
+    }
+  }
+  if (isMora) {
+    return {
+      accent: theme.palette.error.main,
+      icon: <WarningAmberIcon sx={{ fontSize: 22 }} />,
+      thirdLine: "En mora",
+    }
+  }
+  return {
+    accent: theme.palette.warning.main,
+    icon: <ScheduleIcon sx={{ fontSize: 22 }} />,
+    thirdLine: "Pendiente",
+  }
 }
 
 const DashboardActivityRow = ({ pago, variant, formatCurrency, formatPaymentPeriod }) => {
   const theme = useTheme()
   const isPending = variant === "pendiente"
-  const isMora = pago.estado === "en_mora"
-  const accent = isPending ? (isMora ? theme.palette.error.main : theme.palette.warning.main) : theme.palette.success.main
   const name = pago.arrendatario_nombre || "Arrendatario"
-  const apt = pago.apartamento_nombre || "Apartamento"
-  const tagLabel = isPending ? (isMora ? "En mora" : "Pendiente") : "Pago de arriendo"
-  const subtitle = isPending ? formatPaymentPeriod(pago) : apt
+  const periodo = formatPaymentPeriod(pago)
+  const { accent, icon, thirdLine } = statusConfig(pago, isPending, theme)
 
   return (
     <Box
       sx={{
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: 1.5,
         py: 1.5,
         px: 1,
@@ -74,43 +64,94 @@ const DashboardActivityRow = ({ pago, variant, formatCurrency, formatPaymentPeri
         },
       }}
     >
-      <Avatar
+      <Box
         sx={{
           width: 44,
           height: 44,
           flexShrink: 0,
-          bgcolor: alpha(accent, 0.2),
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          bgcolor: alpha(accent, theme.palette.mode === "dark" ? 0.18 : 0.12),
           color: accent,
-          fontWeight: 700,
-          fontSize: "0.85rem",
           border: `1px solid ${alpha(accent, 0.35)}`,
+          mt: 0.15,
         }}
       >
-        {getInitials(name)}
-      </Avatar>
+        {icon}
+      </Box>
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 0.35 }}>
-          <Typography variant="body2" fontWeight={700} noWrap sx={{ maxWidth: { xs: 140, sm: 220 } }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 1.25,
+            mb: 0.35,
+          }}
+        >
+          <Typography
+            variant="body2"
+            fontWeight={700}
+            sx={{
+              lineHeight: 1.35,
+              minWidth: 0,
+              flex: 1,
+              overflowWrap: "anywhere",
+              wordBreak: "break-word",
+            }}
+          >
             {name}
           </Typography>
-          <ActivityTag label={tagLabel} color={accent} />
+          <Typography
+            variant="body2"
+            fontWeight={800}
+            sx={{
+              color: accent,
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+              fontSize: { xs: "0.9rem", sm: "0.95rem" },
+              lineHeight: 1.35,
+            }}
+          >
+            {formatCurrency(pago.valor)}
+          </Typography>
         </Box>
-        <Typography variant="caption" color="text.secondary" noWrap display="block">
-          {subtitle}
+
+        <Typography
+          variant="caption"
+          title={periodo}
+          sx={{
+            display: "block",
+            fontWeight: 600,
+            color: "text.secondary",
+            lineHeight: 1.4,
+            mb: 0.2,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            fontSize: { xs: "0.72rem", sm: "0.75rem" },
+          }}
+        >
+          {periodo}
+        </Typography>
+
+        <Typography
+          variant="caption"
+          color="text.disabled"
+          sx={{
+            display: "block",
+            lineHeight: 1.35,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {thirdLine}
         </Typography>
       </Box>
-
-      <Box sx={{ textAlign: "right", flexShrink: 0 }}>
-        <Typography variant="body2" fontWeight={800} sx={{ color: accent }}>
-          {formatCurrency(pago.valor)}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
-          {isPending ? (isMora ? "Vencido" : "Por cobrar") : formatRelativeTime(pago.fecha_pago)}
-        </Typography>
-      </Box>
-
-      <ChevronRightIcon sx={{ color: "text.disabled", fontSize: 20, flexShrink: 0, display: { xs: "none", sm: "block" } }} />
     </Box>
   )
 }

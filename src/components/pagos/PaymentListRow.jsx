@@ -128,6 +128,7 @@ const PaymentListRow = ({
 }) => {
   const theme = useTheme()
   const accent = estadoAccent(pago.estado, theme)
+  const isDark = theme.palette.mode === "dark"
   const isPagado = pago.estado === "pagado"
   const isPending = pago.estado === "pendiente" || pago.estado === "en_mora"
   const initials =
@@ -162,15 +163,26 @@ const PaymentListRow = ({
         gap: { xs: 1.5, lg: 2 },
         alignItems: "center",
         p: { xs: 1.75, lg: 1.75 },
-        mb: 1.25,
+        mb: { xs: 2, lg: 1.25 },
         borderRadius: "12px",
-        bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.42 : 0.55),
-        border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+        bgcolor: isDark ? alpha("#ffffff", 0.045) : alpha(theme.palette.background.default, 0.55),
+        border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.75 : 0.65)}`,
+        borderTop: {
+          xs: `3px solid ${accent}`,
+          lg: `1px solid ${alpha(theme.palette.divider, isDark ? 0.75 : 0.65)}`,
+        },
+        boxShadow: {
+          xs: isDark
+            ? `0 4px 18px ${alpha("#000", 0.35)}, inset 0 1px 0 ${alpha("#fff", 0.04)}`
+            : `0 4px 14px ${alpha("#0f172a", 0.08)}`,
+          lg: "none",
+        },
         transition: "all 0.2s ease",
+        overflow: "hidden",
         "@media (hover: hover)": {
           "&:hover": {
             ...neonBorder(theme, "primary", true),
-            bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.05 : 0.03),
+            bgcolor: alpha(theme.palette.primary.main, isDark ? 0.05 : 0.03),
           },
         },
       }}
@@ -297,7 +309,18 @@ const PaymentListRow = ({
       </Box>
 
       {/* Acciones: 3 slots fijos → Confirmar/PDF | Editar | Eliminar */}
-      <Box sx={{ width: { lg: 188 }, minWidth: 0 }}>
+      <Box
+        sx={{
+          width: { lg: 188 },
+          minWidth: 0,
+          pt: { xs: 1.25, lg: 0 },
+          mt: { xs: 0.25, lg: 0 },
+          borderTop: {
+            xs: `1px solid ${alpha(theme.palette.divider, isDark ? 0.55 : 0.7)}`,
+            lg: "none",
+          },
+        }}
+      >
         <MobileLabel>Acciones</MobileLabel>
         <Box
           sx={{

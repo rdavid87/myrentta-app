@@ -28,6 +28,9 @@ const ContractListRow = ({
   const initial = contrato.arrendatario_nombre?.trim()?.charAt(0)?.toUpperCase() || "C"
   const modoCobro = (contrato.modo_cobro || "anticipado") === "fin_mes" ? "Fin de mes" : "Anticipado"
 
+  const accent = isActivo ? theme.palette.success.main : theme.palette.text.disabled
+  const isDark = theme.palette.mode === "dark"
+
   return (
     <Box
       sx={{
@@ -36,15 +39,22 @@ const ContractListRow = ({
         gap: { xs: 0, lg: 2 },
         alignItems: "center",
         p: { xs: 2, lg: 2 },
-        mb: 1.5,
+        mb: { xs: 2, lg: 1.5 },
         borderRadius: "14px",
-        bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.35 : 0.5),
-        border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+        bgcolor: isDark ? alpha("#ffffff", 0.045) : alpha(theme.palette.background.default, 0.55),
+        border: `1px solid ${alpha(theme.palette.divider, isDark ? 0.75 : 0.65)}`,
+        borderLeft: { xs: `4px solid ${accent}`, lg: `1px solid ${alpha(theme.palette.divider, isDark ? 0.75 : 0.65)}` },
+        boxShadow: {
+          xs: isDark
+            ? `0 4px 18px ${alpha("#000", 0.35)}, inset 0 1px 0 ${alpha("#fff", 0.04)}`
+            : `0 4px 14px ${alpha("#0f172a", 0.08)}`,
+          lg: "none",
+        },
         transition: "all 0.22s ease",
         "@media (hover: hover)": {
           "&:hover": {
             ...neonBorder(theme, "primary", true),
-            bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === "dark" ? 0.06 : 0.04),
+            bgcolor: alpha(theme.palette.primary.main, isDark ? 0.06 : 0.04),
           },
         },
       }}
@@ -161,7 +171,20 @@ const ContractListRow = ({
       </Box>
 
       {/* Acciones */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: { lg: "flex-end" } }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0.5,
+          justifyContent: { lg: "flex-end" },
+          pt: { xs: 1.25, lg: 0 },
+          mt: { xs: 0.25, lg: 0 },
+          borderTop: {
+            xs: `1px solid ${alpha(theme.palette.divider, isDark ? 0.55 : 0.7)}`,
+            lg: "none",
+          },
+        }}
+      >
         {isActivo && onEdit && (
           <Tooltip title="Editar">
             <IconButton size="small" onClick={() => onEdit(contrato)} sx={{ color: "primary.main" }}>

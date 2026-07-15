@@ -22,6 +22,7 @@ import {
 } from "@mui/icons-material"
 import Logo from "@/components/Logo"
 import AuthSplitLayout from "../components/auth/AuthSplitLayout"
+import RegisterPromoCTA from "../components/auth/RegisterPromoCTA"
 import { GlassTextField, GlowButton } from "../components/ui"
 
 const LOGIN_FEATURES = [
@@ -172,16 +173,7 @@ const Login = () => {
           {loading ? "Iniciando sesión…" : "Iniciar sesión"}
         </GlowButton>
 
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
-          ¿No tienes cuenta?{" "}
-          <Button
-            component={Link}
-            to="/register"
-            sx={{ textTransform: "none", fontWeight: 700, color: "primary.main", fontSize: "inherit", p: 0, minWidth: 0 }}
-          >
-            Regístrate aquí
-          </Button>
-        </Typography>
+        <RegisterPromoCTA />
 
         <Typography
           variant="caption"
