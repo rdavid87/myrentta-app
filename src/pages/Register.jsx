@@ -30,7 +30,7 @@ import Logo from "@/components/Logo"
 import AuthSplitLayout, { AuthThemeToggle } from "../components/auth/AuthSplitLayout"
 import AuthFormSection from "../components/auth/AuthFormSection"
 import LoginPromoCTA from "../components/auth/LoginPromoCTA"
-import { GlassTextField, GlowButton, FormHint, FormHintText } from "../components/ui"
+import { GlassTextField, GlowButton } from "../components/ui"
 import { ghostButtonSx, glassSurface } from "../components/ui/glassStyles"
 import { alpha, useTheme } from "@mui/material/styles"
 import { useAuthBackground } from "../components/auth/useAuthBackground"
@@ -364,12 +364,6 @@ const Register = () => {
             </Grid>
           </Grid>
         </AuthFormSection>
-
-        <FormHint tone="warning">
-          <FormHintText>
-            Tu cuenta quedará pendiente de activación. El administrador la habilitará después de confirmar tu pago.
-          </FormHintText>
-        </FormHint>
 
         <GlowButton
           type="submit"
