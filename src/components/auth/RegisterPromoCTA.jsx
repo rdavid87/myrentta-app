@@ -1,19 +1,26 @@
 import { Box, Typography } from "@mui/material"
-import { Link } from "react-router-dom"
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
 import { alpha, useTheme } from "@mui/material/styles"
 import { neonBorder } from "../ui/glassStyles"
 
-const RegisterPromoCTA = ({ to = "/register" }) => {
+const SITE_URL = "https://myrentta.com/"
+
+const RegisterPromoCTA = ({
+  href = SITE_URL,
+  title = "¿No tienes cuenta?",
+  label = "Elige tu plan",
+}) => {
   const theme = useTheme()
   const isDark = theme.palette.mode === "dark"
   const accent = theme.palette.primary.main
 
   return (
     <Box
-      component={Link}
-      to={to}
+      component="a"
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       sx={{
         display: "flex",
         alignItems: "center",
@@ -63,10 +70,10 @@ const RegisterPromoCTA = ({ to = "/register" }) => {
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.25 }}>
-          ¿No tienes cuenta?
+          {title}
         </Typography>
         <Typography variant="body2" fontWeight={800} sx={{ color: accent, lineHeight: 1.2 }}>
-          Regístrate aquí
+          {label}
         </Typography>
       </Box>
 
