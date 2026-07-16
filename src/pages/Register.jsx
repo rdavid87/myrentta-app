@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import api from "../services/api"
 import {
   Box,
@@ -44,6 +44,7 @@ const REGISTER_FEATURES = [
 const Register = () => {
   const theme = useTheme()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const backgroundUrl = useAuthBackground()
   const [form, setForm] = useState({
     full_name: "",
@@ -58,6 +59,8 @@ const Register = () => {
   const [userLogin, setUserLogin] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  const planId = searchParams.get("plan_id") || ""
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -84,13 +87,17 @@ const Register = () => {
 
     setLoading(true)
     try {
-      await api.post("/auth/register", {
+      const payload = {
         full_name: form.full_name,
         user_login: form.user_login,
         email: form.email || undefined,
         phone: "+57" + form.phone,
         password: form.password,
-      })
+      }
+      if (planId) {
+        payload.plan_id = Number(planId)
+      }
+      await api.post("/auth/register", payload)
 
       setUserLogin(form.user_login)
       setSuccess(true)
