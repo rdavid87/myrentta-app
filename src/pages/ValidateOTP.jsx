@@ -26,6 +26,7 @@ import {
 import { useColorMode } from "../hooks/useMode.jsx"
 import Logo from "@/components/Logo"
 
+const SITE_URL = "https://myrentta.com/"
 const ValidateOTP = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -486,7 +487,7 @@ const ValidateOTP = () => {
                 </Button>
               </Typography>
             </Box>
-
+                  
             <Typography sx={{
               textAlign: 'center',
               mt: { xs: 1, sm: 2 },
@@ -495,7 +496,7 @@ const ValidateOTP = () => {
               ¿Algo salió mal?{" "}
               <Button
                 component={Link}
-                to="/register"
+                to={SITE_URL}
                 sx={{
                   textTransform: 'none',
                   fontWeight: 600,
