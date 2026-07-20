@@ -77,12 +77,29 @@ const ApartmentCard = ({ apartamento, formatCurrency, onEdit, onDelete }) => {
           </Typography>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: apartamento.description ? 0.75 : 1.5 }}>
           <ApartmentIcon sx={{ fontSize: 16, color: "primary.main", flexShrink: 0 }} />
           <Typography variant="body2" color="text.secondary" fontWeight={500}>
             {apartamento.ciudad}
           </Typography>
         </Box>
+
+        {apartamento.description ? (
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mb: 1.5,
+              lineHeight: 1.4,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {apartamento.description}
+          </Typography>
+        ) : null}
 
         <Typography variant="h5" fontWeight={800} sx={{ color: "warning.main", lineHeight: 1.2 }}>
           {formatCurrency(apartamento.valor_arriendo)}
