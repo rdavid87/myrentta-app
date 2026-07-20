@@ -58,6 +58,7 @@ const Apartamentos = () => {
     nombre: "",
     direccion: "",
     ciudad: "",
+    description: "",
     valor_arriendo: "",
   })
 
@@ -115,7 +116,8 @@ const Apartamentos = () => {
       const matchesSearch =
         apt.nombre?.toLowerCase().includes(q) ||
         apt.ciudad?.toLowerCase().includes(q) ||
-        apt.direccion?.toLowerCase().includes(q)
+        apt.direccion?.toLowerCase().includes(q) ||
+        apt.description?.toLowerCase().includes(q)
 
       const matchesEstado =
         filterEstado === "todos" ||
@@ -154,20 +156,29 @@ const Apartamentos = () => {
       nombre: apartamento.nombre,
       direccion: apartamento.direccion,
       ciudad: apartamento.ciudad,
+      description: apartamento.description ?? "",
       valor_arriendo: apartamento.valor_arriendo.toString(),
     })
     setShowModal(true)
   }
 
+  const emptyForm = () => ({
+    nombre: "",
+    direccion: "",
+    ciudad: "",
+    description: "",
+    valor_arriendo: "",
+  })
+
   const closeModal = () => {
     setShowModal(false)
     setEditingId(null)
-    setFormData({ nombre: "", direccion: "", ciudad: "", valor_arriendo: "" })
+    setFormData(emptyForm())
   }
 
   const openNewModal = () => {
     setEditingId(null)
-    setFormData({ nombre: "", direccion: "", ciudad: "", valor_arriendo: "" })
+    setFormData(emptyForm())
     setShowModal(true)
   }
 
@@ -278,7 +289,7 @@ const Apartamentos = () => {
             <SearchField
               value={searchTerm}
               onChange={setSearchTerm}
-              placeholder="Buscar apartamento, dirección o ciudad…"
+              placeholder="Buscar apartamento, dirección, ciudad o descripción…"
             />
           </Box>
           <FilterPills options={filterOptions} value={filterEstado} onChange={setFilterEstado} />
@@ -362,6 +373,16 @@ const Apartamentos = () => {
               value={formData.direccion}
               onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
               required
+            />
+            <GlassTextField
+              label="Descripción"
+              placeholder="Ej: Amplio, cerca al metro, 2 habitaciones…"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              multiline
+              rows={3}
+              slotProps={{ htmlInput: { maxLength: 200 } }}
+              helperText={`${formData.description.length}/200`}
             />
           </FormSection>
 
