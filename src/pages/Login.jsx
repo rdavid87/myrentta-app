@@ -24,6 +24,7 @@ import Logo from "@/components/Logo"
 import AuthSplitLayout from "../components/auth/AuthSplitLayout"
 import RegisterPromoCTA from "../components/auth/RegisterPromoCTA"
 import { GlassTextField, GlowButton } from "../components/ui"
+import { SUBSCRIPTION_ERROR_MESSAGE, whatsappUrl } from "../utils/support"
 
 const LOGIN_FEATURES = [
   { icon: <ApartmentIcon />, label: "Registro de apartamentos", colorKey: "success" },
@@ -35,6 +36,7 @@ const Login = () => {
   const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [subscriptionError, setSubscriptionError] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -59,7 +61,9 @@ const Login = () => {
       navigate("/dashboard")
     } catch (err) {
       console.error("[Login] Error al iniciar sesión:", err.response?.status, err.response?.data || err.message)
-      setError(err.response?.data?.error || "Credenciales inválidas")
+      const msg = err.response?.data?.error || "Credenciales inválidas"
+      setError(msg)
+      setSubscriptionError(msg.toLowerCase().includes("suscripción no está activa"))
     } finally {
       setLoading(false)
     }
@@ -94,9 +98,18 @@ const Login = () => {
             {successMessage}
           </Alert>
         )}
-        {error && (
+        {(error || subscriptionError) && (
           <Alert severity="error" sx={{ borderRadius: "10px" }}>
-            {error}
+            {subscriptionError ? (
+              <>
+                {SUBSCRIPTION_ERROR_MESSAGE}{" "}
+                <Box component={Link} to={whatsappUrl || "/ayuda"} sx={{ color: "error.contrastText", fontWeight: 700, textDecoration: "underline" }}>
+                  Ayuda
+                </Box>
+              </>
+            ) : (
+              error
+            )}
           </Alert>
         )}
 

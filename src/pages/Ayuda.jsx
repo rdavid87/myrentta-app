@@ -4,28 +4,7 @@ import WhatsAppIcon from "@mui/icons-material/WhatsApp"
 import SupportAgentIcon from "@mui/icons-material/SupportAgent"
 import ScheduleIcon from "@mui/icons-material/Schedule"
 import HelpOutlineIcon from "@mui/icons-material/HelpOutlined"
-
-const SUPPORT_EMAIL =
-  import.meta.env.VITE_SUPPORT_EMAIL?.trim() || "soporte@myrentta.com"
-
-const SUPPORT_PHONE_DISPLAY =
-  import.meta.env.VITE_SUPPORT_PHONE_DISPLAY?.trim() || "+57 302 605 7156"
-
-const whatsappDigits = (
-  import.meta.env.VITE_SUPPORT_WHATSAPP?.trim() || "573026057156"
-).replace(/\D/g, "")
-
-const whatsappUrl = whatsappDigits
-  ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(
-      "Hola, necesito ayuda con MyRentta."
-    )}`
-  : null
-
-const mailtoHref = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
-  "Soporte MyRentta"
-)}&body=${encodeURIComponent(
-  "Hola,\n\nNecesito ayuda con:\n\n[Describe tu consulta]\n\nGracias."
-)}`
+import { SUPPORT_EMAIL, SUPPORT_PHONE_DISPLAY, mailtoHref, whatsappUrl } from "../utils/support"
 
 const Ayuda = () => {
   const cardSx = (accent) => ({
