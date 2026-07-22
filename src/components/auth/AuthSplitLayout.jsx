@@ -6,6 +6,7 @@ import { useColorMode } from "../../hooks/useMode.jsx"
 import { glassSurface } from "../ui/glassStyles"
 import AuthWelcomePanel from "./AuthWelcomePanel"
 import { useAuthBackground } from "./useAuthBackground"
+import FloatingWhatsApp from "../FloatingWhatsApp"
 
 export const AuthThemeToggle = () => {
   const { mode, toggleMode } = useColorMode()
@@ -118,6 +119,7 @@ const AuthSplitLayout = ({
           <Box sx={{ width: "100%", maxWidth: maxFormWidth }}>{children}</Box>
         </Box>
       </Box>
+      <FloatingWhatsApp />
     </Box>
   )
 }

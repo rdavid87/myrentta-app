@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import api from "../services/api"
 import {
   Box,
@@ -49,8 +50,9 @@ const Subscriptions = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "-"
-    const date = new Date(dateString)
-    return date.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
+    const [year, month, day] = dateString.split("-").map(Number)
+    if (!year || !month || !day) return "-"
+    return new Date(year, month - 1, day).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
   }
 
   const getStatusColor = (status) => {
@@ -145,6 +147,18 @@ const Subscriptions = () => {
   const accent = subscription ? getStatusAccent(subscription.status) : "primary.main"
   const statusColor = subscription ? getStatusColor(subscription.status) : "primary"
 
+  const todayStr = new Date().toISOString().split("T")[0]
+  const trialEnd = subscription?.trial_end ? new Date(subscription.trial_end + "T00:00:00") : null
+  const isTrialExpired =
+    subscription?.status?.toLowerCase() === "trialing" &&
+    subscription?.trial_end &&
+    subscription.trial_end < todayStr
+  const isTrialExpiring =
+    subscription?.status?.toLowerCase() === "trialing" &&
+    trialEnd &&
+    !isTrialExpired &&
+    (trialEnd.getTime() - new Date(todayStr + "T00:00:00").getTime()) / (1000 * 60 * 60 * 24) <= 2
+
   return (
     <Box sx={{ minHeight: "100vh", py: { xs: 2, md: 3 }, px: { xs: 1.5, sm: 2 } }}>
       <Box sx={{ maxWidth: "lg", mx: "auto" }}>
@@ -155,6 +169,15 @@ const Subscriptions = () => {
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
             {error}
+          </Alert>
+        )}
+
+        {(isTrialExpired || isTrialExpiring) && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            Tu periodo de prueba ha finalizado. Actualiza o renueva tu plan para continuar.{" "}
+            <Link to="/ayuda" style={{ color: "inherit", fontWeight: 700, textDecoration: "underline" }}>
+              Ayuda
+            </Link>
           </Alert>
         )}
 
@@ -233,18 +256,6 @@ const Subscriptions = () => {
                       </Typography>
                     </Box>
 
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <NumbersIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-                        <Typography variant="caption" color="text.secondary" sx={labelSx}>
-                          Cantidad
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        {subscription.quantity}
-                      </Typography>
-                    </Box>
-
                     <Box
                       sx={{
                         display: "flex",
@@ -273,7 +284,7 @@ const Subscriptions = () => {
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <PersonIcon sx={{ fontSize: 16, color: "primary.main" }} />
                           <Typography variant="caption" color="text.secondary" sx={labelSx}>
-                            Tenante
+                            Cliente
                           </Typography>
                         </Box>
                         <Typography variant="body2" fontWeight="medium" color="primary.main" noWrap>
@@ -287,7 +298,7 @@ const Subscriptions = () => {
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <TagIcon sx={{ fontSize: 16, color: "text.secondary" }} />
                           <Typography variant="caption" color="text.secondary" sx={labelSx}>
-                            Código cliente
+                            Código
                           </Typography>
                         </Box>
                         <Typography variant="body2" fontWeight="medium">
@@ -368,17 +379,6 @@ const Subscriptions = () => {
                         </Typography>
                         <Typography variant="body2" fontWeight="bold" color="warning.main">
                           {formatDate(subscription.trial_end)}
-                        </Typography>
-                      </Box>
-                    )}
-
-                    {subscription.current_period_end && (
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
-                        <Typography variant="caption" color="text.secondary" sx={labelSx}>
-                          Fin período
-                        </Typography>
-                        <Typography variant="body2" fontWeight="medium" color="primary.main">
-                          {formatDate(subscription.current_period_end)}
                         </Typography>
                       </Box>
                     )}

@@ -32,6 +32,7 @@ import ListItemText from "@mui/material/ListItemText"
 import Divider from "@mui/material/Divider"
 import { HexLogo, NavIconButton } from "./ui"
 import { glassSurface } from "./ui/glassStyles"
+import FloatingWhatsApp from "./FloatingWhatsApp"
 
 const SIDEBAR_WIDTH = 88
 const SIDEBAR_WIDTH_MOBILE = 280
@@ -298,8 +299,10 @@ const Layout = () => {
         </>
       )}
 
-      <Main sx={{ pt: { xs: 8, sm: 3 } }}>
-        <Outlet />
+      <Main sx={{ pt: { xs: 8, sm: 3 }, display: "flex", flexDirection: "column" }}>
+        <Box sx={{ flex: 1 }}>
+          <Outlet />
+        </Box>
         <Box
           component="footer"
           sx={{
@@ -313,6 +316,7 @@ const Layout = () => {
           </Typography>
         </Box>
       </Main>
+      <FloatingWhatsApp />
     </Box>
   )
 }

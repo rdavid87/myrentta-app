@@ -23,6 +23,7 @@ import {
   Brightness7,
 } from '@mui/icons-material'
 import { useColorMode } from "../hooks/useMode.jsx"
+import FloatingWhatsApp from "../components/FloatingWhatsApp"
 
 const ResetPassword = () => {
   const navigate = useNavigate()
@@ -545,6 +546,7 @@ const ResetPassword = () => {
           </Box>
         </Box>
       </Paper>
+      <FloatingWhatsApp />
     </Box>
   )
 }

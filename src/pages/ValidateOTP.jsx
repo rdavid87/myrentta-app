@@ -25,6 +25,7 @@ import {
 } from '@mui/icons-material'
 import { useColorMode } from "../hooks/useMode.jsx"
 import Logo from "@/components/Logo"
+import FloatingWhatsApp from "../components/FloatingWhatsApp"
 
 const SITE_URL = "https://myrentta.com/"
 const ValidateOTP = () => {
@@ -519,6 +520,7 @@ const ValidateOTP = () => {
           </Box>
         </Box>
       </Paper>
+      <FloatingWhatsApp />
     </Box>
   )
 }
