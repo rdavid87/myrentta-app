@@ -49,8 +49,9 @@ const Subscriptions = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "-"
-    const date = new Date(dateString)
-    return date.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
+    const [year, month, day] = dateString.split("-").map(Number)
+    if (!year || !month || !day) return "-"
+    return new Date(year, month - 1, day).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
   }
 
   const getStatusColor = (status) => {
@@ -233,18 +234,6 @@ const Subscriptions = () => {
                       </Typography>
                     </Box>
 
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <NumbersIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-                        <Typography variant="caption" color="text.secondary" sx={labelSx}>
-                          Cantidad
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        {subscription.quantity}
-                      </Typography>
-                    </Box>
-
                     <Box
                       sx={{
                         display: "flex",
@@ -273,7 +262,7 @@ const Subscriptions = () => {
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <PersonIcon sx={{ fontSize: 16, color: "primary.main" }} />
                           <Typography variant="caption" color="text.secondary" sx={labelSx}>
-                            Tenante
+                            Cliente
                           </Typography>
                         </Box>
                         <Typography variant="body2" fontWeight="medium" color="primary.main" noWrap>
@@ -287,7 +276,7 @@ const Subscriptions = () => {
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <TagIcon sx={{ fontSize: 16, color: "text.secondary" }} />
                           <Typography variant="caption" color="text.secondary" sx={labelSx}>
-                            Código cliente
+                            Código
                           </Typography>
                         </Box>
                         <Typography variant="body2" fontWeight="medium">
