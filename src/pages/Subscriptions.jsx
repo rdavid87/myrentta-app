@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import api from "../services/api"
 import {
   Box,
@@ -146,6 +147,18 @@ const Subscriptions = () => {
   const accent = subscription ? getStatusAccent(subscription.status) : "primary.main"
   const statusColor = subscription ? getStatusColor(subscription.status) : "primary"
 
+  const todayStr = new Date().toISOString().split("T")[0]
+  const trialEnd = subscription?.trial_end ? new Date(subscription.trial_end + "T00:00:00") : null
+  const isTrialExpired =
+    subscription?.status?.toLowerCase() === "trialing" &&
+    subscription?.trial_end &&
+    subscription.trial_end < todayStr
+  const isTrialExpiring =
+    subscription?.status?.toLowerCase() === "trialing" &&
+    trialEnd &&
+    !isTrialExpired &&
+    (trialEnd.getTime() - new Date(todayStr + "T00:00:00").getTime()) / (1000 * 60 * 60 * 24) <= 2
+
   return (
     <Box sx={{ minHeight: "100vh", py: { xs: 2, md: 3 }, px: { xs: 1.5, sm: 2 } }}>
       <Box sx={{ maxWidth: "lg", mx: "auto" }}>
@@ -156,6 +169,15 @@ const Subscriptions = () => {
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
             {error}
+          </Alert>
+        )}
+
+        {(isTrialExpired || isTrialExpiring) && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            Tu periodo de prueba ha finalizado. Actualiza o renueva tu plan para continuar.{" "}
+            <Link to="/ayuda" style={{ color: "inherit", fontWeight: 700, textDecoration: "underline" }}>
+              Ayuda
+            </Link>
           </Alert>
         )}
 
