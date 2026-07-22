@@ -360,17 +360,6 @@ const Subscriptions = () => {
                         </Typography>
                       </Box>
                     )}
-
-                    {subscription.current_period_end && (
-                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
-                        <Typography variant="caption" color="text.secondary" sx={labelSx}>
-                          Fin período
-                        </Typography>
-                        <Typography variant="body2" fontWeight="medium" color="primary.main">
-                          {formatDate(subscription.current_period_end)}
-                        </Typography>
-                      </Box>
-                    )}
                   </Box>
                 </CardContent>
               </Card>
