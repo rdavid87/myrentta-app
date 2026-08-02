@@ -5,7 +5,7 @@ const ColorModeContext = createContext();
 export const ColorModeProvider = ({ children }) => {
   const [mode, setMode] = useState(() => {
     const saved = localStorage.getItem("myrentta-color-mode");
-    return saved === "light" ? "light" : "dark";
+    return saved === "dark" ? "dark" : "light";
   });
 
   const toggleMode = () => {

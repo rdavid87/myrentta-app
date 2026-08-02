@@ -57,7 +57,11 @@ const Login = () => {
     setLoading(true)
 
     try {
-      await login(identifier, password)
+      const result = await login(identifier, password)
+      if (result && result.requires_otp) {
+        navigate(`/validate-otp?user_login=${encodeURIComponent(result.user_login)}`)
+        return
+      }
       navigate("/dashboard")
     } catch (err) {
       console.error("[Login] Error al iniciar sesión:", err.response?.status, err.response?.data || err.message)

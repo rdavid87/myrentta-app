@@ -38,6 +38,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password) => {
     const { data } = await api.post("/auth/login", { identifier, password })
+    if (data.requires_otp) {
+      return data
+    }
     setToken(data.token)
     setUser(data.usuario)
     localStorage.setItem("token", data.token)
