@@ -14,6 +14,7 @@ import Apartamentos from "./pages/Apartamentos"
 import Arrendatarios from "./pages/Arrendatarios"
 import Contratos from "./pages/Contratos"
 import Pagos from "./pages/Pagos"
+import Notificaciones from "./pages/Notificaciones"
 import Ayuda from "./pages/Ayuda"
 import ShareTarget from "./pages/ShareTarget"
 import Subscriptions from "./pages/Subscriptions"
@@ -51,6 +52,7 @@ function AppContent() {
             <Route path="/arrendatarios" element={<Arrendatarios />} />
             <Route path="/contratos" element={<Contratos />} />
             <Route path="/pagos" element={<Pagos />} />
+            <Route path="/notificaciones" element={<Notificaciones />} />
             <Route path="/ayuda" element={<Ayuda />} />
             <Route path="/suscripcion" element={<Subscriptions />} />
             <Route path="/configuraciones" element={<Navigate to="/ayuda" replace />} />
