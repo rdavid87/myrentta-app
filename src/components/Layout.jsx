@@ -21,6 +21,7 @@ import DescriptionIcon from "@mui/icons-material/Description"
 import PaymentIcon from "@mui/icons-material/Payment"
 import HelpIcon from "@mui/icons-material/Help"
 import ReceiptIcon from "@mui/icons-material/Receipt"
+import NotificationsIcon from "@mui/icons-material/Notifications"
 import Avatar from "@mui/material/Avatar"
 import Button from "@mui/material/Button"
 import useMediaQuery from "@mui/material/useMediaQuery"
@@ -62,14 +63,15 @@ const Layout = () => {
   const { mode, toggleMode } = useColorMode()
 
   const navItems = [
-    { path: "/dashboard", label: "Inicio", icon: <HomeIcon /> },
-    { path: "/apartamentos", label: "Apartamentos", icon: <ApartmentIcon /> },
-    { path: "/arrendatarios", label: "Arrendatarios", icon: <PeopleTwoToneIcon /> },
-    { path: "/contratos", label: "Contratos", icon: <DescriptionIcon /> },
-    { path: "/pagos", label: "Pagos", icon: <PaymentIcon /> },
-    { path: "/suscripcion", label: "Suscripción", icon: <ReceiptIcon /> },
-    { path: "/ayuda", label: "Ayuda", icon: <HelpIcon /> },
-  ]
+  { path: "/dashboard", label: "Inicio", icon: <HomeIcon /> },
+  { path: "/apartamentos", label: "Apartamentos", icon: <ApartmentIcon /> },
+  { path: "/arrendatarios", label: "Arrendatarios", icon: <PeopleTwoToneIcon /> },
+  { path: "/contratos", label: "Contratos", icon: <DescriptionIcon /> },
+  { path: "/pagos", label: "Pagos", icon: <PaymentIcon /> },
+  { path: "/notificaciones", label: "Notificaciones", icon: <NotificationsIcon /> },
+  { path: "/suscripcion", label: "Suscripción", icon: <ReceiptIcon /> },
+  { path: "/ayuda", label: "Ayuda", icon: <HelpIcon /> },
+]
 
   const isActivePath = (path) => location.pathname === path
 
