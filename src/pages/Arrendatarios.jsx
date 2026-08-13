@@ -28,6 +28,11 @@ import {
 } from "../components/ui"
 import { ghostButtonSx } from "../components/ui/glassStyles"
 import { alpha, useTheme } from "@mui/material/styles"
+import {
+  isValidColombianMobile,
+  PHONE_ERROR_MESSAGE,
+  sanitizePhoneInput,
+} from "../utils/phone"
 
 const resolveApartamentoNombre = (apt = {}) => {
   const directCandidates = [apt.name, apt.nombre]
@@ -177,11 +182,20 @@ const Arrendatarios = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    const telefono = sanitizePhoneInput(formData.telefono)
+    if (!isValidColombianMobile(telefono)) {
+      alert(PHONE_ERROR_MESSAGE)
+      return
+    }
+
+    const payload = { ...formData, telefono }
+
     try {
       if (editingId) {
-        await api.put(`/arrendatarios/${editingId}`, formData)
+        await api.put(`/arrendatarios/${editingId}`, payload)
       } else {
-        await api.post("/arrendatarios", formData)
+        await api.post("/arrendatarios", payload)
       }
       closeModal()
       fetchData()
@@ -196,7 +210,7 @@ const Arrendatarios = () => {
     setFormData({
       nombre_completo: arrendatario.nombre_completo,
       documento_identidad: arrendatario.documento_identidad,
-      telefono: arrendatario.telefono,
+      telefono: sanitizePhoneInput(arrendatario.telefono),
       email: arrendatario.email,
     })
     setShowModal(true)
@@ -518,7 +532,24 @@ const Arrendatarios = () => {
                 label="Teléfono"
                 placeholder="Ej: 3001234567"
                 value={formData.telefono}
-                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, telefono: sanitizePhoneInput(e.target.value) })
+                }
+                slotProps={{
+                  htmlInput: {
+                    inputMode: "numeric",
+                    minLength: 10,
+                    maxLength: 10,
+                    pattern: "[0-9]{10}",
+                    title: "Debe tener exactamente 10 dígitos",
+                  },
+                }}
+                error={formData.telefono.length > 0 && !isValidColombianMobile(formData.telefono)}
+                helperText={
+                  formData.telefono.length > 0 && !isValidColombianMobile(formData.telefono)
+                    ? PHONE_ERROR_MESSAGE
+                    : "Obligatorio: exactamente 10 dígitos"
+                }
                 required
               />
               <GlassTextField
