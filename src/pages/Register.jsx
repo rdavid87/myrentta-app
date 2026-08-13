@@ -28,6 +28,11 @@ import {
 } from "@mui/icons-material"
 import Logo from "@/components/Logo"
 import AuthSplitLayout, { AuthThemeToggle } from "../components/auth/AuthSplitLayout"
+import {
+  isValidColombianMobile,
+  PHONE_ERROR_MESSAGE,
+  sanitizePhoneInput,
+} from "../utils/phone"
 import AuthFormSection from "../components/auth/AuthFormSection"
 import LoginPromoCTA from "../components/auth/LoginPromoCTA"
 import { GlassTextField, GlowButton } from "../components/ui"
@@ -67,7 +72,7 @@ const Register = () => {
   }
 
   const handleChangeMobile = (e) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 10)
+    const value = sanitizePhoneInput(e.target.value)
     setForm((prev) => ({ ...prev, phone: value }))
   }
 
@@ -82,6 +87,11 @@ const Register = () => {
 
     if (form.password.length < 6) {
       setError("La contraseña debe tener al menos 6 caracteres")
+      return
+    }
+
+    if (!isValidColombianMobile(form.phone)) {
+      setError(PHONE_ERROR_MESSAGE)
       return
     }
 
@@ -268,7 +278,20 @@ const Register = () => {
                 onChange={handleChangeMobile}
                 placeholder="3001234567"
                 required
+                error={form.phone.length > 0 && !isValidColombianMobile(form.phone)}
+                helperText={
+                  form.phone.length > 0 && !isValidColombianMobile(form.phone)
+                    ? PHONE_ERROR_MESSAGE
+                    : "Obligatorio: exactamente 10 dígitos"
+                }
                 slotProps={{
+                  htmlInput: {
+                    inputMode: "numeric",
+                    minLength: 10,
+                    maxLength: 10,
+                    pattern: "[0-9]{10}",
+                    title: "Debe tener exactamente 10 dígitos",
+                  },
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
