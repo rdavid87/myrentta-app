@@ -9,12 +9,12 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp"
 import { alpha, useTheme } from "@mui/material/styles"
 import StatusBadge from "../ui/StatusBadge"
 import { neonBorder } from "../ui/glassStyles"
+import { formatContractDateRange } from "../../utils/contractperiod"
 
-const LIST_COLUMNS = "minmax(180px,1.4fr) minmax(160px,1.2fr) minmax(130px,1fr) minmax(110px,0.8fr) minmax(100px,0.7fr) auto"
+const LIST_COLUMNS = "minmax(180px,1.4fr) minmax(160px,1.2fr) minmax(230px,1.5fr) minmax(110px,0.8fr) minmax(100px,0.7fr) auto"
 
 const ContractListRow = ({
   contrato,
-  formatDate,
   formatCurrency,
   onEdit,
   onMore,
@@ -113,45 +113,23 @@ const ContractListRow = ({
       </Box>
 
       {/* Periodo */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: { xs: 1.5, lg: 0 }, minWidth: 0 }}>
+      <Box sx={{ mb: { xs: 1.5, lg: 0 }, minWidth: 0 }}>
         <Box
           sx={{
-            width: 32,
-            height: 32,
-            borderRadius: "8px",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            bgcolor: alpha(theme.palette.info.main, 0.1),
-            color: "info.main",
-            border: `1px solid ${alpha(theme.palette.info.main, 0.25)}`,
+            gap: 0.75,
+            px: 1.25,
+            py: 0.85,
+            minHeight: 40,
+            borderRadius: "8px",
+            bgcolor: alpha(accent, 0.06),
+            border: `1px solid ${alpha(accent, 0.35)}`,
           }}
         >
-          <CalendarMonthIcon sx={{ fontSize: 16 }} />
-        </Box>
-        <Box sx={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 0.35 }}>
-          <Typography
-            variant="caption"
-            sx={{ color: "text.primary", fontWeight: 600, lineHeight: 1.3, whiteSpace: "nowrap" }}
-          >
-            {formatDate(contrato.fecha_inicio)}
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{
-              color: "text.secondary",
-              lineHeight: 1.3,
-              whiteSpace: "nowrap",
-              display: "flex",
-              alignItems: "center",
-              gap: 0.5,
-            }}
-          >
-            <Box component="span" sx={{ color: "primary.main", fontWeight: 700, opacity: 0.8 }}>
-              →
-            </Box>
-            {formatDate(contrato.fecha_fin)}
+          <CalendarMonthIcon sx={{ fontSize: 16, color: accent, flexShrink: 0 }} />
+          <Typography variant="caption" sx={{ fontWeight: 600, color: "text.primary", lineHeight: 1.3, whiteSpace: "nowrap" }}>
+            {formatContractDateRange(contrato.fecha_inicio, contrato.fecha_fin)}
           </Typography>
         </Box>
       </Box>

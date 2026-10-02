@@ -116,7 +116,7 @@ const Contratos = () => {
   const listColumns = [
     { key: "arrendatario", label: "Arrendatario", width: "minmax(180px,1.4fr)" },
     { key: "apartamento", label: "Apartamento", width: "minmax(160px,1.2fr)" },
-    { key: "periodo", label: "Periodo", width: "minmax(130px,1fr)" },
+    { key: "periodo", label: "Periodo", width: "minmax(230px,1.5fr)" },
     { key: "canon", label: "Renta mensual", width: "minmax(110px,0.8fr)" },
     { key: "estado", label: "Estado", width: "minmax(100px,0.7fr)" },
     { key: "acciones", label: "Acciones", width: "auto" },
@@ -558,8 +558,6 @@ const Contratos = () => {
       </Grid>
 
       <PageHeader
-        title="Contratos de Arrendamiento"
-        subtitle="Gestiona los contratos de renta de apartamentos"
         action={
           <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
             Nuevo Contrato
@@ -615,7 +613,6 @@ const Contratos = () => {
               <ContractListRow
                 key={contrato.id}
                 contrato={contrato}
-                formatDate={formatDate}
                 formatCurrency={formatCurrency}
                 onEdit={openEditModal}
                 onMore={openMoreMenu}

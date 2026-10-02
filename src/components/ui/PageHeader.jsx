@@ -44,36 +44,40 @@ const SearchField = ({ value, onChange, placeholder = "Buscar…", fullWidth = t
 
 const PageHeader = ({ title, subtitle, action, children }) => (
   <Box sx={{ mb: 3 }}>
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: { xs: "column", sm: "row" },
-        justifyContent: "space-between",
-        alignItems: { xs: "stretch", sm: "flex-start" },
-        gap: 2,
-        mb: children ? 2.5 : 0,
-      }}
-    >
-      <Box>
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 800,
-            fontFamily: '"Plus Jakarta Sans", sans-serif',
-            letterSpacing: "-0.02em",
-            color: "text.primary",
-          }}
-        >
-          {title}
-        </Typography>
-        {subtitle && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {subtitle}
-          </Typography>
+    {(title || action) && (
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: 2,
+          mb: children ? 2.5 : 0,
+        }}
+      >
+        {title && (
+          <Box>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 800,
+                fontFamily: '"Plus Jakarta Sans", sans-serif',
+                letterSpacing: "-0.02em",
+                color: "text.primary",
+              }}
+            >
+              {title}
+            </Typography>
+            {subtitle && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {subtitle}
+              </Typography>
+            )}
+          </Box>
         )}
+        {action && <Box sx={{ flexShrink: 0, ml: "auto" }}>{action}</Box>}
       </Box>
-      {action && <Box sx={{ flexShrink: 0 }}>{action}</Box>}
-    </Box>
+    )}
     {children}
   </Box>
 )

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { Link, useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
 import api from "../services/api"
 import VerificarMoraResultModal from "../components/VerificarMoraResultModal"
 import EditarPago from "../components/pagos/EditarPago"
@@ -673,27 +673,21 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
       </Grid>
 
       <PageHeader
-        title="Gestión de Pagos"
-        subtitle={
-          <>
-            Módulo de finanzas ·{" "}
-            <Link to="/ayuda" style={{ color: "inherit" }}>
-              Contactar soporte (Ayuda)
-            </Link>
-          </>
-        }
         action={
-          <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", gap: { xs: 1, sm: 1.5 }, flexWrap: "nowrap" }}>
             <Button
               variant="outlined"
+              size="small"
               onClick={handleVerificarMora}
               disabled={verificandoMora}
-              sx={ghostButtonSx(theme)}
+              sx={{ ...ghostButtonSx(theme), whiteSpace: "nowrap" }}
             >
               {verificandoMora ? "Verificando..." : "Verificar Mora"}
             </Button>
             <GlowButton
+              size="small"
               startIcon={<AddIcon />}
+              sx={{ whiteSpace: "nowrap" }}
               onClick={() => {
                 setCuotasAlta(null)
                 setCuotasAltaLoading(false)

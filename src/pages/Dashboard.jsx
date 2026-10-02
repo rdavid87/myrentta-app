@@ -181,8 +181,6 @@ const Dashboard = () => {
   return (
     <Box sx={{ maxWidth: 1400, mx: "auto", width: "100%", minWidth: 0 }}>
       <PageHeader
-        title="Inicio"
-        subtitle="Panel general"
         action={
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
