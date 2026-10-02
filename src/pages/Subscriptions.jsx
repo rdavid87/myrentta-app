@@ -162,10 +162,6 @@ const Subscriptions = () => {
   return (
     <Box sx={{ minHeight: "100vh", py: { xs: 2, md: 3 }, px: { xs: 1.5, sm: 2 } }}>
       <Box sx={{ maxWidth: "lg", mx: "auto" }}>
-        <Typography variant="h4" sx={{ mb: 3, fontWeight: 700, color: "text.primary" }}>
-          Mi Suscripción
-        </Typography>
-
         {error && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
             {error}
@@ -231,6 +227,9 @@ const Subscriptions = () => {
                   </Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary" }} noWrap>
+                      <Box component="span" sx={{ color: "text.secondary", fontWeight: 500 }}>
+                        Plan:
+                      </Box>{" "}
                       {subscription.plan_name}
                     </Typography>
                     <Chip
