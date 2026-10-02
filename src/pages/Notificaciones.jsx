@@ -321,13 +321,14 @@ const Notificaciones = () => {
     })
   }, [items, searchTerm, filterEstado, filterCanal])
 
-  const formatDate = (fecha) => {
-    if (!fecha) return "—"
-    return new Intl.DateTimeFormat("es-CO", {
+  const formatDate = (iso, timeZone = "America/Bogota") => {
+  if (!iso) return "";
+  return new Intl.DateTimeFormat("es-CO", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(fecha));
-  }
+    timeZone,
+  }).format(new Date(iso));
+};
 
   if (loading) {
     return (
