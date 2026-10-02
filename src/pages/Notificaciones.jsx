@@ -323,16 +323,10 @@ const Notificaciones = () => {
 
   const formatDate = (fecha) => {
     if (!fecha) return "—"
-    try {
-      const d = new Date(fecha)
-      return d.toLocaleString("es-CO", {
-        dateStyle: "short",
-        timeStyle: "short",
-        hour12: true,
-      })
-    } catch {
-      return fecha
-    }
+    return new Intl.DateTimeFormat("es-CO", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(fecha));
   }
 
   if (loading) {
