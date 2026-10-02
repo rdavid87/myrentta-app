@@ -674,17 +674,20 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
 
       <PageHeader
         action={
-          <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", gap: { xs: 1, sm: 1.5 }, flexWrap: "nowrap" }}>
             <Button
               variant="outlined"
+              size="small"
               onClick={handleVerificarMora}
               disabled={verificandoMora}
-              sx={ghostButtonSx(theme)}
+              sx={{ ...ghostButtonSx(theme), whiteSpace: "nowrap" }}
             >
               {verificandoMora ? "Verificando..." : "Verificar Mora"}
             </Button>
             <GlowButton
+              size="small"
               startIcon={<AddIcon />}
+              sx={{ whiteSpace: "nowrap" }}
               onClick={() => {
                 setCuotasAlta(null)
                 setCuotasAltaLoading(false)

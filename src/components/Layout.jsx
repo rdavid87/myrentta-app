@@ -22,7 +22,7 @@ import PaymentIcon from "@mui/icons-material/Payment"
 import HelpIcon from "@mui/icons-material/Help"
 import ReceiptIcon from "@mui/icons-material/Receipt"
 import NotificationsIcon from "@mui/icons-material/Notifications"
-import Avatar from "@mui/material/Avatar"
+import Badge from "@mui/material/Badge"
 import Button from "@mui/material/Button"
 import useMediaQuery from "@mui/material/useMediaQuery"
 import List from "@mui/material/List"
@@ -34,6 +34,7 @@ import Divider from "@mui/material/Divider"
 import { HexLogo, NavIconButton } from "./ui"
 import { glassSurface } from "./ui/glassStyles"
 import FloatingWhatsApp from "./FloatingWhatsApp"
+import useUnseenNotifications from "../hooks/useUnseenNotifications"
 
 const SIDEBAR_WIDTH = 88
 const SIDEBAR_WIDTH_MOBILE = 280
@@ -61,6 +62,14 @@ const Layout = () => {
   const isDesktop = useMediaQuery(theme.breakpoints.up("sm"))
   const [mobileOpen, setMobileOpen] = useState(false)
   const { mode, toggleMode } = useColorMode()
+  const unseenCount = useUnseenNotifications(user?.id ?? user?.email, location.pathname === "/notificaciones")
+
+  // Shared bell icon with a red dot when there are unseen notifications (header, sidebar and drawer)
+  const renderNotificationsIcon = () => (
+    <Badge variant="dot" color="error" invisible={unseenCount === 0}>
+      <NotificationsIcon />
+    </Badge>
+  )
 
   const navItems = [
   { path: "/dashboard", label: "Inicio", icon: <HomeIcon /> },
@@ -68,7 +77,7 @@ const Layout = () => {
   { path: "/arrendatarios", label: "Arrendatarios", icon: <PeopleTwoToneIcon /> },
   { path: "/contratos", label: "Contratos", icon: <DescriptionIcon /> },
   { path: "/pagos", label: "Pagos", icon: <PaymentIcon /> },
-  { path: "/notificaciones", label: "Notificaciones", icon: <NotificationsIcon /> },
+  { path: "/notificaciones", label: "Notificaciones", icon: renderNotificationsIcon() },
   { path: "/suscripcion", label: "Suscripción", icon: <ReceiptIcon /> },
   { path: "/ayuda", label: "Ayuda", icon: <HelpIcon /> },
 ]
@@ -241,9 +250,14 @@ const Layout = () => {
             </IconButton>
             <HexLogo size={36} />
             <Box sx={{ flex: 1 }} />
-            <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: "0.875rem" }}>
-              {user?.full_name?.charAt(0) || "U"}
-            </Avatar>
+            <IconButton
+              component={Link}
+              to="/notificaciones"
+              aria-label={unseenCount > 0 ? "Notificaciones nuevas" : "Notificaciones"}
+              sx={{ color: isActivePath("/notificaciones") ? "primary.main" : "text.secondary" }}
+            >
+              {renderNotificationsIcon()}
+            </IconButton>
           </Box>
 
           <Drawer

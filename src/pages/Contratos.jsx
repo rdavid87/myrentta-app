@@ -557,7 +557,13 @@ const Contratos = () => {
         </Grid>
       </Grid>
 
-      <PageHeader>
+      <PageHeader
+        action={
+          <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
+            Nuevo Contrato
+          </GlowButton>
+        }
+      >
         <Box
           sx={{
             display: "flex",
@@ -574,9 +580,6 @@ const Contratos = () => {
             />
           </Box>
           <FilterPills options={filterOptions} value={filterEstado} onChange={handleFilterChange} />
-          <GlowButton startIcon={<AddIcon />} onClick={openNewModal} sx={{ flexShrink: 0 }}>
-            Nuevo Contrato
-          </GlowButton>
         </Box>
         {(searchTerm || filterEstado !== "todos") && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>

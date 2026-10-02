@@ -48,9 +48,9 @@ const PageHeader = ({ title, subtitle, action, children }) => (
       <Box
         sx={{
           display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
+          flexWrap: "wrap",
           justifyContent: "space-between",
-          alignItems: { xs: "stretch", sm: "flex-start" },
+          alignItems: "flex-start",
           gap: 2,
           mb: children ? 2.5 : 0,
         }}
@@ -75,7 +75,7 @@ const PageHeader = ({ title, subtitle, action, children }) => (
             )}
           </Box>
         )}
-        {action && <Box sx={{ flexShrink: 0, ml: { sm: "auto" } }}>{action}</Box>}
+        {action && <Box sx={{ flexShrink: 0, ml: "auto" }}>{action}</Box>}
       </Box>
     )}
     {children}
