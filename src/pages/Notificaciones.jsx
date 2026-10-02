@@ -321,19 +321,14 @@ const Notificaciones = () => {
     })
   }, [items, searchTerm, filterEstado, filterCanal])
 
-  const formatDate = (fecha) => {
-    if (!fecha) return "—"
-    try {
-      const d = new Date(fecha)
-      return d.toLocaleString("es-CO", {
-        dateStyle: "short",
-        timeStyle: "short",
-        hour12: true,
-      })
-    } catch {
-      return fecha
-    }
-  }
+  const formatDate = (iso, timeZone = "America/Bogota") => {
+  if (!iso) return "";
+  return new Intl.DateTimeFormat("es-CO", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone,
+  }).format(new Date(iso));
+};
 
   if (loading) {
     return (
