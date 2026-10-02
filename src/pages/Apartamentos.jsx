@@ -269,8 +269,6 @@ const Apartamentos = () => {
       </Grid>
 
       <PageHeader
-        title="Apartamentos"
-        subtitle="Módulo de propiedades"
         action={
           <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
             Nuevo Apartamento

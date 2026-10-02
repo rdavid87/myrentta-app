@@ -316,8 +316,6 @@ const Arrendatarios = () => {
       </Grid>
 
       <PageHeader
-        title="Arrendatarios"
-        subtitle="Gestiona la información de tus inquilinos"
         action={
           <GlowButton startIcon={<AddIcon />} onClick={openNewModal}>
             Nuevo Arrendatario

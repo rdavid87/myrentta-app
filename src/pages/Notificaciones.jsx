@@ -346,8 +346,6 @@ const Notificaciones = () => {
   return (
     <Box sx={{ maxWidth: 1100, mx: "auto", width: "100%", minWidth: 0, overflow: "hidden" }}>
       <PageHeader
-        title="Notificaciones"
-        subtitle="Historial de envíos"
         action={
           <Button
             variant="outlined"

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { Link, useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
 import api from "../services/api"
 import VerificarMoraResultModal from "../components/VerificarMoraResultModal"
 import EditarPago from "../components/pagos/EditarPago"
@@ -673,15 +673,6 @@ await api.put(`/pagos/${pagoToEdit.id}`, payload)
       </Grid>
 
       <PageHeader
-        title="Gestión de Pagos"
-        subtitle={
-          <>
-            Módulo de finanzas ·{" "}
-            <Link to="/ayuda" style={{ color: "inherit" }}>
-              Contactar soporte (Ayuda)
-            </Link>
-          </>
-        }
         action={
           <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
             <Button

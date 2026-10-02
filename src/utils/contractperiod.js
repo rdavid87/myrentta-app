@@ -3,6 +3,7 @@
  * Inclusive period end = anniversary day minus one calendar day.
  */
 import { addDiasCalendario, formatFechaUTC, inicioDiaUTC } from "./fechas.js"
+import { getMonthName } from "./periodoCuota.js"
 
 /** @param {string|Date} date */
 export function formatDateInput(date) {
@@ -90,3 +91,23 @@ export function inclusiveEndHint(fechaInicio, fechaFin) {
   if (!adjusted) return null
   return `El periodo inclusivo termina el día anterior al aniversario: se guardará como ${formatFechaUTC(fecha_fin)}.`
 }
+
+/**
+ * Single-line label for a contract date range, e.g. "14 Julio - 13 Agosto 2026"
+ * (or "14 Julio 2026 - 13 Agosto 2027" when the years differ).
+ * @param {string|Date} fechaInicio
+ * @param {string|Date} fechaFin
+ * @returns {string}
+ */
+export function formatContractDateRange(fechaInicio, fechaFin) {
+  if (!fechaInicio || !fechaFin) return "�"
+  const start = inicioDiaUTC(fechaInicio)
+  const end = inicioDiaUTC(fechaFin)
+  const startYear = start.getUTCFullYear()
+  const endYear = end.getUTCFullYear()
+  const startLabel = `${start.getUTCDate()} ${getMonthName(start.getUTCMonth() + 1)}`
+  const endLabel = `${end.getUTCDate()} ${getMonthName(end.getUTCMonth() + 1)}`
+  if (startYear === endYear) return `${startLabel} - ${endLabel} ${endYear}`
+  return `${startLabel} ${startYear} - ${endLabel} ${endYear}`
+}
+
