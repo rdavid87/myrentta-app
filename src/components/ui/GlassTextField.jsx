@@ -1,9 +1,26 @@
 import { Box, TextField, Typography } from "@mui/material"
-import { useTheme } from "@mui/material/styles"
+import { alpha, useTheme } from "@mui/material/styles"
 import { glassInputSx } from "./glassStyles"
 
 const isDateLike = (type) =>
   type === "date" || type === "datetime-local" || type === "time" || type === "month" || type === "week"
+
+// Highlighted native calendar button so the date picker trigger is easy to spot.
+// colorScheme already renders a light icon in dark mode, so no invert filter is needed.
+const calendarIndicatorSx = (theme) => ({
+  cursor: "pointer",
+  opacity: 1,
+  padding: "6px",
+  marginLeft: "8px",
+  borderRadius: "8px",
+  backgroundColor: alpha(theme.palette.primary.main, 0.18),
+  border: `1px solid ${alpha(theme.palette.primary.main, 0.5)}`,
+  transition: "background-color 0.2s ease, border-color 0.2s ease",
+  "&:hover": {
+    backgroundColor: alpha(theme.palette.primary.main, 0.35),
+    borderColor: theme.palette.primary.main,
+  },
+})
 
 /**
  * TextField glass. En type="date" el label va arriba (no flotante)
@@ -49,12 +66,7 @@ const GlassTextField = ({ type, label, required, sx = {}, slotProps, ...props })
               color: "text.primary",
               colorScheme: theme.palette.mode,
             },
-            // Calendario nativo legible en dark
-            "& input::-webkit-calendar-picker-indicator": {
-              cursor: "pointer",
-              opacity: 0.75,
-              filter: theme.palette.mode === "dark" ? "invert(0.85)" : "none",
-            },
+            "& input::-webkit-calendar-picker-indicator": calendarIndicatorSx(theme),
           }}
           {...props}
         />
