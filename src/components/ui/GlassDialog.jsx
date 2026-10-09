@@ -58,12 +58,14 @@ const GlassDialog = ({
             </Box>
           )}
           <Box sx={{ flex: 1, minWidth: 0, pt: 0.25 }}>
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 800, fontFamily: '"Plus Jakarta Sans", sans-serif', lineHeight: 1.25 }}
-            >
-              {title}
-            </Typography>
+            {title && (
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 800, fontFamily: '"Plus Jakarta Sans", sans-serif', lineHeight: 1.25 }}
+              >
+                {title}
+              </Typography>
+            )}
             {subtitle && (
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35 }}>
                 {subtitle}

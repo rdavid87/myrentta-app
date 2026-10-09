@@ -57,7 +57,7 @@ const CrearContrato = ({
     <GlassDialog
       open={open}
       onClose={onClose}
-      title={isRenew ? "Renovar Contrato" : "Nuevo Contrato de Arrendamiento"}
+      title={isRenew ? "Renovar Contrato" : undefined}
       subtitle={
         isRenew
           ? `${contratoToRenew.arrendatario_nombre} · ${contratoToRenew.apartamento_nombre}`
