@@ -24,6 +24,7 @@ import {
   EmptyState,
   GlassPanel,
   GlassSelect,
+  ListFooter,
 } from "../components/ui"
 import { neonBorder } from "../components/ui/glassStyles"
 
@@ -279,11 +280,13 @@ const NotificationCard = ({ n, formatDate }) => {
 }
 
 const Notificaciones = () => {
+  const PAGE_SIZE = 10
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState("todos")
   const [filterCanal, setFilterCanal] = useState("todos")
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     fetchNotificaciones()
@@ -320,6 +323,14 @@ const Notificaciones = () => {
       return matchesSearch && matchesEstado && matchesCanal
     })
   }, [items, searchTerm, filterEstado, filterCanal])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchTerm, filterEstado, filterCanal])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   const formatDate = (iso, timeZone = "America/Bogota") => {
   if (!iso) return "";
@@ -420,9 +431,17 @@ const Notificaciones = () => {
         />
       ) : (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-          {filtered.map((n) => (
+          {paginated.map((n) => (
             <NotificationCard key={n.id} n={n} formatDate={formatDate} />
           ))}
+          <ListFooter
+            from={(currentPage - 1) * PAGE_SIZE + 1}
+            to={Math.min(currentPage * PAGE_SIZE, filtered.length)}
+            total={filtered.length}
+            page={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </Box>
       )}
     </Box>
